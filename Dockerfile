@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-# One Dockerfile, three runtime targets: migrate, worker, web.
+# One Dockerfile, four runtime targets: migrate, worker, web, backup.
 
 ARG NODE_IMAGE=node:22-alpine
 
@@ -60,3 +60,17 @@ USER node
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:3000/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 CMD ["node", "apps/web/server.js"]
+
+# ---------- backup (daily pg_dump, 14-day rotation) ----------
+FROM postgres:16-alpine AS backup
+COPY scripts/backup/backup.sh scripts/backup/restore.sh /usr/local/bin/
+# CRLF guard (Windows checkouts), then a /backups owned by postgres: the named volume is
+# initialised from it, so the service runs as non-root.
+RUN sed -i 's/\r$//' /usr/local/bin/backup.sh /usr/local/bin/restore.sh \
+ && chmod 755 /usr/local/bin/backup.sh /usr/local/bin/restore.sh \
+ && mkdir -p /backups && chown postgres:postgres /backups
+ENV BACKUP_DIR=/backups TZ=America/Toronto
+USER postgres
+HEALTHCHECK --interval=5m --timeout=10s --start-period=30m --retries=1 \
+  CMD test -n "$(find /backups -maxdepth 1 -name 'jobradar_*.dump' -mmin -1560 | head -n1)"
+CMD ["backup.sh"]

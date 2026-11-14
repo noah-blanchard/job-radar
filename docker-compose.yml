@@ -31,6 +31,8 @@ services:
       PGTZ: America/Toronto
     volumes:
       - pgdata:/var/lib/postgresql/data
+    # Docker default /dev/shm (64 MB) is too small for parallel query workers.
+    shm_size: 128m
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
@@ -70,5 +72,29 @@ services:
     expose: ["3000"]
     mem_limit: 512m
 
+  # Daily pg_dump at BACKUP_HOUR (Toronto), BACKUP_KEEP_DAYS days kept on the "backups" volume.
+  # Restore: see README ("Restaurer un backup"). Only the Postgres credentials, not the whole .env.
+  backup:
+    build: { context: ., target: backup }
+    image: jobradar-backup
+    restart: unless-stopped
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    environment:
+      PGHOST: db
+      PGUSER: ${POSTGRES_USER:-jobradar}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      PGDATABASE: ${POSTGRES_DB:-jobradar}
+      BACKUP_HOUR: ${BACKUP_HOUR:-3}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+      TZ: America/Toronto
+    volumes:
+      - backups:/backups
+    mem_limit: 256m
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
 volumes:
   pgdata:
+  backups:
