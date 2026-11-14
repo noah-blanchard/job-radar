@@ -487,6 +487,11 @@ export const fr = {
       needOne: "Ajoute au moins un lieu (locations) ou un domaine (domains).",
       saved: "Profil enregistré : tes scores sont recalculés dans la minute.",
       root: "profil",
+      problem: {
+        location: "lieu {n}",
+        domain: "domaine {name}",
+        invalidPattern: "{where} : « {pattern} » n'est pas valide ({reason})",
+      },
       helpTitle: "Comment écrire son profil",
       help1:
         "Chaque offre reçoit un score de 0 à 100 : **lieu** (0 à 30), **niveau** (25 si visé, 10 si inconnu), **domaines** (3 points par mot-clé trouvé, le double dans le titre, 25 au plus), **langue** (+5, ou −10 si une autre langue est exigée), plus des bonus (entreprise prioritaire +10, offre de moins de 24 h +5, salaire affiché +3).",

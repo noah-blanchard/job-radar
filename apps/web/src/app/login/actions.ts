@@ -7,11 +7,10 @@ import {
   MIN_PASSWORD_LENGTH,
   verifyPassword,
 } from "@jobradar/core/users";
-import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { LOCALE_COOKIE, parseLocale } from "@/i18n/config";
-import { getT } from "@/i18n/server";
+import { parseLocale } from "@/i18n/config";
+import { getT, rememberLocale } from "@/i18n/server";
 import { getDb } from "@/lib/db";
 import { SESSION_COOKIE, SESSION_TTL_SECONDS, safeNextPath, signSession } from "@/lib/session";
 
@@ -76,13 +75,7 @@ export async function logout(): Promise<never> {
 /** Signed-out pages (login, invite): the language lives in this browser's cookie only. */
 export async function setGuestLocale(code: string): Promise<void> {
   const locale = parseLocale(code);
-  if (!locale) return;
-  (await cookies()).set(LOCALE_COOKIE, locale, {
-    path: "/",
-    maxAge: 60 * 60 * 24 * 365,
-    sameSite: "lax",
-  });
-  revalidatePath("/", "layout");
+  if (locale) await rememberLocale(locale);
 }
 
 export interface InviteState {

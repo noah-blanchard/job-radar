@@ -1,4 +1,5 @@
 import "server-only";
+import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { cache } from "react";
 import { sessionUser } from "@/lib/auth";
@@ -15,6 +16,19 @@ export const getLocale = cache(async (): Promise<Locale> => {
   if (fromCookie) return fromCookie;
   return negotiate((await headers()).get("accept-language"));
 });
+
+/**
+ * Remembers the language in this browser for a year (the login page keeps it after logout) and
+ * re-renders every page in it. Server actions only.
+ */
+export async function rememberLocale(locale: Locale): Promise<void> {
+  (await cookies()).set(LOCALE_COOKIE, locale, {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+    sameSite: "lax",
+  });
+  revalidatePath("/", "layout");
+}
 
 export const getMessages = cache(async () => MESSAGES[await getLocale()]);
 

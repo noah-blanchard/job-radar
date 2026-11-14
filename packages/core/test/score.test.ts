@@ -210,7 +210,13 @@ describe("scoreJob (fixture profile)", () => {
     });
     const problems = profileProblems(p);
     expect(problems).toHaveLength(3);
-    expect(problems[1]).toMatch(/^domaine web : « node\(js » n'est pas valide/);
+    expect(problems.map((x) => x.where)).toEqual([
+      { field: "locations", position: 1 },
+      { field: "domains", name: "web" },
+      { field: "exclude_title" },
+    ]);
+    expect(problems[1]!.pattern).toBe("node(js");
+    expect(problems[1]!.reason).not.toBe("");
     expect(profileProblems(profile)).toEqual([]);
   });
 

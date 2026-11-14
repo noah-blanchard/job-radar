@@ -12,12 +12,12 @@ import {
   ownerUser,
   verifyPassword,
 } from "@jobradar/core/users";
-import { parseProfileText, profileProblems } from "@jobradar/core/score";
+import { parseProfileText, profileProblems, type ProfileProblem } from "@jobradar/core/score";
 import { eq, kvSet, users } from "@jobradar/db";
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
-import { LOCALE_COOKIE, parseLocale } from "@/i18n/config";
-import { getT } from "@/i18n/server";
+import { parseLocale } from "@/i18n/config";
+import type { T } from "@/i18n/messages";
+import { getT, rememberLocale } from "@/i18n/server";
 import { currentUser, sessionUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 
@@ -118,6 +118,17 @@ function profileErrors(err: unknown, root: string): string[] {
   return [err instanceof Error ? err.message : String(err)];
 }
 
+/** "domain web: “node(js” is not valid (Unterminated group)", in the interface language. */
+function problemLine({ where, pattern, reason }: ProfileProblem, t: T): string {
+  const place =
+    where.field === "locations"
+      ? t("settings.profile.problem.location", { n: where.position })
+      : where.field === "domains"
+        ? t("settings.profile.problem.domain", { name: where.name })
+        : where.field;
+  return t("settings.profile.problem.invalidPattern", { where: place, pattern, reason });
+}
+
 /**
  * Saves the signed-in user's profile after checking the YAML, the schema and every pattern.
  * The worker sees the new hash at its next tick and rescores this user (about a minute).
@@ -139,7 +150,7 @@ export async function saveProfile(
     return { errors: profileErrors(err, t("settings.profile.root")) };
   }
   const problems = profileProblems(parsed.profile);
-  if (problems.length > 0) return { errors: problems };
+  if (problems.length > 0) return { errors: problems.map((p) => problemLine(p, t)) };
   if (parsed.profile.locations.length === 0 && Object.keys(parsed.profile.domains).length === 0)
     return { errors: [t("settings.profile.needOne")] };
   await getDb()
@@ -201,11 +212,6 @@ export async function setLocale(code: string): Promise<{ ok: boolean }> {
   const locale = parseLocale(code);
   if (!locale) return { ok: false };
   await getDb().update(users).set({ locale }).where(eq(users.id, me.id));
-  (await cookies()).set(LOCALE_COOKIE, locale, {
-    path: "/",
-    maxAge: 60 * 60 * 24 * 365,
-    sameSite: "lax",
-  });
-  revalidatePath("/", "layout");
+  await rememberLocale(locale);
   return { ok: true };
 }

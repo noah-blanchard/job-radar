@@ -99,7 +99,8 @@ export function DeleteUserButton({ id, email }: { id: number; email: string }) {
   );
 }
 
-export function PasswordForm() {
+/** `minLength`: the server's minimum password length, so the form and the action agree. */
+export function PasswordForm({ minLength }: { minLength: number }) {
   const [state, action, pending] = useActionState<FormState, FormData>(changePassword, {});
   const t = useT();
   return (
@@ -117,9 +118,9 @@ export function PasswordForm() {
         name="password"
         type="password"
         autoComplete="new-password"
-        placeholder={t("settings.password.newPlaceholder", { min: 8 })}
+        placeholder={t("settings.password.newPlaceholder", { min: minLength })}
         aria-label={t("settings.password.newLabel")}
-        minLength={8}
+        minLength={minLength}
         required
         className="h-8"
       />
@@ -129,7 +130,7 @@ export function PasswordForm() {
         autoComplete="new-password"
         placeholder={t("settings.password.confirm")}
         aria-label={t("settings.password.confirm")}
-        minLength={8}
+        minLength={minLength}
         required
         className="h-8"
       />

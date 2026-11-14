@@ -11,7 +11,7 @@ import {
   profileHash,
   type ProfileTemplate,
 } from "@jobradar/core/score";
-import { getUser, listUsers, ownerUser } from "@jobradar/core/users";
+import { getUser, listUsers, MIN_PASSWORD_LENGTH, ownerUser } from "@jobradar/core/users";
 import { randomBytes } from "node:crypto";
 import { kvGet } from "@jobradar/db";
 import type { Metadata } from "next";
@@ -212,7 +212,7 @@ export default async function SettingsPage() {
           </Section>
 
           <Section title={t("settings.password.title")}>
-            <PasswordForm />
+            <PasswordForm minLength={MIN_PASSWORD_LENGTH} />
           </Section>
 
           {admin ? (

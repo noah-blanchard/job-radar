@@ -2,7 +2,6 @@ import { queryRows, sql } from "@jobradar/db";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageFrame, PageHeader, PageScroll } from "@/components/placeholder";
-import { intlTag } from "@/i18n/config";
 import type { Format } from "@/i18n/format";
 import type { T } from "@/i18n/messages";
 import { getFormat, getT } from "@/i18n/server";
@@ -106,13 +105,6 @@ interface I18n {
   format: Format;
 }
 
-const dayLabel = (d: string, { format }: I18n) =>
-  new Intl.DateTimeFormat(intlTag(format.locale), {
-    day: "numeric",
-    month: "short",
-    timeZone: "UTC",
-  }).format(new Date(`${d}T00:00:00Z`));
-
 /**
  * Thin single-hue bars on a shared baseline: 2px gaps, 2px rounded tops, a hover readout per bar
  * (hit area = the full column, larger than the mark). One series: the section title names it.
@@ -152,7 +144,7 @@ function Bars({
             style={{ height: v === 0 ? 0 : `${Math.max(3, (v / top) * 100)}%` }}
           />
           <span className="bg-surface text-foreground pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 rounded-sm border px-1.5 py-0.5 text-[11px] whitespace-nowrap tabular-nums border-input group-hover:block">
-            {dayLabel(days[i]!, i18n)} · {format.number(v)}
+            {format.day(days[i]!)} · {format.number(v)}
           </span>
         </div>
       ))}
@@ -214,8 +206,7 @@ function SeriesTable({
   );
 }
 
-const pct = (n: number, d: number, format: Format) =>
-  d === 0 ? "—" : new Intl.NumberFormat(intlTag(format.locale), { style: "percent" }).format(n / d);
+const pct = (n: number, d: number, format: Format) => (d === 0 ? "—" : format.percent(n / d));
 
 function Fact({ n, label }: { n: string; label: string }) {
   return (
@@ -285,8 +276,8 @@ export default async function StatsPage() {
             />
           </div>
           <div className="text-muted-foreground mt-1.5 flex justify-between border-t pt-1 text-[11px]">
-            <span>{dayLabel(days[0]!, i18n)}</span>
-            <span>{dayLabel(days[days.length - 1]!, i18n)}</span>
+            <span>{format.day(days[0]!)}</span>
+            <span>{format.day(days[days.length - 1]!)}</span>
           </div>
           <details className="mt-2 text-xs">
             <summary className="text-muted-foreground hover:text-foreground cursor-pointer">
@@ -296,7 +287,7 @@ export default async function StatsPage() {
               <tbody>
                 {days.map((d, i) => (
                   <tr key={d} className="border-border-soft border-b">
-                    <td className="py-0.5">{dayLabel(d, i18n)}</td>
+                    <td className="py-0.5">{format.day(d)}</td>
                     <td className="py-0.5 text-right tabular-nums">{total[i]}</td>
                   </tr>
                 ))}

@@ -482,6 +482,11 @@ export const en: Messages = {
       needOne: "Add at least one location (locations) or one domain (domains).",
       saved: "Profile saved: your scores are recomputed within a minute.",
       root: "profile",
+      problem: {
+        location: "location {n}",
+        domain: "domain {name}",
+        invalidPattern: "{where}: “{pattern}” is not valid ({reason})",
+      },
       helpTitle: "How to write your profile",
       help1:
         "Each offer gets a score from 0 to 100: **location** (0 to 30), **level** (25 if targeted, 10 if unknown), **domains** (3 points per keyword found, double in the title, 25 at most), **language** (+5, or −10 if another language is required), plus bonuses (priority company +10, offer under 24 h old +5, salary shown +3).",

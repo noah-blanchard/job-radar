@@ -35,7 +35,10 @@ export function createFormat(locale: Locale, t: T) {
     day: "numeric",
     month: "short",
   });
+  // A day key is already a Toronto calendar day: format it as is, without shifting it again.
+  const dayFmt = new Intl.DateTimeFormat(tag, { timeZone: "UTC", day: "numeric", month: "short" });
   const numberFmt = new Intl.NumberFormat(tag);
+  const percentFmt = new Intl.NumberFormat(tag, { style: "percent" });
   const remote: Record<string, string> = {
     remote: t("format.remote.remote"),
     hybrid: t("format.remote.hybrid"),
@@ -45,6 +48,12 @@ export function createFormat(locale: Locale, t: T) {
   return {
     locale,
     number: (n: number) => numberFmt.format(n),
+
+    /** 0.42 -> "42 %" (fr) or "42%" (en). */
+    percent: (ratio: number) => percentFmt.format(ratio),
+
+    /** A Toronto day key ("2026-11-14", see dayKey) as "14 nov." or "Nov 14". */
+    day: (key: string) => dayFmt.format(new Date(`${key}T00:00:00Z`)),
 
     dateTime(d: When): string {
       const date = toDate(d);
@@ -67,8 +76,9 @@ export function createFormat(locale: Locale, t: T) {
 
     /** "3 h", "2 d", "5 min": age of a date relative to now. */
     age(d: When, now: Date = new Date()): string {
-      if (!d) return "—";
-      const ms = now.getTime() - new Date(d).getTime();
+      const date = toDate(d);
+      if (!date) return "—";
+      const ms = now.getTime() - date.getTime();
       const min = Math.max(0, Math.round(ms / 60_000));
       if (min < 60) return t("format.minutes", { n: min });
       const h = Math.round(min / 60);

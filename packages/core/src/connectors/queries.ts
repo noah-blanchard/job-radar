@@ -110,13 +110,54 @@ export function alternatives(pattern: string): string[] {
   return out.map((a) => a.trim()).filter(Boolean);
 }
 
+/** Variants kept per keyword: "(a|b) (c|d)" already gives four. */
+const MAX_VARIANTS = 4;
+
+/** Parentheses of the first group of `pattern` that holds alternatives. */
+function alternationGroup(pattern: string): { open: number; close: number } | null {
+  const stack: { open: number; bar: boolean }[] = [];
+  let inClass = false;
+  for (let i = 0; i < pattern.length; i++) {
+    const c = pattern[i];
+    if (c === "\\") i++;
+    else if (inClass) inClass = c !== "]";
+    else if (c === "[") inClass = true;
+    else if (c === "(") stack.push({ open: i, bar: false });
+    else if (c === "|" && stack.length > 0) stack[stack.length - 1]!.bar = true;
+    else if (c === ")") {
+      const group = stack.pop();
+      if (group?.bar) return { open: group.open, close: i };
+    }
+  }
+  return null;
+}
+
+/**
+ * One pattern per choice of the alternatives inside groups: "data warehous(e|ing)" gives
+ * "data warehous(e)" and "data warehous(ing)", so each search term is a real phrase instead of
+ * "data warehouse ing". First choices come first; at most `max` variants are kept.
+ */
+export function expandGroups(pattern: string, max = MAX_VARIANTS): string[] {
+  const group = alternationGroup(pattern);
+  if (!group) return [pattern];
+  const inner = pattern.slice(group.open + 1, group.close).replace(/^\?:/, "");
+  const choices = alternatives(inner);
+  const out: string[] = [];
+  for (const choice of choices.length > 0 ? choices : [""]) {
+    if (out.length >= max) break;
+    const variant = `${pattern.slice(0, group.open)}(${choice})${pattern.slice(group.close + 1)}`;
+    out.push(...expandGroups(variant, max - out.length));
+  }
+  return out;
+}
+
 /** profile.yaml keyword (a case-insensitive regex) -> plain search term. */
 export function plainTerm(pattern: string): string {
   return pattern
     .replace(/\[([^\]]*)\]\?/g, (_m, cls: string) => (cls.includes("-") ? "-" : ""))
     .replace(/\[([^\]]*)\]/g, (_m, cls: string) => (cls.includes("-") ? "-" : (cls[0] ?? "")))
     .replace(/\\(.)/g, "$1")
-    .replace(/\|/g, " ") // alternatives inside a group: separate words, never glued together
+    .replace(/\|/g, " ") // a leftover alternative: separate words, never glued together
     .replace(/[()?*^$]/g, "")
     .replace(/\s+/g, " ")
     .trim();
@@ -132,7 +173,8 @@ export interface DomainTerms {
 
 export function domainTerms(profile: Profile): DomainTerms[] {
   return Object.entries(profile.domains).map(([domain, patterns]) => {
-    const terms = [...new Set(patterns.flatMap(alternatives).map(plainTerm).filter(Boolean))];
+    const variants = patterns.flatMap(alternatives).flatMap((p) => expandGroups(p));
+    const terms = [...new Set(variants.map(plainTerm).filter(Boolean))];
     const words = [
       ...new Set(
         terms
