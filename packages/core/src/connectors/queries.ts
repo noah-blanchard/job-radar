@@ -58,7 +58,10 @@ export const SENIORITY_TERMS = {
   fr: ["junior", "débutant", "jeune diplômé"],
 } as const;
 
-/** Words too generic to be useful in an "any of these words" search. */
+/**
+ * Words too generic to be useful in an "any of these words" search: job nouns in both languages
+ * and the small words of French and English phrases ("ingénieur de données").
+ */
 const GENERIC = new Set([
   "engineer",
   "engineering",
@@ -67,7 +70,45 @@ const GENERIC = new Set([
   "digital",
   "processing",
   "signal",
+  "ingénieur",
+  "ingénieure",
+  "ingénierie",
+  "développeur",
+  "développeuse",
+  "programmeur",
+  "programmeuse",
+  "numérique",
+  "traitement",
+  "logiciel",
+  ...["of", "the", "and", "for", "in", "on", "to", "with"],
+  ...["de", "des", "du", "la", "le", "les", "en", "et", "pour", "au", "aux", "à", "un", "une"],
 ]);
+
+/**
+ * Top-level alternatives of a keyword: "data engineer|ingénieur de données" gives both, while
+ * "audio (software|engine)" stays one. A bilingual keyword then yields one clean term per
+ * language instead of the two glued together.
+ */
+export function alternatives(pattern: string): string[] {
+  const out: string[] = [];
+  let depth = 0;
+  let inClass = false;
+  let start = 0;
+  for (let i = 0; i < pattern.length; i++) {
+    const c = pattern[i];
+    if (c === "\\") i++;
+    else if (inClass) inClass = c !== "]";
+    else if (c === "[") inClass = true;
+    else if (c === "(") depth++;
+    else if (c === ")") depth = Math.max(0, depth - 1);
+    else if (c === "|" && depth === 0) {
+      out.push(pattern.slice(start, i));
+      start = i + 1;
+    }
+  }
+  out.push(pattern.slice(start));
+  return out.map((a) => a.trim()).filter(Boolean);
+}
 
 /** profile.yaml keyword (a case-insensitive regex) -> plain search term. */
 export function plainTerm(pattern: string): string {
@@ -75,7 +116,8 @@ export function plainTerm(pattern: string): string {
     .replace(/\[([^\]]*)\]\?/g, (_m, cls: string) => (cls.includes("-") ? "-" : ""))
     .replace(/\[([^\]]*)\]/g, (_m, cls: string) => (cls.includes("-") ? "-" : (cls[0] ?? "")))
     .replace(/\\(.)/g, "$1")
-    .replace(/[()?*^$|]/g, "")
+    .replace(/\|/g, " ") // alternatives inside a group: separate words, never glued together
+    .replace(/[()?*^$]/g, "")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -90,7 +132,7 @@ export interface DomainTerms {
 
 export function domainTerms(profile: Profile): DomainTerms[] {
   return Object.entries(profile.domains).map(([domain, patterns]) => {
-    const terms = [...new Set(patterns.map(plainTerm).filter(Boolean))];
+    const terms = [...new Set(patterns.flatMap(alternatives).map(plainTerm).filter(Boolean))];
     const words = [
       ...new Set(
         terms

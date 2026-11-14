@@ -10,6 +10,7 @@ import { dbQuota } from "../src/pipeline/quota";
 import { runSource } from "../src/pipeline/run";
 import {
   listProfileTemplates,
+  loadProfilePrompt,
   loadProfileFile,
   loadUserProfiles,
   parseProfileText,
@@ -426,6 +427,14 @@ describe("profile changes", () => {
       expect(p.profile.require_domain).toBe("title");
     },
   );
+
+  it("ships an interview prompt whose example profile is valid", () => {
+    const example = loadProfilePrompt(CONFIG_DIR)?.match(/```yaml\n([\s\S]*?)```/)?.[1];
+    expect(example).toBeDefined();
+    const p = parseProfileText(example!);
+    expect(profileProblems(p.profile)).toEqual([]);
+    expect(Object.keys(p.profile.domains).length).toBeGreaterThan(0);
+  });
 });
 
 describe("runSource hook", () => {

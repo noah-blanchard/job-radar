@@ -7,6 +7,7 @@ import {
   findUserByEmail,
   getUser,
   hashPassword,
+  isValidEmail,
   MIN_PASSWORD_LENGTH,
   ownerUser,
   verifyPassword,
@@ -14,11 +15,14 @@ import {
 import { parseProfileText, profileProblems } from "@jobradar/core/score";
 import { eq, kvSet, users } from "@jobradar/db";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
+import { LOCALE_COOKIE, parseLocale } from "@/i18n/config";
+import { getT } from "@/i18n/server";
 import { currentUser, sessionUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 
 /**
- * "Tester les canaux": the dashboard never sends anything itself. It records a request in `kv`
+ * "Test the channels": the dashboard never sends anything itself. It records a request in `kv`
  * (`alert_test_request:<user id>`) that the worker claims at its one-minute tick; it sends a
  * [TEST] digest on this user's channels and stores the outcome in `alert_test_result:<user id>`.
  */
@@ -42,16 +46,18 @@ const linkFor = (token: string) =>
 /** Admin: invitation link for a new e-mail, or reset link for an existing account. */
 export async function inviteUser(_prev: FormState, form: FormData): Promise<FormState> {
   const admin = await sessionUser();
-  if (admin?.role !== "admin") return { error: "Réservé à l'admin." };
+  const t = await getT();
+  if (admin?.role !== "admin") return { error: t("common.adminOnly") };
   const email = String(form.get("email") ?? "").trim();
+  if (!isValidEmail(email)) return { error: t("settings.accounts.invalidEmail") };
   try {
     const existing = await findUserByEmail(getDb(), email);
     const inv = await createInvite(getDb(), { email, createdBy: admin.id });
     revalidatePath("/settings");
     return {
       ok: existing
-        ? `Lien de réinitialisation du mot de passe pour ${email} (valable 7 jours) :`
-        : `Invitation pour ${email} (valable 7 jours, un seul usage) :`,
+        ? t("settings.accounts.resetLink", { email })
+        : t("settings.accounts.inviteLink", { email }),
       link: linkFor(inv.token),
     };
   } catch (err) {
@@ -62,8 +68,11 @@ export async function inviteUser(_prev: FormState, form: FormData): Promise<Form
 /** Admin: deletes an account and its scores, statuses and priorities. */
 export async function removeUser(id: number): Promise<{ ok: boolean; error?: string }> {
   const admin = await sessionUser();
-  if (admin?.role !== "admin") return { ok: false, error: "réservé à l'admin" };
-  if (id === admin.id) return { ok: false, error: "impossible de supprimer ton propre compte" };
+  const t = await getT();
+  if (admin?.role !== "admin") return { ok: false, error: t("common.adminOnly") };
+  if (id === admin.id) return { ok: false, error: t("settings.accounts.cannotDeleteSelf") };
+  if ((await ownerUser(getDb()))?.id === id)
+    return { ok: false, error: t("settings.accounts.cannotDeleteOwner") };
   try {
     await deleteUser(getDb(), id);
   } catch (err) {
@@ -78,19 +87,19 @@ export async function changePassword(_prev: FormState, form: FormData): Promise<
   const me = await currentUser();
   const current = String(form.get("current") ?? "");
   const next = String(form.get("password") ?? "");
+  const t = await getT();
   if (next.length < MIN_PASSWORD_LENGTH)
-    return { error: `${MIN_PASSWORD_LENGTH} caractères minimum.` };
-  if (next !== String(form.get("confirm") ?? ""))
-    return { error: "Les deux mots de passe diffèrent." };
+    return { error: t("settings.password.tooShort", { min: MIN_PASSWORD_LENGTH }) };
+  if (next !== String(form.get("confirm") ?? "")) return { error: t("settings.password.mismatch") };
   const db = getDb();
   const u = await getUser(db, me.id);
   if (!(await verifyPassword(current, u?.passwordHash)))
-    return { error: "Mot de passe actuel incorrect." };
+    return { error: t("settings.password.wrong") };
   await db
     .update(users)
     .set({ passwordHash: await hashPassword(next) })
     .where(eq(users.id, me.id));
-  return { ok: "Mot de passe modifié." };
+  return { ok: t("settings.password.changed") };
 }
 
 export interface ProfileFormState {
@@ -100,11 +109,11 @@ export interface ProfileFormState {
 
 const MAX_PROFILE_BYTES = 100_000;
 
-/** Readable lines from a YAML or schema error ("locations.0.weight : nombre attendu"). */
-function profileErrors(err: unknown): string[] {
+/** Readable lines from a YAML or schema error ("locations.0.weight: expected number"). */
+function profileErrors(err: unknown, root: string): string[] {
   if (err && typeof err === "object" && "issues" in err && Array.isArray(err.issues))
     return (err.issues as { path: PropertyKey[]; message: string }[]).map(
-      (i) => `${i.path.map(String).join(".") || "profil"} : ${i.message}`,
+      (i) => `${i.path.map(String).join(".") || root}: ${i.message}`,
     );
   return [err instanceof Error ? err.message : String(err)];
 }
@@ -119,26 +128,27 @@ export async function saveProfile(
 ): Promise<ProfileFormState> {
   const me = await currentUser();
   const text = String(form.get("profile") ?? "").replace(/\r\n/g, "\n");
-  if (!text.trim()) return { errors: ["Le profil est vide."] };
+  const t = await getT();
+  if (!text.trim()) return { errors: [t("settings.profile.empty")] };
   if (Buffer.byteLength(text) > MAX_PROFILE_BYTES)
-    return { errors: ["Profil trop long (100 Ko au plus)."] };
+    return { errors: [t("settings.profile.tooLong")] };
   let parsed;
   try {
     parsed = parseProfileText(text);
   } catch (err) {
-    return { errors: profileErrors(err) };
+    return { errors: profileErrors(err, t("settings.profile.root")) };
   }
   const problems = profileProblems(parsed.profile);
   if (problems.length > 0) return { errors: problems };
   if (parsed.profile.locations.length === 0 && Object.keys(parsed.profile.domains).length === 0)
-    return { errors: ["Ajoute au moins un lieu (locations) ou un domaine (domains)."] };
+    return { errors: [t("settings.profile.needOne")] };
   await getDb()
     .update(users)
     .set({ profileYaml: text, profileUpdatedAt: new Date() })
     .where(eq(users.id, me.id));
   revalidatePath("/settings");
   revalidatePath("/");
-  return { ok: "Profil enregistré : tes scores sont recalculés dans la minute." };
+  return { ok: t("settings.profile.saved") };
 }
 
 const score = (v: FormDataEntryValue | null): number | null | "invalid" => {
@@ -158,8 +168,9 @@ export async function saveAlertSettings(_prev: FormState, form: FormData): Promi
   const owner = await ownerUser(db);
   const digestMinScore = score(form.get("digestMinScore"));
   const instantMinScore = score(form.get("instantMinScore"));
+  const t = await getT();
   if (digestMinScore === "invalid" || instantMinScore === "invalid")
-    return { error: "Les scores vont de 0 à 100." };
+    return { error: t("settings.alerts.scoreRange") };
   const patch: Partial<typeof users.$inferInsert> = {
     digestEnabled: form.get("digestEnabled") === "on",
     digestMinScore,
@@ -169,14 +180,32 @@ export async function saveAlertSettings(_prev: FormState, form: FormData): Promi
   if (owner?.id !== me.id) {
     const email = String(form.get("alertEmail") ?? "").trim();
     const topic = String(form.get("ntfyTopic") ?? "").trim();
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "E-mail invalide." };
+    if (email && !isValidEmail(email)) return { error: t("settings.alerts.invalidEmail") };
     if (topic && !/^[A-Za-z0-9_-]{8,64}$/.test(topic))
-      return { error: "Topic ntfy : 8 à 64 lettres, chiffres, - ou _." };
+      return { error: t("settings.alerts.invalidTopic") };
     // A disabled field (no SMTP server) is not submitted: keep the stored address.
     if (form.has("alertEmail")) patch.alertEmail = email || null;
     patch.ntfyTopic = topic || null;
   }
   await db.update(users).set(patch).where(eq(users.id, me.id));
   revalidatePath("/settings");
-  return { ok: "Enregistré." };
+  return { ok: t("common.saved") };
+}
+
+/**
+ * The signed-in user's interface language: on the account (every device) and in a cookie, so
+ * the login page keeps it after logout. Every page re-renders in the new language.
+ */
+export async function setLocale(code: string): Promise<{ ok: boolean }> {
+  const me = await currentUser();
+  const locale = parseLocale(code);
+  if (!locale) return { ok: false };
+  await getDb().update(users).set({ locale }).where(eq(users.id, me.id));
+  (await cookies()).set(LOCALE_COOKIE, locale, {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+    sameSite: "lax",
+  });
+  revalidatePath("/", "layout");
+  return { ok: true };
 }

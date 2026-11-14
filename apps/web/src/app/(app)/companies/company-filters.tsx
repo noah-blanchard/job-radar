@@ -4,6 +4,7 @@ import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { Input, Select } from "@/components/ui/input";
+import { useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 
 export interface CompanyFilterValues {
@@ -27,6 +28,7 @@ export function CompanyFilters({
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
+  const t = useT();
   const [q, setQ] = useState(filters.q ?? "");
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const go = (patch: CompanyFilterValues) => {
@@ -57,17 +59,17 @@ export function CompanyFilters({
             const v = e.target.value.trim();
             timer.current = setTimeout(() => go({ q: v }), 350);
           }}
-          placeholder="Nom"
+          placeholder={t("companies.filterName")}
           className="pl-8"
-          aria-label="Filtrer par nom"
+          aria-label={t("companies.filterNameLabel")}
         />
       </div>
       <Select
         value={filters.origin ?? ""}
         onChange={(e) => go({ origin: e.target.value })}
-        aria-label="Origine"
+        aria-label={t("companies.filterOrigin")}
       >
-        <option value="">Toutes origines</option>
+        <option value="">{t("companies.allOrigins")}</option>
         {origins.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}
@@ -77,9 +79,9 @@ export function CompanyFilters({
       <Select
         value={filters.status ?? ""}
         onChange={(e) => go({ status: e.target.value })}
-        aria-label="Statut ATS"
+        aria-label={t("companies.filterStatus")}
       >
-        <option value="">Tous statuts</option>
+        <option value="">{t("companies.allStatuses")}</option>
         {statuses.map((s) => (
           <option key={s.value} value={s.value}>
             {s.label}
@@ -91,13 +93,13 @@ export function CompanyFilters({
         onChange={(e) => go({ ats: e.target.value })}
         aria-label="ATS"
       >
-        <option value="">Tous ATS</option>
+        <option value="">{t("companies.allAts")}</option>
         {atsList.map((a) => (
           <option key={a.ats} value={a.ats}>
             {a.ats} ({a.n})
           </option>
         ))}
-        <option value="none">Sans ATS</option>
+        <option value="none">{t("companies.noAts")}</option>
       </Select>
     </div>
   );

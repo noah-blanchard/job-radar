@@ -119,6 +119,9 @@ export async function ensureOwner(
 // ---------- invitations and password resets ----------
 
 export const INVITE_TTL_DAYS = 7;
+
+/** Loose shape check ("a@b.c"), shared by the invite form and the core. */
+export const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 export const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
 
 export interface CreatedInvite {
@@ -138,7 +141,7 @@ export async function createInvite(
   input: { email: string; createdBy?: number | null; now?: Date },
 ): Promise<CreatedInvite> {
   const email = normalizeEmail(input.email);
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("adresse e-mail invalide");
+  if (!isValidEmail(email)) throw new Error("invalid e-mail address");
   const now = input.now ?? new Date();
   const existing = await findUserByEmail(db, email);
   const token = randomBytes(24).toString("base64url");
@@ -172,7 +175,9 @@ export async function findInvite(db: AnyDb, token: string, now = new Date()) {
   return inv;
 }
 
-export type AcceptResult = { ok: true; userId: number } | { ok: false; error: string };
+/** Why a link was refused: a code, the interface words it in the user's language. */
+export type AcceptError = "password_too_short" | "invalid_link" | "link_used" | "email_taken";
+export type AcceptResult = { ok: true; userId: number } | { ok: false; error: AcceptError };
 
 /** Uses a link: creates the account (invitation) or sets the new password (reset). */
 export async function acceptInvite(
@@ -181,16 +186,16 @@ export async function acceptInvite(
 ): Promise<AcceptResult> {
   const now = input.now ?? new Date();
   if (input.password.length < MIN_PASSWORD_LENGTH)
-    return { ok: false, error: `${MIN_PASSWORD_LENGTH} caractères minimum.` };
+    return { ok: false, error: "password_too_short" };
   const inv = await findInvite(db, input.token, now);
-  if (!inv) return { ok: false, error: "Lien invalide ou expiré." };
+  if (!inv) return { ok: false, error: "invalid_link" };
   // Claim the link first: two submissions can never both use it.
   const claimed = await db
     .update(invites)
     .set({ usedAt: now })
     .where(and(eq(invites.id, inv.id), isNull(invites.usedAt)))
     .returning({ id: invites.id });
-  if (claimed.length === 0) return { ok: false, error: "Lien déjà utilisé." };
+  if (claimed.length === 0) return { ok: false, error: "link_used" };
 
   const passwordHash = await hashPassword(input.password);
   const name = input.name?.trim() || null;
@@ -198,8 +203,7 @@ export async function acceptInvite(
     await db.update(users).set({ passwordHash }).where(eq(users.id, inv.userId));
     return { ok: true, userId: inv.userId };
   }
-  if (await findUserByEmail(db, inv.email))
-    return { ok: false, error: "Un compte existe déjà pour cette adresse." };
+  if (await findUserByEmail(db, inv.email)) return { ok: false, error: "email_taken" };
   const [u] = await db
     .insert(users)
     .values({ email: inv.email, name, passwordHash, role: "user" })
@@ -210,7 +214,7 @@ export async function acceptInvite(
 /** Deletes an account and everything it owns (scores, statuses, priorities: ON DELETE CASCADE). */
 export async function deleteUser(db: AnyDb, id: number): Promise<boolean> {
   const owner = await ownerUser(db);
-  if (owner?.id === id) throw new Error("le compte propriétaire ne peut pas être supprimé");
+  if (owner?.id === id) throw new Error("the owner account cannot be deleted");
   const rows = await db.delete(users).where(eq(users.id, id)).returning({ id: users.id });
   return rows.length > 0;
 }

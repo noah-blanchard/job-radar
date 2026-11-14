@@ -5,40 +5,46 @@ import { CommandPalette, useGoChords } from "@/components/command-palette";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Kbd } from "@/components/ui/kbd";
 import { Toaster } from "@/components/ui/toast";
+import { useT } from "@/i18n/client";
+import type { MessageKey } from "@/i18n/messages";
 
-const GROUPS: { title: string; keys: [string, string][] }[] = [
+// The keys stay the same in every language (muscle memory); only their descriptions change.
+const GROUPS: { id: string; title: MessageKey; keys: [string, MessageKey][] }[] = [
   {
-    title: "Trier",
+    id: "triage",
+    title: "keys.triage",
     keys: [
-      ["j / k", "offre suivante / précédente"],
-      ["s", "sauvegarder"],
-      ["a", "postulé"],
-      ["x", "ignorer"],
-      ["z", "annuler la dernière action"],
-      ["o", "ouvrir l'offre d'origine"],
-      ["↵", "ouvrir la fiche"],
-      ["e", "écrire une note"],
-      ["f", "date de relance"],
-      ["/", "rechercher"],
+      ["j / k", "keys.nextPrevOffer"],
+      ["s", "keys.save"],
+      ["a", "keys.applied"],
+      ["x", "keys.ignore"],
+      ["z", "keys.undo"],
+      ["o", "keys.openOrigin"],
+      ["↵", "keys.openDetail"],
+      ["e", "keys.note"],
+      ["f", "keys.followUp"],
+      ["/", "keys.search"],
     ],
   },
   {
-    title: "Pipeline",
+    id: "pipeline",
+    title: "keys.pipeline",
     keys: [
-      ["j / k", "carte suivante / précédente"],
-      ["h / l", "colonne précédente / suivante"],
-      ["1 – 4", "déplacer vers une colonne"],
-      ["↵", "ouvrir la fiche"],
+      ["j / k", "keys.nextPrevCard"],
+      ["h / l", "keys.prevNextColumn"],
+      ["1 – 4", "keys.moveToColumn"],
+      ["↵", "keys.openDetail"],
     ],
   },
   {
-    title: "Partout",
+    id: "everywhere",
+    title: "keys.everywhere",
     keys: [
-      ["Ctrl K", "aller à une page, une vue, une offre"],
-      ["g t", "Trier"],
-      ["g p", "Pipeline"],
-      ["g s · g e · g x · g r", "Sources · Entreprises · Stats · Réglages"],
-      ["?", "cette aide"],
+      ["Ctrl K", "keys.palette"],
+      ["g t", "nav.triage"],
+      ["g p", "nav.pipeline"],
+      ["g s · g e · g x · g r", "keys.machinePages"],
+      ["?", "keys.help"],
     ],
   },
 ];
@@ -47,6 +53,7 @@ const GROUPS: { title: string; keys: [string, string][] }[] = [
 export function ShellKeys() {
   const [help, setHelp] = useState(false);
   const toggle = useCallback(() => setHelp((h) => !h), []);
+  const t = useT();
   useGoChords(toggle);
   return (
     <>
@@ -54,11 +61,11 @@ export function ShellKeys() {
       <Toaster />
       <Dialog open={help} onOpenChange={setHelp}>
         <DialogContent aria-describedby={undefined} className="w-[min(640px,calc(100vw-32px))] p-5">
-          <DialogTitle className="mb-4 text-sm font-semibold">Raccourcis clavier</DialogTitle>
+          <DialogTitle className="mb-4 text-sm font-semibold">{t("keys.title")}</DialogTitle>
           <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
             {GROUPS.map((g) => (
-              <section key={g.title} className={g.title === "Trier" ? "sm:row-span-2" : ""}>
-                <h3 className="label-caps mb-1.5">{g.title}</h3>
+              <section key={g.id} className={g.id === "triage" ? "sm:row-span-2" : ""}>
+                <h3 className="label-caps mb-1.5">{t(g.title)}</h3>
                 <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-[13px]">
                   {g.keys.map(([k, v]) => (
                     <div key={k} className="contents">
@@ -73,7 +80,7 @@ export function ShellKeys() {
                           ),
                         )}
                       </dt>
-                      <dd className="text-muted-foreground">{v}</dd>
+                      <dd className="text-muted-foreground">{t(v)}</dd>
                     </div>
                   ))}
                 </dl>

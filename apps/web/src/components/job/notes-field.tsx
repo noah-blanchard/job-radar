@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { saveNotes } from "@/app/(app)/jobs/actions";
+import { useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 
 /**
@@ -21,6 +22,7 @@ export function NotesField({
   ref?: React.Ref<HTMLTextAreaElement>;
   rows?: number;
 }) {
+  const t = useT();
   const [value, setValue] = useState(initial ?? "");
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const saved = useRef(initial ?? "");
@@ -70,8 +72,8 @@ export function NotesField({
         onKeyDown={(e) => {
           if (e.key === "Escape") (e.target as HTMLTextAreaElement).blur();
         }}
-        placeholder="Notes : contact, date de candidature, suites…"
-        aria-label="Notes"
+        placeholder={t("job.notesPlaceholder")}
+        aria-label={t("job.notes")}
         className="border-input placeholder:text-muted-foreground block w-full resize-y rounded-md border bg-field px-2.5 py-2 text-[13px] leading-relaxed outline-none hover:border-input-hover focus-visible:border-primary/70 focus-visible:bg-background focus-visible:outline-none [field-sizing:content] min-h-[4.5rem]"
       />
       <span
@@ -83,11 +85,11 @@ export function NotesField({
         )}
       >
         {state === "saving"
-          ? "enregistrement…"
+          ? t("job.notesSaving")
           : state === "saved"
-            ? "enregistré"
+            ? t("job.notesSaved")
             : state === "error"
-              ? "non enregistré, réessaie"
+              ? t("job.notesError")
               : ""}
       </span>
     </div>

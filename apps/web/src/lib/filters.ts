@@ -7,23 +7,8 @@ export const STATUSES = ["new", "saved", "applied", "interview", "rejected", "ig
 export type JobStatus = (typeof STATUSES)[number];
 export const PIPELINE_STATUSES = ["saved", "applied", "interview", "rejected"] as const;
 
-export const STATUS_LABEL: Record<JobStatus, string> = {
-  new: "nouvelle",
-  saved: "sauvegardée",
-  applied: "postulé",
-  interview: "entretien",
-  rejected: "refusée",
-  ignored: "ignorée",
-};
-
 export const SINCE = { "24h": 24, "3d": 72, "7d": 168, all: 0 } as const;
 export type Since = keyof typeof SINCE;
-export const SINCE_LABEL: Record<Since, string> = {
-  "24h": "24 h",
-  "3d": "3 j",
-  "7d": "7 j",
-  all: "tout",
-};
 
 /** "todo" = never triaged (default); "active" = everything but ignored. */
 export type StatusFilter = "active" | "todo" | "all" | JobStatus;
@@ -124,13 +109,16 @@ export function inboxHref(f: InboxFilters): string {
   return qs ? `/?${qs}` : "/";
 }
 
-/** One-click views over the filters: they set status + since and keep every other filter. */
+/**
+ * One-click views over the filters: they set status + since and keep every other filter.
+ * Labels: `views.<id>` (statuses: `status.<status>`) in the interface dictionaries.
+ */
 export const VIEWS = [
-  { id: "todo", label: "À trier", status: "todo", since: "all" },
-  { id: "fresh", label: "Nouvelles 24 h", status: "todo", since: "24h" },
-  { id: "saved", label: "Sauvegardées", status: "saved", since: "all" },
-  { id: "all", label: "Toutes", status: "active", since: "all" },
-] as const satisfies readonly { id: string; label: string; status: StatusFilter; since: Since }[];
+  { id: "todo", status: "todo", since: "all" },
+  { id: "fresh", status: "todo", since: "24h" },
+  { id: "saved", status: "saved", since: "all" },
+  { id: "all", status: "active", since: "all" },
+] as const satisfies readonly { id: string; status: StatusFilter; since: Since }[];
 export type ViewId = (typeof VIEWS)[number]["id"];
 
 export function currentView(f: InboxFilters): ViewId | null {

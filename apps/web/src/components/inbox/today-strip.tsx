@@ -8,11 +8,29 @@ import { statusColor } from "@/components/score-badge";
 import { toast } from "@/components/ui/toast";
 import { pushUndo, removeUndo, type UndoEntry } from "@/lib/undo";
 import { useSoftRefresh } from "@/lib/use-soft-refresh";
-import { STATUS_LABEL } from "@/lib/filters";
-import type { Today } from "@/lib/today";
-import { cn, formatDueDate } from "@/lib/utils";
+import { useFormat, useT } from "@/i18n/client";
+import type { T } from "@/i18n/messages";
+import type { Problem, Today } from "@/lib/today";
+import { cn } from "@/lib/utils";
 
 const inDays = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString();
+
+function problemLabel(p: Problem, t: T): string {
+  switch (p.kind) {
+    case "source":
+      return t("today.problem.source", { count: p.count });
+    case "quota":
+      return t("today.problem.quota", { sources: p.sources.join(", ") });
+    case "silent":
+      return t("today.problem.silent", { hours: p.hours });
+    case "no-profile":
+      return t("today.problem.noProfile");
+    case "invalid-profile":
+      return t("today.problem.invalidProfile");
+    case "rescoring":
+      return t("today.problem.rescoring");
+  }
+}
 
 function Fact({
   n,
@@ -29,6 +47,7 @@ function Fact({
   onClick?: () => void;
   expanded?: boolean;
 }) {
+  const format = useFormat();
   const body = (
     <>
       <span
@@ -38,7 +57,7 @@ function Fact({
           n === 0 && "text-muted-foreground",
         )}
       >
-        {n.toLocaleString("fr-CA")}
+        {format.number(n)}
       </span>
       <span className="text-muted-foreground">{label}</span>
       {onClick && n > 0 ? (
@@ -73,6 +92,8 @@ function Fact({
 export function TodayStrip({ today, triageHref }: { today: Today; triageHref: string }) {
   const [open, setOpen] = useState(false);
   const softRefresh = useSoftRefresh();
+  const t = useT();
+  const format = useFormat();
   const [due, setDue] = useState(today.due);
   const [seen, setSeen] = useState(today.due);
   if (seen !== today.due) {
@@ -83,8 +104,7 @@ export function TodayStrip({ today, triageHref }: { today: Today; triageHref: st
   const postpone = (id: number, days: number | null) => {
     const item = due.find((x) => x.id === id);
     if (!item) return;
-    const undoFailed = () =>
-      toast({ tone: "error", message: "Annulation non enregistrée. Réessaie." });
+    const undoFailed = () => toast({ tone: "error", message: t("today.undoFailed") });
     const restore = () =>
       setDue((d) =>
         d.some((x) => x.id === id)
@@ -107,51 +127,54 @@ export function TodayStrip({ today, triageHref }: { today: Today; triageHref: st
     toast({
       message:
         days === null
-          ? `Relance retirée · ${item.title}`
-          : `Relance dans ${days} j · ${item.title}`,
-      action: { label: "Annuler", hint: "z", run: () => (removeUndo(undo), undo.run()) },
+          ? t("today.followUpRemoved", { title: item.title })
+          : t("today.followUpIn", { days, title: item.title }),
+      action: { label: t("common.undo"), hint: "z", run: () => (removeUndo(undo), undo.run()) },
     });
     const rollback = () => {
       restore();
       removeUndo(undo);
-      toast({ tone: "error", message: "Relance non enregistrée. Réessaie." });
+      toast({ tone: "error", message: t("today.followUpFailed") });
     };
     void setNextAction(id, iso).then((r) => (r.ok ? softRefresh() : rollback()), rollback);
   };
   const dueCount = today.dueCount - (today.due.length - due.length);
 
   return (
-    <section aria-label="Aujourd'hui" className="shrink-0 border-b">
+    <section aria-label={t("today.title")} className="shrink-0 border-b">
       <div className="flex flex-wrap items-center gap-x-7 gap-y-1 px-4 pt-4 pb-3 text-[13px] md:px-6">
-        <h1 className="text-[15px] font-semibold">Aujourd&apos;hui</h1>
+        <h1 className="text-[15px] font-semibold">{t("today.title")}</h1>
         <Fact
           n={today.triage}
-          label={`à trier ≥ ${today.minScore}${today.triageFresh ? ` · ${today.triageFresh} en 24 h` : ""}`}
+          label={
+            t("today.toTriage", { min: String(today.minScore) }) +
+            (today.triageFresh ? t("today.fresh", { count: today.triageFresh }) : "")
+          }
           href={triageHref}
         />
         <Fact
           n={dueCount}
-          label={dueCount > 1 ? "relances dues" : "relance due"}
+          label={t("today.dueFollowUps", { count: dueCount })}
           tone="due"
           onClick={() => setOpen((o) => !o)}
           expanded={open}
         />
-        <Fact n={today.applied} label="en attente de réponse" href="/pipeline" />
+        <Fact n={today.applied} label={t("today.awaiting")} href="/pipeline" />
         <Fact
           n={today.interview}
-          label={today.interview > 1 ? "entretiens" : "entretien"}
+          label={t("today.interviews", { count: today.interview })}
           href="/pipeline"
         />
         {today.problems.length ? (
           <Link
             href="/sources"
             className="text-destructive hover:bg-secondary/70 -mx-1.5 inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 md:ml-auto"
-            title={today.problems.map((p) => p.label).join(" · ")}
+            title={today.problems.map((p) => problemLabel(p, t)).join(" · ")}
           >
             <span className="bg-destructive size-1.5 rounded-full" aria-hidden />
             {today.problems.length === 1
-              ? today.problems[0]!.label
-              : `${today.problems.length} problèmes machine`}
+              ? problemLabel(today.problems[0]!, t)
+              : t("today.machineProblems", { count: today.problems.length })}
           </Link>
         ) : null}
       </div>
@@ -164,35 +187,35 @@ export function TodayStrip({ today, triageHref }: { today: Today; triageHref: st
               className="border-border-soft flex flex-wrap items-center gap-x-4 gap-y-1 border-b py-2 text-[13px] last:border-0"
             >
               <span className={cn("w-20 shrink-0 text-xs", statusColor(d.status))}>
-                {STATUS_LABEL[d.status]}
+                {t(`status.${d.status}`)}
               </span>
               <Link href={`/jobs/${d.id}`} className="min-w-0 flex-1 truncate hover:underline">
                 <span className="font-medium">{d.title}</span>
                 <span className="text-muted-foreground"> · {d.company_name}</span>
               </Link>
-              <span className="text-warning text-xs">{formatDueDate(d.next_action_at)}</span>
+              <span className="text-warning text-xs">{format.dueDate(d.next_action_at)}</span>
               <span className="flex gap-1">
                 <button
                   type="button"
                   onClick={() => postpone(d.id, 7)}
                   className="border-input hover:bg-secondary h-7 rounded-md border px-2 text-xs"
-                  title="Relancé : prochaine relance dans 7 jours"
+                  title={t("today.doneTitle")}
                 >
-                  Fait · +7 j
+                  {t("today.done")}
                 </button>
                 <button
                   type="button"
                   onClick={() => postpone(d.id, 2)}
                   className="text-muted-foreground hover:bg-secondary hover:text-foreground h-7 rounded-md px-2 text-xs"
                 >
-                  Reporter 2 j
+                  {t("today.postpone")}
                 </button>
                 <button
                   type="button"
                   onClick={() => postpone(d.id, null)}
                   className="text-muted-foreground hover:bg-secondary hover:text-foreground h-7 rounded-md px-2 text-xs"
                 >
-                  Retirer
+                  {t("today.remove")}
                 </button>
               </span>
             </li>
@@ -200,7 +223,7 @@ export function TodayStrip({ today, triageHref }: { today: Today; triageHref: st
           {dueCount > due.length && due.length === today.due.length ? (
             <li className="py-2 text-xs">
               <Link href="/pipeline" className="text-info hover:underline">
-                Toutes les relances dans le pipeline
+                {t("today.allFollowUps")}
               </Link>
             </li>
           ) : null}

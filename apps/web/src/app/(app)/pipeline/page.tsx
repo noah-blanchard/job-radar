@@ -1,11 +1,14 @@
 import { queryRows, sql } from "@jobradar/db";
 import type { Metadata } from "next";
+import { getT } from "@/i18n/server";
 import { currentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { PIPELINE_STATUSES } from "@/lib/filters";
 import { Kanban, type PipelineCard } from "./kanban";
 
-export const metadata: Metadata = { title: "Pipeline" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getT())("nav.pipeline") };
+}
 export const dynamic = "force-dynamic";
 
 type Row = Omit<PipelineCard, "updated_at" | "next_action_at" | "ledger"> & {
@@ -16,6 +19,7 @@ type Row = Omit<PipelineCard, "updated_at" | "next_action_at" | "ledger"> & {
 
 export default async function PipelinePage() {
   const user = await currentUser();
+  const t = await getT();
   const rows = await queryRows<Row>(
     getDb(),
     sql`
@@ -42,11 +46,10 @@ export default async function PipelinePage() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="flex shrink-0 flex-wrap items-baseline gap-x-6 gap-y-1 border-b px-4 pt-4 pb-3 md:px-6">
-        <h1 className="text-[15px] font-semibold">Pipeline</h1>
+        <h1 className="text-[15px] font-semibold">{t("nav.pipeline")}</h1>
         <p className="text-muted-foreground text-[13px]">
-          Glisse une carte vers une colonne, ou <kbd className="text-foreground">1</kbd>–
-          <kbd className="text-foreground">4</kbd> sur la carte sélectionnée. Les relances dues
-          passent en tête.
+          {t("pipeline.intro1")} <kbd className="text-foreground">1</kbd>–
+          <kbd className="text-foreground">4</kbd> {t("pipeline.intro2")}
         </p>
       </header>
       <Kanban cards={cards} />

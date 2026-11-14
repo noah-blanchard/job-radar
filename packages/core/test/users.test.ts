@@ -81,7 +81,7 @@ describe("accounts", () => {
     // A link works once.
     expect(await acceptInvite(db, { token: inv.token, password: "alice-secret", now })).toEqual({
       ok: false,
-      error: "Lien invalide ou expiré.",
+      error: "invalid_link",
     });
 
     // Reset link: same table, tied to the existing account.

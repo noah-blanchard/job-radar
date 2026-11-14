@@ -1,6 +1,7 @@
 import "server-only";
 import type { ScoreBreakdown } from "@jobradar/core/score";
 import { queryRows, sql } from "@jobradar/db";
+import { intlTag, type Locale } from "@/i18n/config";
 import { getDb } from "./db";
 import type { JobStatus } from "./filters";
 import { sanitizeHtml, type SafeNode } from "./sanitize";
@@ -70,9 +71,9 @@ interface Row extends Record<string, unknown> {
 
 const iso = (d: Date | string | null | undefined) => (d ? new Date(d).toISOString() : null);
 
-function money(n: number, currency: string | null) {
+function money(n: number, currency: string | null, locale: Locale) {
   try {
-    return new Intl.NumberFormat("fr-CA", {
+    return new Intl.NumberFormat(intlTag(locale), {
       style: "currency",
       currency: currency ?? "USD",
       maximumFractionDigits: 0,
@@ -88,7 +89,11 @@ export function parseJobId(raw: string): number | null {
 }
 
 /** One job with the given user's score, status, notes and company priority. */
-export async function loadJobDetail(userId: number, id: number): Promise<JobDetail | null> {
+export async function loadJobDetail(
+  userId: number,
+  id: number,
+  locale: Locale,
+): Promise<JobDetail | null> {
   const db = getDb();
   const [job] = await queryRows<Row>(
     db,
@@ -120,7 +125,7 @@ export async function loadJobDetail(userId: number, id: number): Promise<JobDeta
     job.salary_min || job.salary_max
       ? [job.salary_min, job.salary_max]
           .filter((n): n is number => n != null)
-          .map((n) => money(n, job.salary_currency))
+          .map((n) => money(n, job.salary_currency, locale))
           .join(" – ")
       : null;
   return {

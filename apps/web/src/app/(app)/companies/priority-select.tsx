@@ -3,29 +3,27 @@
 import { useState, useTransition } from "react";
 import { Segmented } from "@/components/ui/segmented";
 import { toast } from "@/components/ui/toast";
+import { useT } from "@/i18n/client";
 import { setCompanyPriority } from "./actions";
 
 type Priority = "low" | "normal" | "high";
-const OPTIONS = [
-  { value: "high", label: "haute" },
-  { value: "normal", label: "normale" },
-  { value: "low", label: "basse" },
-] as const;
+const PRIORITIES = ["high", "normal", "low"] as const;
 
 /**
- * Optimistic switch of the user's own priority for a company ("haute" = score bonus for them
+ * Optimistic switch of the user's own priority for a company ("high" = score bonus for them
  * only); the worker rescores this company's jobs for them within a minute.
  */
 export function PrioritySelect({ companyId, priority }: { companyId: number; priority: Priority }) {
   const [value, setValue] = useState(priority);
   const [pending, start] = useTransition();
+  const t = useT();
   return (
-    <span title="Ta priorité (bonus de score pour toi seul·e), recalculée dans la minute">
+    <span title={t("companies.priorityTitle")}>
       <Segmented
-        label="Priorité"
+        label={t("companies.priorityLabel")}
         size="sm"
         value={value}
-        options={OPTIONS}
+        options={PRIORITIES.map((p) => ({ value: p, label: t(`companies.priority.${p}`) }))}
         disabled={pending}
         onChange={(next) => {
           if (next === value) return;
@@ -35,7 +33,7 @@ export function PrioritySelect({ companyId, priority }: { companyId: number; pri
             const r = await setCompanyPriority(companyId, next);
             if (!r.ok) {
               setValue(prev);
-              toast({ tone: "error", message: "Priorité non enregistrée. Réessaie." });
+              toast({ tone: "error", message: t("companies.priorityFailed") });
             }
           });
         }}

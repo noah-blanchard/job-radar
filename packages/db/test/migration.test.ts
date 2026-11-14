@@ -51,4 +51,8 @@ describe("generated migrations", () => {
   it("deduplicates alerts", () => {
     expect(sqlText).toMatch(/CREATE UNIQUE INDEX "alerts_sent_dedup_uq"/);
   });
+
+  it("stores an optional interface language per user", () => {
+    expect(sqlText).toMatch(/ALTER TABLE "users" ADD COLUMN "locale" text;/);
+  });
 });

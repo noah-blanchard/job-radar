@@ -120,7 +120,9 @@ ntfy : installe l'app ntfy (Android/iOS), abonne-toi au topic `NTFY_TOPIC` sur l
 | `/companies` | Entreprises, ATS, statut, offres ouvertes, priorité éditable, ajout par URL. |
 | `/sources` | Santé, quota du jour utilisé/restant, bouton « lancer » (demande exécutée par le worker dans la minute). |
 | `/stats` | Nouvelles offres par jour (30 j) par source et par pays, part new grad, top entreprises. |
-| `/settings` | Profil du compte et état de ses scores, mot de passe. Admin : comptes et invitations, seuils d'alerte, canaux et bouton « Tester les canaux ». |
+| `/settings` | Langue de l'interface (français / anglais), apparence, profil du compte et état de ses scores, mot de passe. Admin : comptes et invitations, seuils d'alerte, canaux et bouton « Tester les canaux ». |
+
+Langue : chaque compte choisit le français ou l'anglais (par défaut la langue du navigateur). Seule l'interface est traduite ; offres, profils, détail du score et alertes restent tels quels. Ajouter une langue : voir `DECISIONS.md` (« Langue de l'interface »).
 
 ## Git
 

@@ -72,6 +72,8 @@ export const users = pgTable(
     alertEmail: text("alert_email"),
     /** Personal ntfy topic on NTFY_URL. */
     ntfyTopic: text("ntfy_topic"),
+    /** Interface language ("fr", "en"…); null = not chosen, the browser's language applies. */
+    locale: text("locale"),
     createdAt: tstz("created_at").notNull().defaultNow(),
   },
   (t) => [uniqueIndex("users_email_uq").on(sql`lower(${t.email})`)],

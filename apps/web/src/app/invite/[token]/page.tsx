@@ -1,17 +1,22 @@
 import { findInvite } from "@jobradar/core/users";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { GuestLanguage } from "@/components/language-select";
 import { RadarMark } from "@/components/nav";
+import { getT } from "@/i18n/server";
 import { getDb } from "@/lib/db";
 import { InviteForm } from "./invite-form";
 
-export const metadata: Metadata = { title: "Invitation" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getT())("invite.title") };
+}
 export const dynamic = "force-dynamic";
 
 /** Invitation (new account) or password reset link, created from /settings or `cli user`. */
 export default async function InvitePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const invite = await findInvite(getDb(), token);
+  const t = await getT();
   return (
     <main className="flex min-h-dvh">
       <div
@@ -26,23 +31,24 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
           {invite ? (
             <>
               <h1 className="mb-1 text-[15px] font-semibold">
-                {invite.userId ? "Nouveau mot de passe" : "Créer ton compte"}
+                {invite.userId ? t("invite.newPassword") : t("invite.createAccount")}
               </h1>
               <p className="text-muted-foreground mb-5 text-[13px]">{invite.email}</p>
               <InviteForm token={token} reset={invite.userId !== null} />
             </>
           ) : (
             <>
-              <p className="mb-3 text-[13px]">Ce lien est invalide, déjà utilisé ou expiré.</p>
+              <p className="mb-3 text-[13px]">{t("invite.invalid")}</p>
               <p className="text-muted-foreground text-[13px]">
-                Demande un nouveau lien à l&apos;administrateur, ou{" "}
+                {t("invite.askNew")}{" "}
                 <Link href="/login" className="text-foreground underline underline-offset-2">
-                  connecte-toi
+                  {t("invite.signIn")}
                 </Link>
                 .
               </p>
             </>
           )}
+          <GuestLanguage />
         </div>
       </div>
     </main>

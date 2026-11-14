@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
+import { getLocale, getT } from "@/i18n/server";
 import { currentUser } from "@/lib/auth";
 import { loadJobDetail, parseJobId } from "@/lib/job-detail";
 import { JobPage } from "./job-page";
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 const load = cache(async (raw: string) => {
   const id = parseJobId(raw);
   const user = await currentUser();
-  return id ? loadJobDetail(user.id, id) : null;
+  return id ? loadJobDetail(user.id, id, await getLocale()) : null;
 });
 
 export async function generateMetadata({
@@ -19,7 +20,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const job = await load((await params).id);
-  return { title: job ? job.title : "Offre" };
+  return { title: job ? job.title : (await getT())("job.fallbackTitle") };
 }
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {

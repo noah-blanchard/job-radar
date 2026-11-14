@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getT } from "@/i18n/server";
 import { Inbox } from "@/components/inbox/inbox";
 import { TodayStrip } from "@/components/inbox/today-strip";
 import { currentUser } from "@/lib/auth";
@@ -7,7 +8,9 @@ import { loadFilterOptions, loadInbox } from "@/lib/jobs";
 import { profileDomains } from "@/lib/profile";
 import { loadToday } from "@/lib/today";
 
-export const metadata: Metadata = { title: "Trier" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getT())("nav.triage") };
+}
 export const dynamic = "force-dynamic";
 
 export default async function InboxPage({

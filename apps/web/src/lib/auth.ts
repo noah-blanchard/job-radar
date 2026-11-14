@@ -3,6 +3,7 @@ import { getUser } from "@jobradar/core/users";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
+import { parseLocale, type Locale } from "@/i18n/config";
 import { getDb } from "./db";
 import { SESSION_COOKIE, verifySession } from "./session";
 
@@ -11,6 +12,8 @@ export interface SessionUser {
   email: string | null;
   name: string | null;
   role: "admin" | "user";
+  /** Chosen interface language; null = follow the browser. */
+  locale: Locale | null;
 }
 
 /** The signed-in user, or null (no cookie, bad signature, deleted account). */
@@ -21,7 +24,7 @@ export const sessionUser = cache(async (): Promise<SessionUser | null> => {
   if (id === null) return null;
   const u = await getUser(getDb(), id);
   if (!u || !u.passwordHash) return null;
-  return { id: u.id, email: u.email, name: u.name, role: u.role };
+  return { id: u.id, email: u.email, name: u.name, role: u.role, locale: parseLocale(u.locale) };
 });
 
 /**
