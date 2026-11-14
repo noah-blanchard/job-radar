@@ -1,8 +1,9 @@
 import { createServer } from "node:http";
 import { loadCompanySeed, syncCompanySeed } from "@jobradar/core";
-import { kvSet, sql } from "@jobradar/db";
+import { kvGet, kvSet, sql } from "@jobradar/db";
 import { Cron } from "croner";
 
+import { createAlerts } from "./alerts";
 import { createHealthHandler } from "./health";
 import { processRequests } from "./requests";
 import { ensureProfileScores, refreshExpiredFreshness } from "./scoring";
@@ -19,6 +20,7 @@ const JITTER_MS: Record<Schedule, number> = {
   feeds: 5 * 60_000,
 };
 
+const alerts = createAlerts(rt);
 const startedAt = new Date();
 let lastTick: Date | undefined;
 
@@ -28,7 +30,7 @@ async function heartbeat(): Promise<void> {
   lastTick = now;
   log.debug({ at: now.toISOString() }, "heartbeat");
   // Dashboard requests ("lancer maintenant", priority changes), picked up within a minute.
-  await processRequests(rt);
+  await processRequests(rt, alerts);
 }
 
 function sweep(schedule: Schedule) {
@@ -40,6 +42,10 @@ function sweep(schedule: Schedule) {
       schedules: [schedule],
       maxJitterMs: JITTER_MS[schedule],
       deadline: schedule === "ats" ? t0 + env.ATS_SWEEP_MAX_MINUTES * 60_000 : undefined,
+      // Instant alerts right after each run that found new jobs (ATS sweeps last hours).
+      onRun: (r) => {
+        if (r.nbNew > 0) void alerts.instant();
+      },
     });
     log.info(
       {
@@ -74,6 +80,23 @@ const jobs: Cron[] = [
     guard("aggregators", sweep("aggregators")),
   ),
   new Cron(
+    env.DIGEST_CRON,
+    { name: "digest", timezone: TZ, protect: true },
+    guard("digest", async () => {
+      await alerts.digest();
+    }),
+  ),
+  // Health checks, plus retries of instant alerts / today digest that failed on a channel.
+  new Cron(
+    "*/15 * * * *",
+    { name: "alerts", timezone: TZ, protect: true },
+    guard("alerts", async () => {
+      await alerts.health();
+      await alerts.instant();
+      await alerts.catchUpDigest();
+    }),
+  ),
+  new Cron(
     env.FEEDS_CRON,
     { name: "feeds", timezone: TZ, protect: true },
     guard("feeds", sweep("feeds")),
@@ -104,11 +127,16 @@ const server = createServer(
 async function start(): Promise<void> {
   const seeded = await syncCompanySeed(db, loadCompanySeed());
   log.info(seeded, "company seed synced");
+  // Heartbeat of the previous process, read before ours overwrites it (worker silence alert).
+  const previous = await kvGet<string>(db, "worker_last_tick");
+  const previousTick = previous ? new Date(previous) : undefined;
   // Not awaited: a full rescore (~1 min on 100k jobs) must not delay the health endpoint.
   void ensureProfileScores(rt).catch((err: unknown) =>
     log.error({ err }, "startup profile rescore failed"),
   );
   await heartbeat();
+  void alerts.health(previousTick);
+  void alerts.catchUpDigest();
   server.listen(env.WORKER_HEALTH_PORT, () => {
     log.info(
       {
@@ -116,6 +144,7 @@ async function start(): Promise<void> {
         tz: TZ,
         jobs: jobs.map((j) => ({ name: j.name, next: j.nextRun()?.toISOString() })),
         enabled: rt.sources.filter((s) => s.enabled).map((s) => s.id),
+        alertChannels: alerts.channels,
       },
       "worker started",
     );

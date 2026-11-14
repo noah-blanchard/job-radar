@@ -18,6 +18,8 @@ export interface SweepOptions {
   includeDisabled?: boolean;
   /** ATS: stop starting new companies after this instant (epoch ms). */
   deadline?: number;
+  /** Called after each source/company run (instant alerts when it found new jobs). */
+  onRun?: (run: RunSummary) => void;
 }
 
 export interface SweepResult {
@@ -94,7 +96,11 @@ export async function runSweep(rt: Runtime, opts: SweepOptions): Promise<SweepRe
 
       const out = await withAdvisoryLock(rt.lockSql, `source:${id}`, async () => {
         const deps = depsFor(rt, id);
-        if (!connector.needsCompany) return [await runSource(deps, connector)];
+        const done = (r: RunSummary) => {
+          opts.onRun?.(r);
+          return r;
+        };
+        if (!connector.needsCompany) return [done(await runSource(deps, connector))];
         const list = (await companiesFor(rt, id)).filter(
           (c) => !opts.company || c.name.toLowerCase().includes(opts.company.toLowerCase()),
         );
@@ -106,7 +112,7 @@ export async function runSweep(rt: Runtime, opts: SweepOptions): Promise<SweepRe
             rt.log.warn({ source: id, deferred: left }, "sweep time budget reached");
             break;
           }
-          summaries.push(await runSource(deps, connector, c));
+          summaries.push(done(await runSource(deps, connector, c)));
         }
         return summaries;
       });

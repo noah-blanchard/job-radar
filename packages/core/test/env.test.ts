@@ -24,6 +24,19 @@ describe("parseEnv", () => {
     expect(env.DISCORD_WEBHOOK_URL).toBeUndefined();
   });
 
+  it("treats a comment captured as the value (KEY=   # comment in compose) as unset", () => {
+    const env = parseEnv({
+      NTFY_TOPIC: "# nom difficile à deviner",
+      NTFY_TOKEN: "# si instance protégée",
+      CONTACT_EMAIL: "#",
+      SMTP_PASS: "pa#ss",
+    });
+    expect(env.NTFY_TOPIC).toBeUndefined();
+    expect(env.NTFY_TOKEN).toBeUndefined();
+    expect(env.CONTACT_EMAIL).toBeUndefined();
+    expect(env.SMTP_PASS).toBe("pa#ss");
+  });
+
   it("coerces booleans, ints and lists", () => {
     const env = parseEnv({
       LLM_ENABLED: "true",
