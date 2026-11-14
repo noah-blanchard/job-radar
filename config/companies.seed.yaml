@@ -3,7 +3,7 @@
 # Les entreprises extraites des repos new grad GitHub arrivent automatiquement en M2 (origin = discovered).
 #
 # Formats d'ats_key : greenhouse/ashby/lever/smartrecruiters = slug du board ;
-# lever EU = "eu:<slug>" ; workday = "<tenant>/<wdN>/<site>".
+# lever EU = "eu:<slug>" ; workday = "<tenant>/<wdN>/<site>" ; amazon = pays ISO3 ("CAN,FRA").
 
 companies:
   # --- ATS détecté et vérifié ---
@@ -26,7 +26,7 @@ companies:
   - { name: Autodesk, priority: high, ats: workday, ats_key: autodesk/wd1/Ext }
 
   # --- Pas d'ATS public supporté (couverts par les agrégateurs en M2) ---
-  - { name: Amazon, priority: high, ats: null, ats_key: null, note: "amazon.jobs/en/search.json répond (200) : connecteur dédié en M2" }
+  - { name: Amazon, priority: high, ats: amazon, ats_key: "CAN,FRA", note: "API maison amazon.jobs/en/search.json ; Canada + France complets (USA via agrégateurs)" }
   - { name: Microsoft, priority: high, ats: null, ats_key: null, note: "Eightfold (apply.careers.microsoft.com) répond 403 'Not authorized for PCSX'" }
 
   # --- ATS non trouvé parmi greenhouse/lever/ashby/smartrecruiters/workable/recruitee/breezy/bamboohr/personio/teamtailor ---

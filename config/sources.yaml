@@ -1,7 +1,7 @@
 # Activation, fréquence et quotas de chaque source.
 # status: verified | disabled | unverified (à vérifier par un vrai appel avant d'écrire le connecteur)
 # schedule: ats (ATS_CRON, 6 h) | aggregators (AGGREGATORS_CRON, 1x/jour 05:30) | feeds (FEEDS_CRON, 6 h)
-# Les quotas journaliers des API à clé viennent des variables *_DAILY_MAX_CALLS du .env.
+# quota_env: variable *_DAILY_MAX_CALLS du .env qui plafonne les appels du jour (table api_usage).
 # L'état détaillé (raison de désactivation, notes de vérification) est dans SOURCES.md.
 
 ats:
@@ -10,34 +10,36 @@ ats:
   ashby: { enabled: true, status: verified, schedule: ats }
   smartrecruiters: { enabled: true, status: verified, schedule: ats }
   workday: { enabled: true, status: verified, schedule: ats, min_interval_ms: 1000 }
-  workable: { enabled: false, status: verified, schedule: ats }
-  recruitee: { enabled: false, status: verified, schedule: ats }
-  personio: { enabled: false, status: verified, schedule: ats }
-  bamboohr: { enabled: false, status: verified, schedule: ats }
-  breezy: { enabled: false, status: verified, schedule: ats }
-  teamtailor: { enabled: false, status: verified, schedule: ats }
-  pinpoint: { enabled: false, status: disabled, schedule: ats }
-  rippling: { enabled: false, status: verified, schedule: ats }
-  oracle_rc: { enabled: false, status: verified, schedule: ats }
-  eightfold: { enabled: false, status: disabled, schedule: ats }
+  workable: { enabled: true, status: verified, schedule: ats }
+  recruitee: { enabled: true, status: verified, schedule: ats }
+  personio: { enabled: true, status: verified, schedule: ats }
+  bamboohr: { enabled: true, status: verified, schedule: ats }
+  breezy: { enabled: true, status: verified, schedule: ats }
+  teamtailor: { enabled: true, status: verified, schedule: ats }
+  pinpoint: { enabled: true, status: verified, schedule: ats }
+  rippling: { enabled: true, status: verified, schedule: ats }
+  oracle_rc: { enabled: true, status: verified, schedule: ats }
+  amazon: { enabled: true, status: verified, schedule: ats } # API maison amazon.jobs
+  eightfold: { enabled: false, status: disabled, schedule: ats } # 403 « Not authorized for PCSX »
 
 aggregators:
-  github_simplify_newgrad: { enabled: false, status: unverified, schedule: feeds }
-  adzuna: { enabled: false, status: unverified, schedule: aggregators, quota_env: ADZUNA_DAILY_MAX_CALLS }
-  jooble: { enabled: false, status: unverified, schedule: aggregators, quota_env: JOOBLE_DAILY_MAX_CALLS }
-  careerjet: { enabled: false, status: unverified, schedule: aggregators }
-  france_travail: { enabled: false, status: unverified, schedule: aggregators, quota_env: FT_DAILY_MAX_CALLS }
-  ba_jobsuche: { enabled: false, status: unverified, schedule: aggregators } # BA_JOBSUCHE_ENABLED
-  themuse: { enabled: false, status: unverified, schedule: aggregators }
-  findwork: { enabled: false, status: unverified, schedule: aggregators, quota_env: FINDWORK_DAILY_MAX_CALLS }
-  jsearch: { enabled: false, status: unverified, schedule: aggregators, quota_env: JSEARCH_DAILY_MAX_CALLS }
-  jobbank_ca: { enabled: false, status: unverified, schedule: aggregators }
+  adzuna: { enabled: true, status: verified, schedule: aggregators, quota_env: ADZUNA_DAILY_MAX_CALLS }
+  jooble: { enabled: true, status: verified, schedule: aggregators, quota_env: JOOBLE_DAILY_MAX_CALLS }
+  jsearch: { enabled: true, status: verified, schedule: aggregators, quota_env: JSEARCH_DAILY_MAX_CALLS }
+  findwork: { enabled: true, status: verified, schedule: aggregators, quota_env: FINDWORK_DAILY_MAX_CALLS }
+  france_travail: { enabled: false, status: disabled, schedule: aggregators, quota_env: FT_DAILY_MAX_CALLS } # OAuth invalid_client
+  themuse: { enabled: false, status: disabled, schedule: aggregators } # /api/public/jobs -> 404
+  careerjet: { enabled: false, status: disabled, schedule: aggregators } # CAREERJET_AFFID requis
+  ba_jobsuche: { enabled: false, status: disabled, schedule: aggregators } # 403 avec la clé publique
+  jobbank_ca: { enabled: false, status: disabled, schedule: aggregators } # CSV mensuel (> 7 j)
 
 feeds:
-  arbeitnow: { enabled: false, status: unverified, schedule: feeds }
-  remotive: { enabled: false, status: unverified, schedule: feeds }
-  remoteok: { enabled: false, status: unverified, schedule: feeds }
-  himalayas: { enabled: false, status: unverified, schedule: feeds }
-  jobicy: { enabled: false, status: unverified, schedule: feeds }
-  weworkremotely: { enabled: false, status: unverified, schedule: feeds }
-  hn_whoishiring: { enabled: false, status: unverified, schedule: feeds }
+  github_simplify_newgrad: { enabled: true, status: verified, schedule: feeds }
+  github_vansh_newgrad: { enabled: true, status: verified, schedule: feeds }
+  arbeitnow: { enabled: true, status: verified, schedule: feeds }
+  remotive: { enabled: true, status: verified, schedule: feeds }
+  remoteok: { enabled: true, status: verified, schedule: feeds }
+  himalayas: { enabled: true, status: verified, schedule: feeds }
+  jobicy: { enabled: true, status: verified, schedule: feeds }
+  weworkremotely: { enabled: true, status: verified, schedule: feeds }
+  hn_whoishiring: { enabled: true, status: verified, schedule: feeds }
