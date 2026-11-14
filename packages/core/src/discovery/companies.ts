@@ -130,3 +130,63 @@ export class CompanyResolver {
     return { ...d, companyId: row!.id, inserted: false };
   }
 }
+
+export interface RegisterInput {
+  name: string;
+  ats: string;
+  atsKey: string;
+  careersUrl?: string | null;
+  origin?: "manual" | "discovered" | "seed";
+  priority?: "low" | "normal" | "high";
+}
+
+/**
+ * Adds a company with a known board (manual add from the dashboard or `detect-ats`).
+ * Idempotent on (ats, ats_key); a same-name company without ATS gets the board instead.
+ */
+export async function registerCompany(
+  db: AnyDb,
+  input: RegisterInput,
+): Promise<{ id: number; created: boolean; updated: boolean }> {
+  const [existing] = await db
+    .select({ id: companies.id })
+    .from(companies)
+    .where(and(eq(companies.ats, input.ats), eq(companies.atsKey, input.atsKey)))
+    .limit(1);
+  if (existing) return { id: existing.id, created: false, updated: false };
+
+  const nameKey = companyKey(input.name);
+  const [noAts] = await db
+    .select({ id: companies.id })
+    .from(companies)
+    .where(and(eq(companies.nameKey, nameKey), isNull(companies.ats)))
+    .orderBy(companies.id)
+    .limit(1);
+  if (noAts) {
+    await db
+      .update(companies)
+      .set({
+        ats: input.ats,
+        atsKey: input.atsKey,
+        atsStatus: "unknown",
+        consecutiveFailures: 0,
+        ...(input.careersUrl ? { careersUrl: input.careersUrl } : {}),
+      })
+      .where(eq(companies.id, noAts.id));
+    return { id: noAts.id, created: false, updated: true };
+  }
+
+  const [row] = await db
+    .insert(companies)
+    .values({
+      name: input.name.trim(),
+      nameKey,
+      ats: input.ats,
+      atsKey: input.atsKey,
+      careersUrl: input.careersUrl ?? null,
+      origin: input.origin ?? "manual",
+      priority: input.priority ?? "normal",
+    })
+    .returning({ id: companies.id });
+  return { id: row!.id, created: true, updated: false };
+}

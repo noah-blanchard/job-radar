@@ -16,3 +16,5 @@ export * from "./pipeline/validators";
 export * from "./connectors/queries";
 export * from "./discovery/detectAts";
 export * from "./discovery/companies";
+export * from "./discovery/probe";
+export { FINDWORK_MIN_INTERVAL_MS } from "./connectors/findwork";
