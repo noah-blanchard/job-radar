@@ -15,6 +15,13 @@
       "when": 1794627472656,
       "tag": "0001_score_dashboard",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794656122430,
+      "tag": "0002_follow_up",
+      "breakpoints": true
     }
   ]
 }

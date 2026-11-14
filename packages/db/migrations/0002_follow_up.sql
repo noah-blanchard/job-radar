@@ -1,0 +1,1 @@
+ALTER TABLE "job_status" ADD COLUMN "next_action_at" timestamp with time zone;

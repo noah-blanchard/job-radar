@@ -160,6 +160,8 @@ export const jobStatus = pgTable("job_status", {
     .references(() => jobs.id, { onDelete: "cascade" }),
   status: jobStatusKind("status").notNull().default("new"),
   notes: text("notes"),
+  /** Follow-up date ("relancer le"): set on applied/interview, editable in the dashboard. */
+  nextActionAt: tstz("next_action_at"),
   updatedAt: tstz("updated_at").notNull().defaultNow(),
 });
 
