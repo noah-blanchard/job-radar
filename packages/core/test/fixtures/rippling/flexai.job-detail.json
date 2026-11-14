@@ -1,0 +1,70 @@
+{
+  "uuid": "03ff755a-8e42-4bb6-a87c-58c85a59ff25",
+  "name": "Senior Backend Engineer",
+  "description": {
+    "company": "<meta><p style=\"font-family:&quot;Basel Grotesk&quot;,Arial,sans-serif;font-size:11pt;font-weight:400;line-height:1.6;letter-spacing:0.25px;margin:4px 0px;padding:0px;\"><u><b><strong style=\"font-size:18pt;text-decoration:underline;white-space:pre-wrap;\">About FlexAI</strong></b></u></p><p style=\"font-family:&quot;Basel Grotesk&quot;,Arial,sans-serif;font-size:18pt;font-weight:400;line-height:1.6;letter-spacing:0.25px;margin:4px 0px;padding:0px;\"><b><strong style=\"font-size:18pt;white-space:pre-wrap;\">Build and Deploy AI the right way, anywhere. </strong></b></p><p style=\"font-family:&quot;Basel Grotesk&quot;,Arial,sans-serif;font-size:11pt;font-weight:400;line-height:1.6;letter-spacing:0.25px;margin:4px 0px;padding:0px;\"><span style=\"white-space:pre-wrap;\">The FlexAI Compute Infrastructure Platform provides an \"end-to-end AI compute layer\" for running and managing workloads across any cloud, any GPU, and any deployment model (public, hybrid, or on-prem). It brings together \"1-click simplicity\" for users with \"enterprise-grade orchestration, security, and automation\" under the hood.</span></p><p style=\"font-family:&quot;Basel Grotesk&quot;,Arial,sans-serif;font-size:11pt;font-weight:400;line-height:1.6;letter-spacing:0.25px;margin:4px 0px;padding:0px;\"><br></p><p style=\"font-family:&quot;Basel Grotesk&quot;,Arial,sans-serif;font-size:11pt;font-weight:400;line-height:1.6;letter-spacing:0.25px;margin:4px 0px;padding:0px;\"><span style=\"color:rgb(0,0,0);background-color:rgb(255,255,255);white-space:pre-wrap;\">Founded by</span><span style=\"white-space:pre-wrap;\">&nbsp;</span><a href=\"https://www.linkedin.com/in/btripathi\" target=\"_blank\" class=\"css-173makr-linkStyle\" style=\"color:rgb(30,74,169);cursor:pointer;\"><span style=\"white-space:pre-wrap;\">Brijesh Tripathi</span></a><span style=\"color:rgb(0,0,0);background-color:rgb(255,255,255);white-space:pre-wrap;\">, who bring experience from Nvidia, Apple, Tesla, Intel and Zoox, FlexAI is not</span><span style=\"white-space:pre-wrap;\">&nbsp;</span><i><em style=\"color:rgb(0,0,0);white-space:pre-wrap;\">just</em></i><span style=\"white-space:pre-wrap;\">&nbsp;</span><span style=\"color:rgb(0,0,0);background-color:rgb(255,255,255);white-space:pre-wrap;\">building a product – we’re shaping the future of AI. Our teams are strategically distributed across Silicon Valley and Bengaluru, united by a shared mission: to deliver more compute with less complexity.</span><br><br><span style=\"color:rgb(0,0,0);background-color:rgb(255,255,255);white-space:pre-wrap;\">If you're passionate about shaping the future of artificial intelligence, driving innovation, and contributing to a sustainable and inclusive AI ecosystem,</span><span style=\"white-space:pre-wrap;\">&nbsp;</span><b><strong style=\"color:rgb(0,0,0);white-space:pre-wrap;\">FlexAI is the place for you !</strong></b></p><h1 style=\"font-family:&quot;Basel Grotesk&quot;,Arial,sans-serif;line-height:1.6;font-size:20pt;font-weight:600;letter-spacing:1px;margin-top:24px;margin-bo",
+    "role": "<meta><h1 style=\"font-family:&quot;Basel Grotesk&quot;,Arial,sans-serif;line-height:1.6;font-size:20pt;font-weight:600;letter-spacing:1px;margin-top:24px;margin-bottom:4px;padding-left:0px;\"><u><b><strong style=\"color:rgb(0,0,0);font-size:20pt;text-decoration:underline;white-space:pre-wrap;\">Role Overview</strong></b></u></h1><p style=\"font-family:&quot;Basel Grotesk&quot;,Arial,sans-serif;font-size:11pt;font-weight:400;line-height:1.6;letter-spacing:0.25px;margin:4px 0px;padding:0px;\"><span style=\"color:rgb(0,0,0);font-size:11pt;white-space:pre-wrap;\">FlexAI is looking for a </span><b><strong style=\"color:rgb(0,0,0);font-size:11pt;white-space:pre-wrap;\">Senior Backend Engineer</strong></b><span style=\"color:rgb(0,0,0);font-size:11pt;white-space:pre-wrap;\"> (Infrastructure &amp; AI Platform) with deep Golang expertise to architect and build the core backend systems powering our next-generation AI compute and PaaS platform. This role sits at the intersection of distributed systems, cloud infrastructure, and AI platform engineering — enabling large-scale model training, inference, and orchestration across heterogeneous compute. This is not a traditional backend role; you will be building platform-grade systems that support AI runtimes, scheduling, resource orchestration, and multi-tenant cloud infrastructure.</span></p><p style=\"font-family:&quot;Basel Grotesk&quot;,Arial,sans-serif;font-size:11pt;font-weight:400;line-height:1.6;letter-spacing:0.25px;margin:4px 0px;padding:0px;\"><br></p><p style=\"font-family:&quot;Basel Grotesk&quot;,Arial,sans-serif;font-size:11pt;font-weight:400;line-height:1.6;letter-spacing:0.25px;margin:4px 0px;padding:0px;\"><span style=\"color:rgb(0,0,0);font-size:11pt;white-space:pre-wrap;\">As a </span><b><strong style=\"color:rgb(0,0,0);font-size:11pt;white-space:pre-wrap;\">Senior Backend Engineer</strong></b><span style=\"color:rgb(0,0,0);font-size:11pt;white-space:pre-wrap;\">, you'll drive backend architecture, scale platform services, and build high-performance infrastructure components that power AI workloads in production environments — influencing how the platform evolves from Beta to enterprise-grade deployment. Expect high ownership and technical autonomy in a research-driven, deep-tech environment — not SaaS CRUD apps.</span></p><p style=\"font-family:&quot;Basel Grotesk&quot;,Arial,sans-serif;font-size:11pt;font-weight:400;line-height:1.6;letter-spacing:0.25px;margin:4px 0px;padding:0px;\"><br></p><p style=\"font-family:&quot;Basel Grotesk&quot;,Arial,sans-serif;font-size:11pt;font-weight:400;line-height:1.6;letter-spacing:0.25px;margin:4px 0px;padding:0px;\"><i><em style=\"color:rgb(0,0,0);font-size:11pt;white-space:pre-wrap;\">This position is In-Person and located at our San Jose, CA Office.</em></i></p><hr><h1 style=\"font-family:&quot;Basel Grotesk&quot;,Arial,sans-serif;line-height:1.6;font-size:20pt;font-weight:600;letter-spacing:1px;margin-top:24px;margin-bottom:4px;padding-left:0px;\"><u><b><strong style=\"color:rgb("
+  },
+  "workLocations": [
+    "San Jose, CA"
+  ],
+  "department": {
+    "name": "Engine",
+    "base_department": "Engineering",
+    "department_tree": [
+      "Engineering",
+      "Engine"
+    ]
+  },
+  "employmentType": {
+    "label": "SALARIED_FT",
+    "id": "Salaried, full-time"
+  },
+  "createdOn": "2026-03-23T18:05:44.354000-07:00",
+  "eeocQuestionnaireEnabled": true,
+  "eeocQuestionnaireEnabledForJobPost": true,
+  "url": "https://ats.rippling.com/flexai/jobs/03ff755a-8e42-4bb6-a87c-58c85a59ff25",
+  "board": {
+    "boardType": "RIPPLING",
+    "slug": "flexai",
+    "logo": {
+      "name": "FlexAI_Logotype_sRGB_Blue.png",
+      "url": "https://secured-assets.ripplingcdn.com/us1/ats/691f9b08ede9f735837fdfeb/ats/10068bb0995648c08cc6aa9e5c87c506?Expires=1794709661&Signature=hFi7ZIGWd8dYXeO2qbSNWsmrzBWqsQisPVrcdtqK3uojdeyiVUKAUGIMrbECGnqc8vxRw42HimEntUohN1p0-o0bLyu7f5MxMXpJeIBTIXwbW0D6p8SQ-ie7HNtdIoNMPQeLVXZbo7oAH3GPUxb-7rQ9Vm-fbz~vlcaDr5jz0hEFmWKRJc9~9JoseNmr1pf5Dn-uRTUbxdQJGldqGb59Y9SIVXC7Hc4qoTwATDUYNryWzClgyLuyAv2kwwF~MLfLajouAvprLtlC09lGWVgpYz3UYSRJDxgXJuEOxjfPDeN7nZnb86Nnh1WcIcAD3pOrRwhbM7Pk2W0-XultY2J41Q__&Key-Pair-Id=K2SM3GXN9F9XGM",
+      "type": "image/png"
+    },
+    "banner": {
+      "name": "",
+      "url": null,
+      "type": ""
+    },
+    "title": "FlexAI",
+    "subtitle": "Build and Deploy AI the right way",
+    "boardURL": "https://ats.rippling.com/flexai/jobs",
+    "fontType": "ARIAL_SANS_SERIF",
+    "linkColor": "#0034ac",
+    "buttonColor": "#f7a0ba",
+    "buttonTextColor": "#ccffff",
+    "legalNotice": null,
+    "noOpeningsMessage": null,
+    "groupJobsByLocation": false,
+    "showBoardLogoOnJobPost": true,
+    "showCompanyInfoUnderJobPost": false,
+    "companyName": "FlexAI",
+    "isTest": false
+  },
+  "payRangeDetails": [
+    {
+      "location": "US",
+      "currency": "USD",
+      "frequency": "YEAR",
+      "rangeStart": 180000,
+      "rangeEnd": 225000,
+      "isRemote": false
+    }
+  ],
+  "applicationConfirmationTemplate": "69494473f6bb0ca63141fef2",
+  "hasAIEvaluationsEnabled": false,
+  "companyName": "FlexAI",
+  "unlistedFromSearch": false,
+  "jsonLd": null
+}
