@@ -1,0 +1,66 @@
+[
+  {
+    "date_updated": 1794615148,
+    "url": "https://go.vansh.nyc/1zp",
+    "locations": [
+      "Seymour, IN"
+    ],
+    "sponsorship": "Other",
+    "active": true,
+    "company_name": "Cummins",
+    "title": "New Grad 2027: Systems Engineer",
+    "source": "vanshb03",
+    "id": "f07e0447-01c5-4882-9f98-b9c4c8f835b9",
+    "date_posted": 1794612800,
+    "company_url": "",
+    "is_visible": true
+  },
+  {
+    "date_updated": 1794618789,
+    "url": "https://go.vansh.nyc/1zv",
+    "locations": [
+      "Toronto, Canada"
+    ],
+    "sponsorship": "Other",
+    "active": true,
+    "company_name": "DataVisor",
+    "title": "New Grad: Infrastructure Engineer",
+    "source": "vanshb03",
+    "id": "c9cd9ec6-b9b3-4716-9921-287555fa2a7e",
+    "date_posted": 1794618592,
+    "company_url": "",
+    "is_visible": true
+  },
+  {
+    "date_updated": 1794622654,
+    "url": "https://go.vansh.nyc/1zw",
+    "locations": [
+      "Phoenix, AZ"
+    ],
+    "sponsorship": "Does Not Offer Sponsorship",
+    "active": true,
+    "company_name": "Aerospace",
+    "title": "Embedded Software Engineer I - Flight Management System",
+    "source": "vanshb03",
+    "id": "e8d1690c-7154-48e4-944a-b11c5a40d67e",
+    "date_posted": 1794622505,
+    "company_url": "",
+    "is_visible": true
+  },
+  {
+    "date_updated": 1748649274,
+    "url": "https://go.vansh.nyc/i3",
+    "company_name": "Red Hat",
+    "title": "Software Quality Engineer",
+    "locations": [
+      "Raleigh, NC"
+    ],
+    "sponsorship": "Offers Sponsorship",
+    "active": false,
+    "source": "cvrve-bot",
+    "id": "9bd7188b-7f56-4003-8263-af808ccbfe0d",
+    "date_posted": 1743415983,
+    "company_url": "",
+    "is_visible": true
+  }
+]

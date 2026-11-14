@@ -1,0 +1,151 @@
+{
+  "status": "OK",
+  "request_id": "8eb1f00f-8d2d-4445-bf77-ad969e8709a8",
+  "parameters": {
+    "query": "new grad software engineer in Canada",
+    "num_pages": 1,
+    "date_posted": "3days",
+    "country": "us",
+    "language": "en"
+  },
+  "data": {
+    "jobs": [
+      {
+        "job_id": "dzBxQmxHS0l6S01lSmVSQ0FBQUFBQT09OkVzc0JDb3dCUVVSRVlsZGxXVVIxZGtad1NISjRhbDlCTFVGTFRHUTBSRmhvY1ROb1QwMVBZMDF6VFhKM1dFbENWWE5SWjFWWVQwTjNWVWRGTkhkbk5EaHZXRkpGUW01dGJ6bHRTbFpNVmsxallUaGlRVEpRWHpacVdVd3hZbmxtYlY5dGR6TmliRzVpWXpkUU5qaHNTbWxZTlZWTk5uZHdZVFJoVUVOclNGRjJaMEZFT0VOaFlYWnFOVGRGYVhScFdtd1NGazV6WWpOaGNGOWhSRTF0V0dwMVRWQXlUa3hIU1ZFYUlrRklUakJGTjBaT1oyTnJabTVzY1hweVpqbG5OVko1YzJoNU5Xa3lSblJDUmtFOjBiMGE1MzYx",
+        "job_title": "AI-Powered Software Engineer (New Grad) - Remote",
+        "employer_name": "Fellow - AI Meeting Assistant",
+        "employer_logo": null,
+        "employer_website": null,
+        "job_publisher": "BeBee",
+        "job_employment_type": "Full-time",
+        "job_employment_types": [
+          "FULLTIME"
+        ],
+        "job_apply_link": "https://bebee.com/ca/jobs/ai-powered-software-engineer-new-grad-remote-fellow-ai-meeting-assistant-quebec-qc--jooble-8262135727914419212",
+        "job_apply_is_direct": false,
+        "apply_options": [
+          {
+            "apply_link": "https://bebee.com/ca/jobs/ai-powered-software-engineer-new-grad-remote-fellow-ai-meeting-assistant-quebec-qc--jooble-8262135727914419212",
+            "is_direct": false,
+            "publisher": "BeBee"
+          }
+        ],
+        "job_description": "Fellow.ai is hiring recent graduates to join our Engineering team as full-time contributors. You'll own real features from concept to production, collaborating with Product and Design, and using AI tools like Cursor and Claude to accelerate delivery.\n\nFrom day one, you'll work on meaningful projects shipped to customers, with mentorship from a senior engineer and a culture of rapid iteration and continuous learning. Ottawa hybrid, remote-first expectations apply.",
+        "job_is_remote": false,
+        "job_posted_at": "2 days ago",
+        "job_posted_at_timestamp": 1794441600,
+        "job_posted_at_datetime_utc": "2026-11-12T00:00:00.000Z",
+        "job_location": "Québec City, Quebec, Canada",
+        "job_city": "Québec City",
+        "job_state": "Quebec",
+        "job_country": "CA",
+        "job_latitude": 46.8130816,
+        "job_longitude": -71.20745959999999,
+        "job_benefits": null,
+        "job_benefits_strings": null,
+        "job_google_link": "https://www.google.com/search?q=jobs&gl=us&hl=en&udm=8#vhid=vt%3D20/docid%3Dw0qBlGKIzKMeJeRCAAAAAA%3D%3D&vssid=jobs-detail-viewer",
+        "job_salary": null,
+        "job_salary_string": null,
+        "job_min_salary": null,
+        "job_max_salary": null,
+        "job_salary_period": null,
+        "job_highlights": {},
+        "job_onet_soc": null,
+        "job_onet_job_zone": null,
+        "employer_reviews": null,
+        "job_uid": "w0qBlGKIzKMeJeRCAAAAAA=="
+      },
+      {
+        "job_id": "b2QtWlJLQ09rZmFKb1Rub0FBQUFBQT09OkVzc0JDb3dCUVVSRVlsZGxZVzlOU0RsbGFFNW9kVFJJU1Rsd1NHeFlRM0U1TVVab0xXSlJjRGRsUkVaamVHaFRRMFV0Um1sMlUyWnpRMkl0YkdSb1JYWnJaVE5pWjJkTVkwUkJkV295WmxGTmJrZ3dSbVJTUVdwR1ExQlhZbE0zZFZKU1IyUmZSVVJxYUZOclJXazJYelkwVWtWdFJsVmhlbkl3VDJFeVdEVjZMWHB1Ymw5WVVtd3lkRTF2TmxwNGJrUVNGazV6WWpOaGNGOWhSRTF0V0dwMVRWQXlUa3hIU1ZFYUlrRklUakJGTjBka1dHVmxSMkpDU1RSQ1dERlpjMWgzUzJWeWFqUXllWE5KU0djOjFiNjFlMjBi",
+        "job_title": "Graduate Software Engineer (Remote)",
+        "employer_name": "Placements24",
+        "employer_logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWea3O1wXP4d61BIy6jIKvatHQDwwKG3O7Hb_6&s=0",
+        "employer_website": null,
+        "job_publisher": "Recruit.net",
+        "job_employment_type": "Full-time",
+        "job_employment_types": [
+          "FULLTIME"
+        ],
+        "job_apply_link": "https://www.recruit.net/job/software-engineer-jobs/972734AB82DC81DB",
+        "job_apply_is_direct": false,
+        "apply_options": [
+          {
+            "apply_link": "https://www.recruit.net/job/software-engineer-jobs/972734AB82DC81DB",
+            "is_direct": false,
+            "publisher": "Recruit.net"
+          }
+        ],
+        "job_description": "About the Role\n\nOur client is actively seeking talented and motivated Graduate Software Engineers for a fully remote position, based out of Kimberley . This is a unique opportunity for recent graduates to launch their careers in software development within a company that embraces remote work culture. You will join a collaborative engineering team, contributing to the design, development, and deployment of innovative software solutions. We provide a supportive environment with ample opportunities for learning and growth, focusing on building scalable and high-quality applications that address real-world problems. This role requires self-discipline and a proactive attitude, essential for success in a remote setting.\n\nKey Responsibilities\n• Develop, test, and deploy high-quality software applications using modern programming languages and frameworks.\n• Collaborate effectively with a distributed team of engineers, product managers, and designers.\n• Participate actively in code reviews , providing constructive feedback to peers.\n• Troubleshoot, debug, and upgrade existing software systems.\n• Contribute to the continuous improvement of development processes and practices.\n\nRequirements\n• A Bachelor's degree in Computer Science, Software Engineering, or a related technical field.\n• Solid understanding of software development principles and object-oriented programming .\n• Experience with at least one modern programming language (e.g., Java , Python, C++).\n• Familiarity with version c",
+        "job_is_remote": true,
+        "job_posted_at": "2 days ago",
+        "job_posted_at_timestamp": 1794441600,
+        "job_posted_at_datetime_utc": "2026-11-12T00:00:00.000Z",
+        "job_location": "Anywhere",
+        "job_city": null,
+        "job_state": null,
+        "job_country": null,
+        "job_latitude": null,
+        "job_longitude": null,
+        "job_benefits": null,
+        "job_benefits_strings": null,
+        "job_google_link": "https://www.google.com/search?q=jobs&gl=us&hl=en&udm=8#vhid=vt%3D20/docid%3Dod-ZRKCOkfaJoTnoAAAAAA%3D%3D&vssid=jobs-detail-viewer",
+        "job_salary": null,
+        "job_salary_string": null,
+        "job_min_salary": null,
+        "job_max_salary": null,
+        "job_salary_period": null,
+        "job_highlights": {},
+        "job_onet_soc": null,
+        "job_onet_job_zone": null,
+        "employer_reviews": null,
+        "job_uid": "od-ZRKCOkfaJoTnoAAAAAA=="
+      },
+      {
+        "job_id": "a2ZGYkxnTHRXTUM5UVN1YUFBQUFBQT09OkVzc0JDb3dCUVVSRVlsZGxZbGQwZG1sb1ZtZFdiMnBSYWxwaVpXYzBTV0pJUzAxbWJEaDZMVFkwTm5VM1lqY3hiVUpKWDBSQ1ZYcFVWa05FYUd4Wk1GUjRhV3hXYVdWamVrOWtjVFF0Y0dKcVZXeDBkWE5EVldSYVUwbElVM0pqVUc5UmRHMU5iMUJxU0RJeE5FSjZNalYzZVdkRVNEZGlUek5KWVV4dWQwRnpWMU5JTm1vd1luTjBSVk56V20xRmVuRVNGazV6WWpOaGNGOWhSRTF0V0dwMVRWQXlUa3hIU1ZFYUlrRklUakJGTjBkUVZESmxSa3hKZEhCemVVaDVkMjVQU0dadFNFRldSVEZmY2tFOmI4ZGYxODc4",
+        "job_title": "Software Engineer (Java, Python & Linux)",
+        "employer_name": "Enterprise Solutions Inc.",
+        "employer_logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTUb43U0v7GsNb-KGdvlfyNJ7jBFJWTbU6Y5Pub&s=0",
+        "employer_website": null,
+        "job_publisher": "LinkedIn",
+        "job_employment_type": "Contractor",
+        "job_employment_types": [
+          "CONTRACTOR"
+        ],
+        "job_apply_link": "https://ca.linkedin.com/jobs/view/software-engineer-java-python-linux-at-enterprise-solutions-inc-4486777054",
+        "job_apply_is_direct": false,
+        "apply_options": [
+          {
+            "apply_link": "https://ca.linkedin.com/jobs/view/software-engineer-java-python-linux-at-enterprise-solutions-inc-4486777054",
+            "is_direct": false,
+            "publisher": "LinkedIn"
+          }
+        ],
+        "job_description": "Software Engineer (Java, Python & Linux)\n\nLocation: Mississauga, ON\n\nExperience: 5+ Years\n\nPosition: Sub-contractor\n\nJob Description\n\nWe are looking for an experienced Software Engineer with strong hands-on expertise in Java, Python, Linux, and CI/CD to join a dynamic DevSecOps team supporting a large-scale, highly available distributed payment system.\n\nThe ideal candidate will have experience in application development, microservices, secure coding, automated testing, and production troubleshooting. Familiarity with QA responsibilities and the ability to perform development and testing activities are highly desirable.\n\nResponsibilities\n• Analyze business requirements, identify use cases, and document technical specifications.\n• Design, develop, implement, and maintain secure, scalable, and high-performance applications.\n• Develop and support distributed applications using Java, Python, Spring Boot, and microservices.\n• Build and maintain RESTful APIs and integrate distributed application components.\n• Participate in the full software development lifecycle, including requirement analysis, design, development, testing, deployment, and maintenance.\n• Develop and execute unit, integration, and automated tests as part of CI/CD pipelines.\n• Follow test-first development practices and maintain high software quality standards.\n• Perform code reviews, code scanning, vulnerability assessment, and remediation in collaboration with application security teams.\n• Identify and address secu",
+        "job_is_remote": false,
+        "job_posted_at": "13 hours ago",
+        "job_posted_at_timestamp": 1794574800,
+        "job_posted_at_datetime_utc": "2026-11-13T13:00:00.000Z",
+        "job_location": "Mississauga, ON, Canada",
+        "job_city": "Mississauga",
+        "job_state": "Ontario",
+        "job_country": "CA",
+        "job_latitude": 43.585277399999995,
+        "job_longitude": -79.6449916,
+        "job_benefits": null,
+        "job_benefits_strings": null,
+        "job_google_link": "https://www.google.com/search?q=jobs&gl=us&hl=en&udm=8#vhid=vt%3D20/docid%3DkfFbLgLtWMC9QSuaAAAAAA%3D%3D&vssid=jobs-detail-viewer",
+        "job_salary": null,
+        "job_salary_string": null,
+        "job_min_salary": null,
+        "job_max_salary": null,
+        "job_salary_period": null,
+        "job_highlights": {},
+        "job_onet_soc": null,
+        "job_onet_job_zone": null,
+        "employer_reviews": null,
+        "job_uid": "kfFbLgLtWMC9QSuaAAAAAA=="
+      }
+    ],
+    "cursor": "EssFCowFQUREYldlWnhnTFRZYmt4a2pjbzFyZlp5bkhjX240ZGxsM19qOWJaV3lwUGVQUmtxOFI0d3YwVGFvMHBHLXZSVm9XVC1iOTR1c3A1RXUzOFZIZU5HUzZyZzAtaDJaZkdjS25XbXZMUGpxMmR2LTBSekVDMTQ2bVI2OVQyLUZZbk0zWUZnSHRqN1VyZWE3c1BGLWxac0xnaVE4bmExYXl2T3hGLVc2TVJ0MjM3cFp6YjhUdW51MzV2ZzF5Z1gwdUlQQlB3VGJpcWV0YmNOMDdvOGFEcnJDTG1feXhRYjdib3lTWlF6eVc0c2w1NVpmb3MyaElweUtrR1NGSm5EdDlpMjRZR3czSGtMYWdFVnVGSWsxN1NTd1FXMjIxS1hoSm9naEtHanJoRVJVWmlEZVRaanFLYlRDd0lfdXFCZ1VaM1U4MHRsblBZeUFxbmJiXzlJemIwdmxYWHBUYVlwU3Q1S1ZxVFBZZkRHV1A0eHByS0pwYWh4TnJJdExTc2phay0taDJfbjAtZ2M5ZTNGbFRiNTlzMi14dEhqdWhVaHBrQ1ZYcFdwQmlFN0M2a1gzV1NEcnZZMS1NcG5IMnJSSDBFX3JISTFoZ1FZLWRXMDNOdHNXNDhjcThkbEY4OFZWUnFUcm0tSkdHRWJiMTNPcmhPWU9SNlg1dWc0WDkzSHp3XzJES1QxYTRheVVoU0RUbzA4QXpNdjh6V0ZPVm1nejdmNHdVNko1SFlTUDRrTlNQSDhXal9GaFFYdXotQ29mM1pfdE94YlM0d2pUbnNGOWFSSXZsYmNWeXlhLUZQc0gydjBtbGZfQ3lJVndqbmphZHpfUVR1cnNCenEtWXBUZ1JsTV91ZGlxYUQ5VmVjchIWTnNiM2FwX2FETW1YanVNUDJOTEdJURoiQUhOMEU3RUI4U2JzaXh3bEtUaXRENlBJZUZfb2pqVXZHZw"
+  }
+}

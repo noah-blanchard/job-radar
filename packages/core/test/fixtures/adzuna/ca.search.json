@@ -1,0 +1,104 @@
+{
+  "count": 5,
+  "mean": 62500,
+  "__CLASS__": "Adzuna::API::Response::JobSearchResults",
+  "results": [
+    {
+      "contract_time": "full_time",
+      "location": {
+        "area": [
+          "Canada",
+          "British Columbia",
+          "Greater Vancouver"
+        ],
+        "__CLASS__": "Adzuna::API::Response::Location",
+        "display_name": "Greater Vancouver, British Columbia"
+      },
+      "latitude": 49.256582,
+      "redirect_url": "https://www.adzuna.ca/details/5961936716?utm_medium=api&utm_source=APPID",
+      "description": "Small businesses represent 99.9% of all companies, yet they're still forced to choose between clunky, outdated enterprise phone systems or their personal phones. This multi-billion dollar market has been overlooked for decades, left to cobble together solutions that slow them down instead of helping them grow. Quo is changing that. We bring calls, texts, and customer information together into one easy-to-use, AI-powered platform. We're not just building a phone system. We're setting a new stand…",
+      "created": "2026-11-11T12:19:16Z",
+      "longitude": -122.898456,
+      "adref": "eyJhbGciOiJIUzI1NiJ9.eyJpIjoiNTk2MTkzNjcxNiIsInMiOiJWaVNjTk5MZjhSRzNzYkZZSFpRUkl3In0.F-Troy3wMucbWvsRP13npBO21fRjZtdBhjgjddEg-88",
+      "id": "5961936716",
+      "__CLASS__": "Adzuna::API::Response::Job",
+      "company": {
+        "display_name": "Quo",
+        "__CLASS__": "Adzuna::API::Response::Company"
+      },
+      "title": "Junior Fullstack Engineer",
+      "salary_is_predicted": "0",
+      "category": {
+        "__CLASS__": "Adzuna::API::Response::Category",
+        "label": "IT Jobs",
+        "tag": "it-jobs"
+      }
+    },
+    {
+      "redirect_url": "https://www.adzuna.ca/details/5963510565?utm_medium=api&utm_source=APPID",
+      "created": "2026-11-12T12:14:29Z",
+      "description": "Small businesses represent 99.9% of all companies, yet they're still forced to choose between clunky, outdated enterprise phone systems or their personal phones. This multi-billion dollar market has been overlooked for decades, left to cobble together solutions that slow them down instead of helping them grow. Quo is changing that. We bring calls, texts, and customer information together into one easy-to-use, AI-powered platform. We're not just building a phone system. We're setting a new stand…",
+      "longitude": -79.402726,
+      "latitude": 43.706102,
+      "location": {
+        "area": [
+          "Canada",
+          "Ontario",
+          "Toronto"
+        ],
+        "display_name": "Toronto, Ontario",
+        "__CLASS__": "Adzuna::API::Response::Location"
+      },
+      "contract_time": "full_time",
+      "salary_is_predicted": "0",
+      "category": {
+        "__CLASS__": "Adzuna::API::Response::Category",
+        "label": "IT Jobs",
+        "tag": "it-jobs"
+      },
+      "company": {
+        "__CLASS__": "Adzuna::API::Response::Company",
+        "display_name": "Quo"
+      },
+      "title": "Junior Fullstack Engineer",
+      "id": "5963510565",
+      "__CLASS__": "Adzuna::API::Response::Job",
+      "adref": "eyJhbGciOiJIUzI1NiJ9.eyJzIjoiVmlTY05OTGY4Ukczc2JGWUhaUVJJdyIsImkiOiI1OTYzNTEwNTY1In0.Kk5r69RupCP_fqfr_nRmP9rYyDKHgufZtmwj9cgUvZ0"
+    },
+    {
+      "location": {
+        "area": [
+          "Canada",
+          "British Columbia",
+          "Capital",
+          "Victoria"
+        ],
+        "__CLASS__": "Adzuna::API::Response::Location",
+        "display_name": "Victoria, Capital"
+      },
+      "longitude": -123.50666,
+      "description": "Junior Software Developer Are you ready to embark on a thrilling journey with our dynamic and quirky team? We're seeking an eager Junior software developer who is not only skilled in their craft but also passionate about making a positive impact on others. Join our team as a collaborative software developer, where code meets community, and your passion for helping others drives innovation! As a Junior Software Developer joining our IT Team, you will play a key role in crafting modernized and in…",
+      "latitude": 48.44332,
+      "id": "5961478654",
+      "salary_is_predicted": "0",
+      "contract_type": "permanent",
+      "contract_time": "full_time",
+      "redirect_url": "https://www.adzuna.ca/details/5961478654?utm_medium=api&utm_source=APPID",
+      "created": "2026-11-11T05:03:20Z",
+      "salary_max": 65000,
+      "__CLASS__": "Adzuna::API::Response::Job",
+      "salary_min": 60000,
+      "adref": "eyJhbGciOiJIUzI1NiJ9.eyJpIjoiNTk2MTQ3ODY1NCIsInMiOiJWaVNjTk5MZjhSRzNzYkZZSFpRUkl3In0.fPu5u0k1S4iL8Og_-XDuiVuLPs4UkgTFUDAPo-0CsvM",
+      "category": {
+        "__CLASS__": "Adzuna::API::Response::Category",
+        "label": "IT Jobs",
+        "tag": "it-jobs"
+      },
+      "company": {
+        "__CLASS__": "Adzuna::API::Response::Company",
+        "display_name": "Proline Management"
+      },
+      "title": "Junior Software Developer"
+    }
+  ]
+}
