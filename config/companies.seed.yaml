@@ -1,37 +1,47 @@
-# Entreprises cibles. `ats`/`ats_key` sont remplis après détection réelle (jamais supposés).
-# priority: high | normal | low. Les entreprises extraites des repos new grad GitHub
-# seront ajoutées automatiquement (origin = discovered) à partir de M2.
+# Entreprises cibles. `ats`/`ats_key` ne sont remplis qu'après détection réelle (appel API
+# vérifié le 2026-11-13, voir SOURCES.md). priority: high | normal | low.
+# Les entreprises extraites des repos new grad GitHub arrivent automatiquement en M2 (origin = discovered).
+#
+# Formats d'ats_key : greenhouse/ashby/lever/smartrecruiters = slug du board ;
+# lever EU = "eu:<slug>" ; workday = "<tenant>/<wdN>/<site>".
 
 companies:
+  # --- ATS détecté et vérifié ---
+  - { name: Stripe, priority: high, ats: greenhouse, ats_key: stripe }
+  - { name: Databricks, priority: high, ats: greenhouse, ats_key: databricks }
+  - { name: DoorDash, priority: high, ats: greenhouse, ats_key: doordashusa }
+  - { name: Akuna Capital, priority: high, ats: greenhouse, ats_key: akunacapital }
+  - { name: Splice, priority: high, ats: greenhouse, ats_key: splice }
+  - { name: Spotify, priority: high, ats: lever, ats_key: spotify }
+  - { name: Behaviour Interactive, priority: high, ats: lever, ats_key: bhvr }
+  - { name: Cohere, priority: high, ats: ashby, ats_key: cohere }
+  - { name: Lightspeed, priority: high, ats: ashby, ats_key: lightspeedhq }
+  - { name: Wealthsimple, priority: high, ats: ashby, ats_key: wealthsimple }
+  - { name: ServiceNow, priority: high, ats: smartrecruiters, ats_key: servicenow, note: "inclut l'ex-Element AI" }
+  - { name: Ubisoft, priority: high, ats: smartrecruiters, ats_key: ubisoft2, note: "cible Ubisoft Montréal ; le board couvre tous les studios" }
+  - { name: Genetec, priority: high, ats: smartrecruiters, ats_key: genetec, note: "1 seule offre (Sherbrooke) au 2026-11-13 : à confirmer" }
+
+  # --- Workday connu publiquement, mais le shard répondait 521 (Cloudflare) le 2026-11-13 ---
+  - { name: NVIDIA, priority: high, ats: workday, ats_key: nvidia/wd5/NVIDIAExternalCareerSite }
+  - { name: Autodesk, priority: high, ats: workday, ats_key: autodesk/wd1/Ext }
+
+  # --- Pas d'ATS public supporté (couverts par les agrégateurs en M2) ---
+  - { name: Amazon, priority: high, ats: null, ats_key: null, note: "amazon.jobs/en/search.json répond (200) : connecteur dédié en M2" }
+  - { name: Microsoft, priority: high, ats: null, ats_key: null, note: "Eightfold (apply.careers.microsoft.com) répond 403 'Not authorized for PCSX'" }
+
+  # --- ATS non trouvé parmi greenhouse/lever/ashby/smartrecruiters/workable/recruitee/breezy/bamboohr/personio/teamtailor ---
   - { name: Atlassian, priority: high, ats: null, ats_key: null }
-  - { name: Bell, priority: high, ats: null, ats_key: null }
-  - { name: Stripe, priority: high, ats: null, ats_key: null }
-  - { name: Databricks, priority: high, ats: null, ats_key: null }
-  - { name: DoorDash, priority: high, ats: null, ats_key: null }
-  - { name: NVIDIA, priority: high, ats: null, ats_key: null }
-  - { name: Amazon, priority: high, ats: null, ats_key: null }
-  - { name: Microsoft, priority: high, ats: null, ats_key: null }
-  - { name: Akuna Capital, priority: high, ats: null, ats_key: null }
+  - { name: Bell, priority: high, ats: null, ats_key: null, note: "workable 'bce' = Bachmann Chemical, pas Bell" }
   - { name: NXP, priority: high, ats: null, ats_key: null }
   - { name: Cummins, priority: high, ats: null, ats_key: null }
-  - { name: Xiaomi, priority: normal, ats: null, ats_key: null, note: "bureaux hors Chine uniquement" }
+  - { name: Xiaomi, priority: normal, ats: null, ats_key: null, note: "bureaux hors Chine ; smartrecruiters 'xiaomi' = compte non officiel" }
   - { name: Shopify, priority: high, ats: null, ats_key: null }
-  - { name: Ubisoft Montréal, priority: high, ats: null, ats_key: null }
-  - { name: EA, priority: high, ats: null, ats_key: null }
+  - { name: EA, priority: high, ats: null, ats_key: null, note: "bamboohr 'ea' = autre entreprise" }
   - { name: Unity, priority: high, ats: null, ats_key: null }
-  - { name: Autodesk, priority: high, ats: null, ats_key: null }
-  - { name: Cohere, priority: high, ats: null, ats_key: null }
   - { name: Mila, priority: high, ats: null, ats_key: null }
-  - { name: ServiceNow, priority: high, ats: null, ats_key: null, note: "inclut l'ex-Element AI" }
   - { name: Coveo, priority: high, ats: null, ats_key: null }
-  - { name: Lightspeed, priority: high, ats: null, ats_key: null }
-  - { name: Wealthsimple, priority: high, ats: null, ats_key: null }
-  - { name: Genetec, priority: high, ats: null, ats_key: null }
-  - { name: Behaviour Interactive, priority: high, ats: null, ats_key: null }
   - { name: Eidos, priority: high, ats: null, ats_key: null }
   - { name: Moment Factory, priority: high, ats: null, ats_key: null }
   - { name: LANDR, priority: high, ats: null, ats_key: null }
   - { name: Native Instruments, priority: high, ats: null, ats_key: null }
   - { name: Ableton, priority: high, ats: null, ats_key: null }
-  - { name: Spotify, priority: high, ats: null, ats_key: null }
-  - { name: Splice, priority: high, ats: null, ats_key: null }

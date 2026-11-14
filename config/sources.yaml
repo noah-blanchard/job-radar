@@ -5,21 +5,21 @@
 # L'état détaillé (raison de désactivation, notes de vérification) est dans SOURCES.md.
 
 ats:
-  greenhouse: { enabled: false, status: unverified, schedule: ats }
-  lever: { enabled: false, status: unverified, schedule: ats }
-  ashby: { enabled: false, status: unverified, schedule: ats }
-  smartrecruiters: { enabled: false, status: unverified, schedule: ats }
-  workday: { enabled: false, status: unverified, schedule: ats, min_interval_ms: 1000 }
-  workable: { enabled: false, status: unverified, schedule: ats }
-  recruitee: { enabled: false, status: unverified, schedule: ats }
-  personio: { enabled: false, status: unverified, schedule: ats }
-  bamboohr: { enabled: false, status: unverified, schedule: ats }
-  breezy: { enabled: false, status: unverified, schedule: ats }
-  teamtailor: { enabled: false, status: unverified, schedule: ats }
-  pinpoint: { enabled: false, status: unverified, schedule: ats }
-  rippling: { enabled: false, status: unverified, schedule: ats }
-  oracle_rc: { enabled: false, status: unverified, schedule: ats }
-  eightfold: { enabled: false, status: unverified, schedule: ats }
+  greenhouse: { enabled: true, status: verified, schedule: ats }
+  lever: { enabled: true, status: verified, schedule: ats }
+  ashby: { enabled: true, status: verified, schedule: ats }
+  smartrecruiters: { enabled: true, status: verified, schedule: ats }
+  workday: { enabled: true, status: verified, schedule: ats, min_interval_ms: 1000 }
+  workable: { enabled: false, status: verified, schedule: ats }
+  recruitee: { enabled: false, status: verified, schedule: ats }
+  personio: { enabled: false, status: verified, schedule: ats }
+  bamboohr: { enabled: false, status: verified, schedule: ats }
+  breezy: { enabled: false, status: verified, schedule: ats }
+  teamtailor: { enabled: false, status: verified, schedule: ats }
+  pinpoint: { enabled: false, status: disabled, schedule: ats }
+  rippling: { enabled: false, status: verified, schedule: ats }
+  oracle_rc: { enabled: false, status: verified, schedule: ats }
+  eightfold: { enabled: false, status: disabled, schedule: ats }
 
 aggregators:
   github_simplify_newgrad: { enabled: false, status: unverified, schedule: feeds }
