@@ -1,0 +1,113 @@
+{
+  "comments": "Search results come 20 to a page. Pass ?page=2, ?page=3 and so on for more; there is no cursor on search. Cursor pagination (nextCursor) is only on /jobs/api, the browse feed. 13/03/2026: The API has been updated to include the companySlug field in the response.",
+  "updatedAt": 1794356325,
+  "offset": 20,
+  "limit": 20,
+  "totalCount": 467,
+  "jobs": [
+    {
+      "title": "Dutch Speaking Go Coding Evaluation Specialist",
+      "excerpt": "Join a short, paid project that tests whether AI coding agents work as well on instructions written in the target language as they do in English.",
+      "companyName": "Welocalize",
+      "companySlug": "welocalize",
+      "companyLogo": "https://cdn-images.himalayas.app/mgs6a3lgzst6biuk1ro30100pkwv",
+      "employmentType": "Part Time",
+      "minSalary": 80,
+      "maxSalary": 92,
+      "salaryPeriod": "hourly",
+      "seniority": [
+        "Entry-level"
+      ],
+      "currency": "USD",
+      "locationRestrictions": [
+        "Netherlands"
+      ],
+      "timezoneRestrictions": [
+        1
+      ],
+      "categories": [
+        "Golang-QA-Engineer",
+        "Go-Golang-Developer",
+        "Golang-Developer",
+        "Golang-Software-Engineer",
+        "GoLang-Engineer",
+        "Coding-Assessment-Engineer"
+      ],
+      "parentCategories": [],
+      "description": "<p>Join a short, paid project that tests whether AI coding agents work as well on instructions written in the target language as they do in English. Your language skills and technical background decide where you fit.&nbsp;</p><p><strong>About the project&nbsp;</strong></p><p>Welo Data is helping evaluate how well AI coding agents perform when the instructions they receive are written in languages other than English. Agents are given a real software engineering task in a code repository, and automated tests check whether they solved it. The code, repositories and tests stay exactly as they are. Only the human-written instructions change language, so the quality of every instruction directly affects the result.&nbsp;</p><p><strong>About the roles&nbsp;</strong></p><p>There are two roles on this project. We place you in one of them based on your experience &amp; skillsets.&nbsp;</p><ul class=\"list-disc list-outside leading-3 -mt-2\">\n<li class=\"leading-normal -mb-2\"><p>Translator: translate English software engineering task briefs into the target language. You keep every requirement, constraint and success condition, and you leave commands, file paths, API names, code and test conditions exactly as written in English. This role suits people with a stronger technical background, and translation experience is a plus.&nbsp;</p></li>\n<li class=\"leading-normal -mb-2\"><p>Reviewer: compare each translation with the English source, check that nothing is missing, added or changed in meani",
+      "pubDate": 1794356325,
+      "expiryDate": 1796890033,
+      "applicationLink": "https://himalayas.app/companies/welocalize/jobs/dutch-speaking-go-coding-evaluation-specialist?utm_source=api",
+      "guid": "https://himalayas.app/companies/welocalize/jobs/dutch-speaking-go-coding-evaluation-specialist"
+    },
+    {
+      "title": "Arabic Speaking Rust Coding Evaluation Specialist",
+      "excerpt": "Join a short, paid project that tests whether AI coding agents work as well on instructions written in the target language as they do in English.",
+      "companyName": "Welocalize",
+      "companySlug": "welocalize",
+      "companyLogo": "https://cdn-images.himalayas.app/mgs6a3lgzst6biuk1ro30100pkwv",
+      "employmentType": "Part Time",
+      "minSalary": 22,
+      "maxSalary": 37,
+      "salaryPeriod": "hourly",
+      "seniority": [
+        "Entry-level"
+      ],
+      "currency": "USD",
+      "locationRestrictions": [
+        "Egypt"
+      ],
+      "timezoneRestrictions": [
+        2
+      ],
+      "categories": [
+        "Rust-Software-Engineer",
+        "Coding-Assessment-Engineer",
+        "Rust-Developer",
+        "Arabic-AI-Language-Specialist",
+        "Arabic-Language-Specialist"
+      ],
+      "parentCategories": [],
+      "description": "<p>Join a short, paid project that tests whether AI coding agents work as well on instructions written in the target language as they do in English. Your language skills and technical background decide where you fit.&nbsp;</p><p><strong>About the project&nbsp;</strong></p><p>Welo Data is helping evaluate how well AI coding agents perform when the instructions they receive are written in languages other than English. Agents are given a real software engineering task in a code repository, and automated tests check whether they solved it. The code, repositories and tests stay exactly as they are. Only the human-written instructions change language, so the quality of every instruction directly affects the result.&nbsp;</p><p><strong>About the roles&nbsp;</strong></p><p>There are two roles on this project. We place you in one of them based on your experience &amp; skillsets.&nbsp;</p><ul class=\"list-disc list-outside leading-3 -mt-2\">\n<li class=\"leading-normal -mb-2\"><p>Translator: translate English software engineering task briefs into the target language. You keep every requirement, constraint and success condition, and you leave commands, file paths, API names, code and test conditions exactly as written in English. This role suits people with a stronger technical background, and translation experience is a plus.&nbsp;</p></li>\n<li class=\"leading-normal -mb-2\"><p>Reviewer: compare each translation with the English source, check that nothing is missing, added or changed in meani",
+      "pubDate": 1794356324,
+      "expiryDate": 1796890696,
+      "applicationLink": "https://himalayas.app/companies/welocalize/jobs/arabic-speaking-rust-coding-evaluation-specialist?utm_source=api",
+      "guid": "https://himalayas.app/companies/welocalize/jobs/arabic-speaking-rust-coding-evaluation-specialist"
+    },
+    {
+      "title": "Korean Speaking Rust Coding Evaluation Specialist",
+      "excerpt": "Join a short, paid project that tests whether AI coding agents work as well on instructions written in the target language as they do in English.",
+      "companyName": "Welocalize",
+      "companySlug": "welocalize",
+      "companyLogo": "https://cdn-images.himalayas.app/mgs6a3lgzst6biuk1ro30100pkwv",
+      "employmentType": "Part Time",
+      "minSalary": 65,
+      "maxSalary": 81,
+      "salaryPeriod": "hourly",
+      "seniority": [
+        "Entry-level"
+      ],
+      "currency": "USD",
+      "locationRestrictions": [
+        "South Korea"
+      ],
+      "timezoneRestrictions": [
+        9
+      ],
+      "categories": [
+        "Rust-Software-Engineer",
+        "Korean-Bilingual-Content-Reviewer",
+        "Korean-Language-Evaluation",
+        "Coding-Assessment-Engineer",
+        "Korean-Language-Data-Annotation-Specialist",
+        "Korean-Language-Specialist"
+      ],
+      "parentCategories": [],
+      "description": "<p>Join a short, paid project that tests whether AI coding agents work as well on instructions written in the target language as they do in English. Your language skills and technical background decide where you fit.&nbsp;</p><p><strong>About the project&nbsp;</strong></p><p>Welo Data is helping evaluate how well AI coding agents perform when the instructions they receive are written in languages other than English. Agents are given a real software engineering task in a code repository, and automated tests check whether they solved it. The code, repositories and tests stay exactly as they are. Only the human-written instructions change language, so the quality of every instruction directly affects the result.&nbsp;</p><p><strong>About the roles&nbsp;</strong></p><p>There are two roles on this project. We place you in one of them based on your experience &amp; skillsets.&nbsp;</p><ul class=\"list-disc list-outside leading-3 -mt-2\">\n<li class=\"leading-normal -mb-2\"><p>Translator: translate English software engineering task briefs into the target language. You keep every requirement, constraint and success condition, and you leave commands, file paths, API names, code and test conditions exactly as written in English. This role suits people with a stronger technical background, and translation experience is a plus.&nbsp;</p></li>\n<li class=\"leading-normal -mb-2\"><p>Reviewer: compare each translation with the English source, check that nothing is missing, added or changed in meani",
+      "pubDate": 1794356323,
+      "expiryDate": 1796891083,
+      "applicationLink": "https://himalayas.app/companies/welocalize/jobs/korean-speaking-rust-coding-evaluation-specialist?utm_source=api",
+      "guid": "https://himalayas.app/companies/welocalize/jobs/korean-speaking-rust-coding-evaluation-specialist"
+    }
+  ]
+}

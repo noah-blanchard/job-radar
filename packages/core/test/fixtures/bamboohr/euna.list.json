@@ -1,0 +1,67 @@
+{
+  "meta": {
+    "totalCount": 56
+  },
+  "result": [
+    {
+      "id": "692",
+      "jobOpeningName": "Solutions Consultant",
+      "departmentId": "18562",
+      "departmentLabel": "Sales",
+      "employmentStatusLabel": "Full-Time",
+      "employmentType": null,
+      "location": {
+        "city": null,
+        "state": null
+      },
+      "atsLocation": {
+        "country": "United States",
+        "state": null,
+        "province": null,
+        "city": null
+      },
+      "isRemote": null,
+      "locationType": "1"
+    },
+    {
+      "id": "705",
+      "jobOpeningName": "Implementation Manager - Grants",
+      "departmentId": "18576",
+      "departmentLabel": "Professional Services",
+      "employmentStatusLabel": "Full-Time",
+      "employmentType": null,
+      "location": {
+        "city": "Oakville",
+        "state": "Ontario"
+      },
+      "atsLocation": {
+        "country": null,
+        "state": null,
+        "province": null,
+        "city": null
+      },
+      "isRemote": null,
+      "locationType": "2"
+    },
+    {
+      "id": "706",
+      "jobOpeningName": "Implementation Manager - Grants",
+      "departmentId": "18576",
+      "departmentLabel": "Professional Services",
+      "employmentStatusLabel": "Full-Time",
+      "employmentType": null,
+      "location": {
+        "city": "Atlanta",
+        "state": "Georgia"
+      },
+      "atsLocation": {
+        "country": null,
+        "state": null,
+        "province": null,
+        "city": null
+      },
+      "isRemote": null,
+      "locationType": "2"
+    }
+  ]
+}

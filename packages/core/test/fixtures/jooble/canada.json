@@ -1,0 +1,41 @@
+{
+  "totalCount": 270,
+  "jobs": [
+    {
+      "title": "Technical Infrastructure Analyst, Junior",
+      "location": "Canada",
+      "snippet": "&nbsp;...purpose here. Every day, your skills will directly impact programs that matter. \r\n\r\n Job Description \r\n\r\n We are currently hiring for a <b>Junior </b>Technical Infrastructure Analyst for our Calgary-based Desktop Support team. The successful candidate will be the primary IT...&nbsp;",
+      "salary": "$65k - $75k",
+      "source": "gd.com",
+      "type": "Full-time",
+      "link": "https://jooble.org/desc/-7445475064144654344?ckey=junior+developer&rgn=55130&pos=1&groupId=-8968805&elckey=-5998449411862824912&p=1&aq=-212526147692339558&cid=24029&jobAge=836&brelb=100&bscr=36.97352&scr=36.97352",
+      "company": "GD Mission Systems",
+      "updated": "2026-10-10T00:00:00.0000000",
+      "id": -7445475064144654000
+    },
+    {
+      "title": "Software Engineer, GPU Inference",
+      "location": "Canada",
+      "snippet": "&nbsp;...quantization, determinism, and compatibility across software and hardware releases. \r\n Build performance and correctness infrastructure.  <b>Develop </b>representative benchmarks, workload replay tools, profiling automation, release qualification, dashboards, and regression gates....&nbsp;",
+      "salary": "",
+      "source": "jobsbylevel.com",
+      "type": "Full-time",
+      "link": "https://jooble.org/desc/6667402295887476585?ckey=junior+developer&rgn=55130&pos=2&groupId=-8968805&elckey=-5998449411862824912&p=1&aq=-212526147692339558&cid=24029&jobAge=103&brelb=100&bscr=33.486645&scr=33.486645",
+      "company": "Cerebras",
+      "updated": "2026-11-09T12:26:48.2930000",
+      "id": 6667402295887477000
+    },
+    {
+      "title": "Software Engineer - Product",
+      "location": "Canada",
+      "snippet": " Since the dawn of aviation, pilots have faced the constant challenge of air resistance, much like sailors navigating the friction of water. Amidst this relentless struggle, the  trim tab  emerges as an ingenious yet understated marvel. Just as the wheel revolutionized ...",
+      "salary": "$122.4k - $158.4k",
+      "source": "boards.greenhouse.io",
+      "type": "",
+      "link": "https://jooble.org/desc/7541606342975479431?ckey=junior+developer&rgn=55130&pos=3&groupId=-8968805&elckey=-5998449411862824912&p=1&aq=-212526147692339558&cid=24029&jobAge=12&brelb=100&bscr=33.451492&scr=33.451492",
+      "company": "Mercury",
+      "updated": "2026-11-13T08:01:54.2900000",
+      "id": 7541606342975480000
+    }
+  ]
+}

@@ -6,10 +6,32 @@ import type { AnyDb } from "@jobradar/db";
 import { drizzle } from "drizzle-orm/pglite";
 import { migrate } from "drizzle-orm/pglite/migrator";
 import { pino } from "pino";
+import { loadProfile } from "../src/config";
 import type { Company, FetchCtx, RawJob } from "../src/connectors/types";
+import { parseEnv, type Env } from "../src/env";
 import type { HttpClient, HttpRequestOptions, HttpResponse } from "../src/http/types";
 
 export const silentLog = pino({ level: "silent" });
+
+export const CONFIG_DIR = fileURLToPath(new URL("../../../config", import.meta.url));
+/** The real config/profile.yaml. */
+export const profile = loadProfile(CONFIG_DIR);
+
+/** Env with fake keys (tests never hit the network). */
+export function testEnv(over: Record<string, string> = {}): Env {
+  return parseEnv({
+    ADZUNA_APP_ID: "test-id",
+    ADZUNA_APP_KEY: "test-key",
+    JOOBLE_KEY: "test-jooble",
+    RAPIDAPI_KEY: "test-rapid",
+    FINDWORK_KEY: "test-findwork",
+    ...over,
+  });
+}
+
+export function textFixture(path: string): string {
+  return readFileSync(fileURLToPath(new URL(`./fixtures/${path}`, import.meta.url)), "utf8");
+}
 
 export function fixture<T = unknown>(path: string): T {
   return JSON.parse(
@@ -52,6 +74,8 @@ export function makeCtx(
     signal: new AbortController().signal,
     knownIds: new Set<string>(),
     wantDetails: () => true,
+    env: testEnv(),
+    profile,
     unchanged: false,
     markUnchanged() {
       ctx.unchanged = true;

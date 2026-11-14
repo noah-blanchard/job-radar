@@ -1,0 +1,64 @@
+{
+  "count": 3,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": "nZ77E2Q",
+      "role": "Junior Market Analyst (Remote)",
+      "company_name": "MEYA LTD",
+      "company_num_employees": null,
+      "employment_type": "contract",
+      "location": null,
+      "remote": true,
+      "logo": "https://findwork-dev-images.s3.amazonaws.com/full/4034d536159f3831b2c1a9a40b3755499392edcc.jpg",
+      "url": "https://findwork.dev/nZ77E2Q/junior-market-analyst-remote-at-meya-ltd",
+      "text": "<div class=\"vacancy-intro reveal reveal-d2\"><p>MEYA HOLDINGS LTD is an international company specializing in digital assets, cryptocurrency markets, and financial research. We focus on developing data-driven trading approaches and optimizing market operations. Our remote team brings together professionals from different parts of the world.</p><p>We are looking for a motivated Junior Market Analyst with at least 1 year of experience in cryptocurrency or financial trading. You will assist with market analysis, monitor trading performance, and contribute to improving our daily operational processes.</p></div><div class=\"vacancy-blocks-group reveal reveal-d3\"><div class=\"vacancy-block\"><h3 class=\"vacancy-block-title\">Key Responsibilities</h3><ul><li>Monitor cryptocurrency prices, trading volumes, and market developments.</li><li>Analyze market data and identify potential trading opportunities.</li><li>Assist with daily Spot, Futures, and Options trading activities.</li><li>Monitor asset allocation across centralized and decentralized exchanges.</li><li>Prepare reports on market conditions and trading performance.</li><li>Identify operational or technical issues and coordinate with the relevant teams.</li><li>Monitor automated trading systems and ensure compliance with risk management rules.</li><li>Maintain accurate financial and operational records.</li><li>Collaborate with internal departments to improve trading processes.</li></ul></div><div class=\"vacancy-block\"><h3 class=\"va",
+      "date_posted": "2026-11-12T21:23:27Z",
+      "keywords": [
+        "blockchain",
+        "cryptocurrency"
+      ],
+      "source": "Weworkremotely"
+    },
+    {
+      "id": "QPRRKVX",
+      "role": "Senior Strategic Finance Manager (Corporate Finance)",
+      "company_name": "Netlify",
+      "company_num_employees": null,
+      "employment_type": null,
+      "location": null,
+      "remote": true,
+      "logo": null,
+      "url": "https://findwork.dev/QPRRKVX/senior-strategic-finance-manager-corporate-finance-at-netlify",
+      "text": "<p><strong>About the Team</strong></p><p>Netlify's Finance team builds the financial foundation that helps the company plan, operate, and make informed decisions. The team owns our operating model, management reporting, budgeting and planning, and the company-level metrics leadership uses to understand performance and make tradeoffs.</p><p>As Senior Finance Manager, you'll own the corporate finance cycle and decide what it should become. That covers monthly reporting, the driver-based forecast, annual planning, scenario work, and the KPI layer, and it extends past running them well into bringing your experience to improve and innovate on our processes. This is a hands-on role with real latitude: you will work directly with senior leadership on capital, pricing, and headcount decisions, and will leverage AI to build better tooling and make Finance faster and less dependent on manual work.</p><p><strong>What You'll Do</strong></p><ul><li>Own the corporate finance cycle end to end, including the monthly reporting package, the driver-based forecast, annual planning, and scenario analysis, and redesign the parts that no longer hold up as we scale</li><li>Frame which scenarios are worth running ahead of capital, pricing, and headcount decisions, and bring a recommendation rather than a set of outputs</li><li>Lead the annual planning process across departments, from calendar and templates through consolidation and board-ready output</li><li>Lead cross-functional alignment on metric ",
+      "date_posted": "2026-11-07T22:01:17Z",
+      "keywords": [
+        "sql",
+        "netlify",
+        "ai",
+        "agents"
+      ],
+      "source": "Weworkremotely"
+    },
+    {
+      "id": "Q6YYozn",
+      "role": null,
+      "company_name": "Don't Use This Code: https://dutc.io",
+      "company_num_employees": null,
+      "employment_type": null,
+      "location": "Fully Remote (US-only)",
+      "remote": false,
+      "logo": null,
+      "url": "https://findwork.dev/Q6YYozn/none-at-dont-use-this-code-httpsdutcio",
+      "text": "Don&#x27;t Use This Code&#x27;s mission statement grew out of a joke… let&#x27;s look at something amazing that will change the way you think about this programming language feature or this open source library… just DON&#x27;T USE THIS CODE.<br>I (the poster of this) made a little of a name for myself in the Python community through this very approach. See: <a href=\"https:&#x2F;&#x2F;pyvideo.org&#x2F;speaker&#x2F;james-powell.html\" rel=\"nofollow\">https:&#x2F;&#x2F;pyvideo.org&#x2F;speaker&#x2F;james-powell.html</a> or <a href=\"https:&#x2F;&#x2F;www.youtube.com&#x2F;@dutctv\" rel=\"nofollow\">https:&#x2F;&#x2F;www.youtube.com&#x2F;@dutctv</a> or <a href=\"https:&#x2F;&#x2F;www.youtube.com&#x2F;@PyDataTV&#x2F;search?query=james%20powell\" rel=\"nofollow\">https:&#x2F;&#x2F;www.youtube.com&#x2F;@PyDataTV&#x2F;search?query=james%20powel...</a><br>The core principle is: true expertise and expert knowledge is worthwhile to develop and disseminate (and this is true even if the LLM is doing a lot of the typing.) To this end, our goal is to deliver a combination of training, consulting, and hybrid coaching services to clients in the tech industry, in financial services, and at large-scale scientific research facilities. In fact, on the back of some recent successes, we are gearing up to build up a team and dramatically expand this work. Our work involves a lot of data analysis, data visualization, modelling, simulation, and experiment tooling system and infrastructure, and is currently very ",
+      "date_posted": "2026-11-02T21:20:23Z",
+      "keywords": [
+        "python",
+        "llm",
+        "principle"
+      ],
+      "source": "Hn"
+    }
+  ]
+}

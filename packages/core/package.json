@@ -6,13 +6,15 @@
   "exports": {
     ".": "./src/index.ts",
     "./env": "./src/env.ts",
-    "./logger": "./src/logger.ts"
+    "./logger": "./src/logger.ts",
+    "./discovery": "./src/discovery/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@jobradar/db": "workspace:*",
+    "fast-xml-parser": "5.11.2",
     "p-limit": "^7.3.3",
     "pino": "^10.4.0",
     "undici": "^8.12.4",

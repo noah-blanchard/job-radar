@@ -80,12 +80,15 @@ export interface HttpSharedOptions {
   validators?: ValidatorStore;
   sleep?: (ms: number) => Promise<void>;
   random?: () => number;
+  /** Secret values (API keys) masked in every logged URL and error message. */
+  secrets?: readonly string[];
 }
 
 /** Process-wide politeness state: per-host concurrency and pacing. */
 export class HttpShared {
-  readonly opts: Required<Omit<HttpSharedOptions, "validators" | "minIntervalMs">> &
+  readonly opts: Required<Omit<HttpSharedOptions, "validators" | "minIntervalMs" | "secrets">> &
     Pick<HttpSharedOptions, "validators" | "minIntervalMs">;
+  private secrets: string[];
   private limits = new Map<string, LimitFunction>();
   private lastStart = new Map<string, number>();
 
@@ -102,6 +105,19 @@ export class HttpShared {
       random: Math.random,
       ...opts,
     };
+    // Longest first so a secret containing another one is fully masked.
+    this.secrets = [...new Set(opts.secrets ?? [])]
+      .filter((x) => x.length >= 6)
+      .sort((a, b) => b.length - a.length);
+  }
+
+  /** Masks API keys (raw and URL-encoded) in a URL or message. */
+  redact(s: string): string {
+    let out = s;
+    for (const secret of this.secrets) {
+      out = out.split(secret).join("***").split(encodeURIComponent(secret)).join("***");
+    }
+    return out;
   }
 
   limitFor(host: string): LimitFunction {
@@ -161,7 +177,8 @@ export class PoliteHttpClient implements HttpClient {
     try {
       return { ...res, data: JSON.parse(res.data) as T };
     } catch {
-      throw new HttpError(res.status, url, `Invalid JSON from ${url}`);
+      const safe = this.shared.redact(url);
+      throw new HttpError(res.status, safe, `Invalid JSON from ${safe}`);
     }
   }
 
@@ -223,7 +240,8 @@ export class PoliteHttpClient implements HttpClient {
 
       if (res && !RETRYABLE(res.status)) {
         if (res.status === 304) return { status: 304, notModified: true, headers: res.headers };
-        if (res.status < 200 || res.status >= 300) throw new HttpError(res.status, url);
+        if (res.status < 200 || res.status >= 300)
+          throw new HttpError(res.status, this.shared.redact(url));
         if (opts.cacheKey && (res.headers.etag || res.headers["last-modified"])) {
           this.staged.set(opts.cacheKey, {
             etag: res.headers.etag,
@@ -234,20 +252,26 @@ export class PoliteHttpClient implements HttpClient {
       }
 
       if (attempt >= o.maxRetries) {
-        if (res) throw new HttpError(res.status, url);
-        throw networkError instanceof Error ? networkError : new Error(String(networkError));
+        if (res) throw new HttpError(res.status, this.shared.redact(url));
+        const msg = networkError instanceof Error ? networkError.message : String(networkError);
+        throw new Error(this.shared.redact(msg));
       }
 
       const retryAfter = parseRetryAfter(res?.headers["retry-after"]);
       if (retryAfter !== undefined && retryAfter > o.maxRetryAfterMs) {
-        throw new HttpError(res!.status, url, `Retry-After too long (${retryAfter} ms) for ${url}`);
+        const safe = this.shared.redact(url);
+        throw new HttpError(
+          res!.status,
+          safe,
+          `Retry-After too long (${retryAfter} ms) for ${safe}`,
+        );
       }
       const delay = retryAfter ?? backoffDelay(attempt, o.baseDelayMs, o.maxDelayMs, o.random);
       o.log.warn(
         {
-          url,
+          url: this.shared.redact(url),
           status: res?.status,
-          err: networkError ? String(networkError) : undefined,
+          err: networkError ? this.shared.redact(String(networkError)) : undefined,
           attempt,
           delay,
         },

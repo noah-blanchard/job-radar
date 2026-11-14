@@ -1,0 +1,62 @@
+{
+  "data": [
+    {
+      "slug": "working-student-legal-operations-and-technology-munich-482669",
+      "company_name": "celonis",
+      "title": "Working Student Legal Operations and Technology",
+      "description": "&lt;div class=&quot;content-intro&quot;&gt;&lt;p&gt;Celonis is the trusted platform to industrialize Enterprise AI. At our core is the Celonis Context Model — which combines process data, business knowledge, and intelligence into a living digital twin of the enterprise that AI can actually understand, turning AI&#39;s operational blind spots into operational clarity. World&#39;s leading companies trust Celonis and its global ecosystem of partners to make their AI agents, people, systems, and processes work together, achieving transformational outcomes. We believe there&#39;s a massive opportunity to unlock global productivity and sustainability by giving AI the context to understand how every business process really works. Join our mission to make processes work for people, companies, and the planet.&lt;/p&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;The Team&lt;/strong&gt;:&lt;/p&gt;\n&lt;p&gt;As part of the Legal and Trust team, you will collaborate closely with cross-functional departments to enhance legal operations, streamline contracting workflows, and uphold information security compliance. The team plays a critical role in mitigating corporate legal risks and ensuring Celonis&#39;s technology and information assets are safeguarded from internal and external threats. In this role, you will help navigate evolving global legal and regulatory frameworks, maintain international security attestations, balance legal and operational risk with effective controls, and continuously eval",
+      "remote": false,
+      "url": "https://www.arbeitnow.com/jobs/companies/celonis/working-student-legal-operations-and-technology-munich-482669",
+      "tags": [
+        "Legal"
+      ],
+      "job_types": [],
+      "location": "Munich",
+      "created_at": 1794617735
+    },
+    {
+      "slug": "senior-software-engineer-query-engine-database-systems-munich-4419",
+      "company_name": "celonis",
+      "title": "Senior Software Engineer - Query Engine & Database Systems",
+      "description": "&lt;div class=&quot;content-intro&quot;&gt;&lt;p&gt;Celonis is the trusted platform to industrialize Enterprise AI. At our core is the Celonis Context Model — which combines process data, business knowledge, and intelligence into a living digital twin of the enterprise that AI can actually understand, turning AI&#39;s operational blind spots into operational clarity. World&#39;s leading companies trust Celonis and its global ecosystem of partners to make their AI agents, people, systems, and processes work together, achieving transformational outcomes. We believe there&#39;s a massive opportunity to unlock global productivity and sustainability by giving AI the context to understand how every business process really works. Join our mission to make processes work for people, companies, and the planet.&lt;/p&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;The Team:&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;You will be part of a team that owns the Process Query Engine which is an analytical database and our core product for process mining that enables our customers to interactively mine enterprise-sized data sets. In order to handle the strong growth of our customer base and their demands, we are continuously expanding our Engine domain and heavily invest in the performance and scalability of our engine.&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;The Role:&lt;/strong&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;\n&lt;p&gt;For the Core squad of our Process Query Engine ",
+      "remote": false,
+      "url": "https://www.arbeitnow.com/jobs/companies/celonis/senior-software-engineer-query-engine-database-systems-munich-4419",
+      "tags": [
+        "Engineering"
+      ],
+      "job_types": [],
+      "location": "Munich",
+      "created_at": 1794617735
+    },
+    {
+      "slug": "senior-software-engineer-engine-orchestration-munich-205702",
+      "company_name": "celonis",
+      "title": "Senior Software Engineer - Engine Orchestration",
+      "description": "&lt;div class=&quot;content-intro&quot;&gt;&lt;p&gt;Celonis is the trusted platform to industrialize Enterprise AI. At our core is the Celonis Context Model — which combines process data, business knowledge, and intelligence into a living digital twin of the enterprise that AI can actually understand, turning AI&#39;s operational blind spots into operational clarity. World&#39;s leading companies trust Celonis and its global ecosystem of partners to make their AI agents, people, systems, and processes work together, achieving transformational outcomes. We believe there&#39;s a massive opportunity to unlock global productivity and sustainability by giving AI the context to understand how every business process really works. Join our mission to make processes work for people, companies, and the planet.&lt;/p&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;The Team:&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;The Engine Orchestration team builds and operates the distributed services that run, scale and balance the analytical query engines. We are the layer that turns a customer&#39;s model into something they and their AI agents can query interactively using our Process Query Language across enterprise-sized datasets.&lt;/p&gt;\n&lt;p&gt;The team actively evolves our new premium query engine, collaborating with multiple other teams across time zones. New features, improved operationability, robust security, and allowing for scalable customer workloads are ours to design and ship.&lt;/p&gt;\n&lt;p&gt;",
+      "remote": false,
+      "url": "https://www.arbeitnow.com/jobs/companies/celonis/senior-software-engineer-engine-orchestration-munich-205702",
+      "tags": [
+        "Engineering"
+      ],
+      "job_types": [],
+      "location": "Munich",
+      "created_at": 1794617735
+    }
+  ],
+  "links": {
+    "first": "https://www.arbeitnow.com/api/job-board-api?page=1",
+    "last": null,
+    "prev": null,
+    "next": "https://www.arbeitnow.com/api/job-board-api?page=2"
+  },
+  "meta": {
+    "current_page": 1,
+    "current_page_url": "https://www.arbeitnow.com/api/job-board-api?page=1",
+    "from": 1,
+    "path": "https://www.arbeitnow.com/api/job-board-api",
+    "per_page": 300,
+    "to": 300,
+    "terms": "This is a free public API for jobs, please do not abuse. I would appreciate linking back to the site. By using the API, you agree to the terms of service present on Arbeitnow.com",
+    "info": "Jobs are updated every hour and order by the `created_at` timestamp. Use `?page=` to paginate. Read more information here: https://www.arbeitnow.com/blog/job-board-api"
+  }
+}

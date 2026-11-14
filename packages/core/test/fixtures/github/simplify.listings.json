@@ -1,0 +1,153 @@
+[
+  {
+    "date_updated": 1774263622,
+    "sponsorship": "Other",
+    "active": true,
+    "degrees": [],
+    "url": "https://job-boards.greenhouse.io/genevatrading/jobs/5085231007",
+    "company_name": "Geneva Trading",
+    "title": "Junior Software Engineer",
+    "locations": [
+      "Chicago, IL"
+    ],
+    "category": "Software Engineering",
+    "source": "AlmondCroffle",
+    "id": "8c0be7dd-c4ae-4fd4-89fe-775e3e1c919a",
+    "date_posted": 1774263622,
+    "company_url": "",
+    "is_visible": true
+  },
+  {
+    "source": "Simplify",
+    "category": "Product",
+    "company_name": "Uncountable",
+    "id": "2be85ed6-1f10-412c-b779-90d1f55bbd99",
+    "title": "Product Manager – New Grad",
+    "active": true,
+    "date_updated": 1774430144,
+    "date_posted": 1774430144,
+    "url": "https://jobs.ashbyhq.com/uncountable/1f8425be-cd39-4397-a9c1-6511ecfc39fc/application",
+    "locations": [
+      "SF",
+      "NYC"
+    ],
+    "company_url": "https://simplify.jobs/c/Uncountable",
+    "is_visible": true,
+    "sponsorship": "Other",
+    "degrees": [
+      "Bachelor's"
+    ]
+  },
+  {
+    "source": "Simplify",
+    "category": "Software",
+    "company_name": "CACI",
+    "id": "6af8c893-078d-4b0c-895a-7fe8105ba976",
+    "title": "Software Engineer",
+    "active": true,
+    "date_updated": 1774306885,
+    "date_posted": 1774306885,
+    "url": "https://caci.wd1.myworkdayjobs.com/external/job/US-MD-Annapolis-Junction/Software-Engineer-Skill-Level-0_323580",
+    "locations": [
+      "Annapolis Junction, MD"
+    ],
+    "company_url": "https://simplify.jobs/c/CACI",
+    "is_visible": true,
+    "sponsorship": "Other",
+    "degrees": [
+      "Bachelor's"
+    ]
+  },
+  {
+    "date_updated": 1773910868,
+    "sponsorship": "Other",
+    "active": true,
+    "degrees": [],
+    "url": "https://jobs.lever.co/ivo/3ce9dc16-90fd-4b99-b4b9-dfd48ec1a50d",
+    "company_name": "Ivo",
+    "title": "Software Engineer, Backend",
+    "locations": [
+      "San Francisco, CA"
+    ],
+    "category": "Software Engineering",
+    "source": "AlmondCroffle",
+    "id": "23a17097-6dbf-4279-9567-c537ff173380",
+    "date_posted": 1773910868,
+    "company_url": "",
+    "is_visible": true
+  },
+  {
+    "source": "Simplify",
+    "category": "Software",
+    "company_name": "TickPick",
+    "id": "1084cdf5-3b7b-46a6-bf6d-10fdfa752e77",
+    "title": "Software Engineer",
+    "active": true,
+    "date_updated": 1781168941,
+    "date_posted": 1781168789,
+    "url": "https://apply.workable.com/tickpick/j/5840ECEB50/apply",
+    "locations": [
+      "NYC"
+    ],
+    "company_url": "https://simplify.jobs/c/TickPick",
+    "is_visible": true,
+    "sponsorship": "Other",
+    "degrees": []
+  },
+  {
+    "source": "Simplify",
+    "category": "Quant",
+    "company_name": "WTW",
+    "id": "b2033af5-2c15-43b1-a6cb-14008a8ecdc5",
+    "title": "Investment Analyst",
+    "active": true,
+    "date_updated": 1774044588,
+    "date_posted": 1774044588,
+    "url": "https://eedu.fa.em3.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1003/job/202601653",
+    "locations": [
+      "Toronto, ON, Canada"
+    ],
+    "company_url": "https://simplify.jobs/c/WTW",
+    "is_visible": true,
+    "sponsorship": "Other",
+    "degrees": [
+      "Bachelor's"
+    ]
+  },
+  {
+    "source": "Simplify",
+    "category": "Quant",
+    "company_name": "Sainsbury's",
+    "id": "b68f2bb3-1e3e-4b5f-8735-a798a784dd6b",
+    "title": "Trading Assistant - Shift",
+    "active": false,
+    "date_updated": 1773900910,
+    "date_posted": 1773900910,
+    "url": "https://hdhe.fa.em3.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX/job/400053927",
+    "locations": [
+      "Maidstone, UK"
+    ],
+    "company_url": "https://simplify.jobs/c/Sainsburys",
+    "is_visible": true,
+    "sponsorship": "Other",
+    "degrees": []
+  },
+  {
+    "source": "Simplify",
+    "category": "Software Engineering",
+    "company_name": "Intuit",
+    "id": "54a4c75f-0e8b-4a81-9bc0-baafc6113b85",
+    "title": "Software Engineer 1",
+    "active": false,
+    "date_updated": 1774018150,
+    "date_posted": 1773959662,
+    "url": "https://jobs.intuit.com/job/san-diego/software-engineer-1/27595/92964236400",
+    "locations": [
+      "San Diego, CA"
+    ],
+    "company_url": "https://simplify.jobs/c/Intuit",
+    "is_visible": false,
+    "sponsorship": "Other",
+    "degrees": []
+  }
+]

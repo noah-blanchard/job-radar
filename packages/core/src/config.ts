@@ -101,3 +101,29 @@ export async function syncCompanySeed(db: AnyDb, seed: SeedCompany[]) {
   }
   return { inserted, updated };
 }
+
+const ProfileLocation = z.object({
+  match: z.string().optional(),
+  country: z.string().optional(),
+  remote: z.boolean().optional(),
+  weight: z.number(),
+});
+const ProfileFile = z.object({
+  grad_date: z.union([z.string(), z.date()]).optional(),
+  seniority: z.string().optional(),
+  locations: z.array(ProfileLocation).default([]),
+  domains: z.record(z.string(), z.array(z.string())).default({}),
+  languages: z.array(z.string()).default([]),
+  work_auth_note: z.string().nullish(),
+  exclude_companies: z.array(z.string()).default([]),
+  exclude_title: z.array(z.string()).default([]),
+});
+export type Profile = z.infer<typeof ProfileFile>;
+
+export function parseProfile(raw: unknown): Profile {
+  return ProfileFile.parse(raw ?? {});
+}
+
+export function loadProfile(dir = findConfigDir()): Profile {
+  return parseProfile(parse(readFileSync(join(dir, "profile.yaml"), "utf8")));
+}

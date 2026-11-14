@@ -69,6 +69,8 @@ export const envSchema = z.object({
   DIGEST_CRON: withDefault(z.string(), "0 8 * * *"),
   HTTP_CONCURRENCY_PER_HOST: withDefault(int.min(1), 2),
   WORKDAY_MIN_INTERVAL_MS: withDefault(int, 1000),
+  /** Time budget of one ATS sweep; companies not reached run first next time. */
+  ATS_SWEEP_MAX_MINUTES: withDefault(int.min(1), 330),
 
   // --- Alert thresholds ---
   DIGEST_MIN_SCORE: withDefault(int.max(100), 40),

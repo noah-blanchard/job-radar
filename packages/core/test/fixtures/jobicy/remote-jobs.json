@@ -1,0 +1,82 @@
+{
+  "apiVersion": "2.2.19",
+  "documentationUrl": "https://jobi.cy/apidocs",
+  "friendlyNotice": "Thanks for using Jobicy API! Please ensure Jobicy is clearly credited with a direct link to the source, and all application buttons redirect to the original job URL provided in this feed. That’s all! You might be building something amazing, we wish you the best of luck!",
+  "jobCount": 3,
+  "lastUpdate": "2026-11-13T18:54:29+00:00",
+  "nextCursor": "AgAAAABq98WVAAAAAGr18LMAAAAAAAJ3l00zVhQkI8JYfGeOL2bNeSwvpjGOV7-iA1vhuPyR3yEv6casFzkq8SXTdm1ztNPUSR21MMS-u28sS9DJ-ssvsuI",
+  "hasMore": true,
+  "appliedFilters": {
+    "count": 50,
+    "industry": "engineering"
+  },
+  "jobs": [
+    {
+      "id": 162075,
+      "url": "https://jobicy.com/jobs/162075-forward-deployed-ai-solutions-architect",
+      "jobSlug": "162075-forward-deployed-ai-solutions-architect",
+      "jobTitle": "Forward Deployed AI Solutions Architect",
+      "companyName": "Qventus",
+      "companyLogo": "https://jobicy.com/data/server-nyc0409/galaxy/mercury/2022/01/0ad7e933ffa7b62281cc4b26710abfab.jpeg",
+      "jobIndustry": [
+        "Software Engineering"
+      ],
+      "jobType": [
+        "Full-Time"
+      ],
+      "jobGeo": "USA",
+      "jobLevel": "Director",
+      "jobExcerpt": "On this journey for over 12 years, Qventus is leading the transformation of healthcare. We enable hospitals to focus on what matters most: patient care. Our innovative solutions harness the power of machine learning, generative AI, and behavioral science to deliver exceptional outcomes and empower care teams to anticipate and resolve issues before they arise.&hellip;",
+      "jobDescription": "\n<p>On this journey for over 12 years, <a href=\"https://jobicy.com/company/qventus\" target=\"_blank\" rel=\"noopener\">Qventus</a> is leading the transformation of healthcare. We enable hospitals to focus on what matters most: patient care. Our innovative solutions harness the power of machine learning, generative AI, and behavioral science to deliver exceptional outcomes and empower care teams to anticipate and resolve issues before they arise.</p>\n<p>Our success in rapid scale across the globe is backed by some of the world's leading investors. At Qventus, you will have the opportunity to work with an exceptional, mission-driven team across the globe, and the ability to directly impact the lives of patients. We’re inspired to work with healthcare leaders on our founding vision and unlock world-class medicine through world-class operations. #LI-MB1</p>\n\n<p>On this journey for over 12 years, Qventus is leading the transformation of healthcare. We enable hospitals to focus on what matters most: patient care. Our innovative solutions harness the power of machine learning, generative AI, and behavioral science to deliver exceptional outcomes and empower care teams to anticipate and resolve issues before they arise.</p>\n\n<p>Our success in rapid scale across the globe is backed by some of the world's leading investors. At Qventus, you will have the opportunity to work with an exceptional, mission-driven team across the globe, and the ability to directly impact the lives of patients. W",
+      "pubDate": "2026-11-13T18:54:29+00:00",
+      "salaryMin": 220000,
+      "salaryMax": 245000,
+      "salaryCurrency": "USD",
+      "salaryPeriod": "yearly"
+    },
+    {
+      "id": 162053,
+      "url": "https://jobicy.com/jobs/162053-senior-full-stack-net-developer",
+      "jobSlug": "162053-senior-full-stack-net-developer",
+      "jobTitle": "Senior Full Stack .NET Developer",
+      "companyName": "Orion Innovation",
+      "companyLogo": "https://jobicy.com/data/server-nyc0409/galaxy/mercury/2026/11/d22b9eda419b-221.webp",
+      "jobIndustry": [
+        "Software Engineering"
+      ],
+      "jobType": [
+        "Full-Time"
+      ],
+      "jobGeo": "USA",
+      "jobLevel": "Senior",
+      "jobExcerpt": "Orion Innovation is a premier, award-winning, global business and technology services firm. Orion delivers game-changing business transformation and product development rooted in digital strategy, experience design, and engineering, with a unique combination of agility, scale, and maturity. We work with a wide range of clients across many industries including financial services, professional services, telecommunications and&hellip;",
+      "jobDescription": "<p><a href=\"https://jobicy.com/company/orion-innovation\" target=\"_blank\" rel=\"noopener\">Orion Innovation</a> is a premier, award-winning, global business and technology services firm. Orion delivers game-changing business transformation and product development rooted in digital strategy, experience design, and engineering, with a unique combination of agility, scale, and maturity. We work with a wide range of clients across many industries including financial services, professional services, telecommunications and media, consumer products, automotive, industrial automation, professional sports and entertainment, life sciences, ecommerce, and education.</p>\n<p><strong>Summary:</strong></p>\n<p>We are seeking a highly experienced Senior Full Stack .NET Developers. This role involves leveraging expertise in C#, .NET, Angular, and cloud technologies like Azure to deliver innovative solutions that align with business goals. The focus is on ensuring seamless project execution while maintaining high-quality standards.</p>\n<p><strong>Key Responsibilities:</strong></p>\n<ul>\n<li>Lead the design, development, and implementation of full-stack applications using .NET and Angular.</li>\n<li>Collaborate with cross-functional teams to gather and analyze requirements, ensuring technical feasibility.</li>\n<li>Ensure the security, performance, and scalability of applications deployed on Azure cloud solutions.</li>\n<li>Implement best practices for code versioning and collaboration using Git.</li>\n",
+      "pubDate": "2026-11-13T15:47:53+00:00"
+    },
+    {
+      "id": 162052,
+      "url": "https://jobicy.com/jobs/162052-senior-software-development-engineer-in-test",
+      "jobSlug": "162052-senior-software-development-engineer-in-test",
+      "jobTitle": "Senior Software Development Engineer in Test",
+      "companyName": "Varicent",
+      "companyLogo": "https://jobicy.com/data/server-nyc0409/galaxy/mercury/2025/06/c86166a8-221.jpeg",
+      "jobIndustry": [
+        "QA & Testing"
+      ],
+      "jobType": [
+        "Full-Time"
+      ],
+      "jobGeo": "Canada",
+      "jobLevel": "Senior",
+      "jobExcerpt": "At Varicent, we’re not just transforming the Sales Performance Management (SPM) market—we’re redefining how organizations achieve revenue success. Our cutting-edge SaaS solutions empower revenue leaders globally to design smarter go-to-market strategies, maximize seller performance, and unlock untapped potential. Varicent stands at the forefront of innovation, celebrated as a market leader in the 2025 Forrester Wave&hellip;",
+      "jobDescription": "\n<p>At <a href=\"https://jobicy.com/company/varicent\" target=\"_blank\" rel=\"noopener\">Varicent</a>, we’re not just transforming the Sales Performance Management (SPM) market—we’re redefining how organizations achieve revenue success. Our cutting-edge SaaS solutions empower revenue leaders globally to design smarter go-to-market strategies, maximize seller performance, and unlock untapped potential. Varicent stands at the forefront of innovation, celebrated as a market leader in the <em>2025 Forrester Wave Report for SPM</em>, <em>2023 Ventana Research Revenue Performance Management (RPM) Value Index</em>, <em>Gartner Peer Insights</em>, <em>2024 Gartner SPM Market Guide</em>, and <em>G2. </em>Our solutions are trusted by a diverse range of global industry leaders like T-Mobile, ServiceNow, Wawanesa Bank, Shaw Industries, Moody's, Stryker and hundreds more. Here’s why you’ll thrive at Varicent:</p>\n<ul>\n<li><strong>Innovate with Purpose: Build impactful solutions for customers worldwide.</strong></li>\n<li><strong>Join Excellence: Work in a diverse, collaborative, and innovative team.</strong></li>\n<li><strong>Shape the Future: Lead in redefining revenue optimization.</strong></li>\n<li><strong>Grow Together: Unlock your potential in a supportive environment.</strong></li>\n</ul>\n<p>Join us at Varicent—where your talent and ambition meet limitless opportunities for success!</p>\n<p><strong>Summary of the Role and Team</strong> </p>\n<p>As a Senior Software Developer in Test (Senior S",
+      "pubDate": "2026-11-13T15:47:52+00:00",
+      "salaryMin": 101000,
+      "salaryMax": 132500,
+      "salaryCurrency": "CAD",
+      "salaryPeriod": "yearly"
+    }
+  ],
+  "statusCode": 200,
+  "success": true
+}

@@ -2,6 +2,7 @@ import { companies } from "@jobradar/db";
 import { describe, expect, it } from "vitest";
 import { findConfigDir, loadCompanySeed, loadSourcesConfig, syncCompanySeed } from "../src/config";
 import { CONNECTORS } from "../src/connectors/registry";
+import { parseEnv } from "../src/env";
 import { testDb } from "./helpers";
 
 describe("config files", () => {
@@ -9,10 +10,27 @@ describe("config files", () => {
 
   it("parses sources.yaml and every enabled source has a connector", () => {
     const sources = loadSourcesConfig(dir);
-    const enabled = sources.filter((s) => s.enabled).map((s) => s.id);
-    expect(enabled.sort()).toEqual(["ashby", "greenhouse", "lever", "smartrecruiters", "workday"]);
-    const implemented = new Set(CONNECTORS.map((c) => c.id));
-    for (const id of enabled) expect(implemented.has(id)).toBe(true);
+    const implemented = new Map(CONNECTORS.map((c) => [c.id, c]));
+    for (const s of sources.filter((x) => x.enabled)) {
+      expect(implemented.has(s.id), s.id).toBe(true);
+      expect(s.status, s.id).toBe("verified");
+    }
+    // Every connector is listed, in the schedule matching its kind.
+    for (const c of CONNECTORS) {
+      const s = sources.find((x) => x.id === c.id);
+      expect(s, c.id).toBeDefined();
+      expect(s!.schedule === "ats", c.id).toBe(c.needsCompany);
+    }
+    // Disabled sources have no connector: never written without a successful verification.
+    for (const s of sources.filter((x) => x.status === "disabled"))
+      expect(implemented.has(s.id), s.id).toBe(false);
+  });
+
+  it("every quota_env names a numeric env variable", () => {
+    const env = parseEnv({});
+    for (const s of loadSourcesConfig(dir).filter((x) => x.quota_env)) {
+      expect(typeof env[s.quota_env as keyof typeof env], s.id).toBe("number");
+    }
   });
 
   it("parses the company seed; every ats has a connector and a key", () => {

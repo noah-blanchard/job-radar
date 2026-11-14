@@ -60,14 +60,23 @@ Modifier le schéma : éditer `packages/db/src/schema.ts`, puis `pnpm db:generat
 
 ```bash
 docker compose exec worker node dist/cli.js seed                         # synchronise config/companies.seed.yaml
-docker compose exec worker node dist/cli.js run all                      # toutes les sources ATS activées
+docker compose exec worker node dist/cli.js run all                      # toutes les sources activées (ATS + Tier B)
+docker compose exec worker node dist/cli.js run ats --max-minutes 30     # balayage ATS (budget en minutes)
+docker compose exec worker node dist/cli.js run tier-b                   # agrégateurs + listes/flux (alias : aggregators, feeds)
 docker compose exec worker node dist/cli.js run greenhouse --company stripe
-docker compose exec worker node dist/cli.js stats                        # compteurs + doublons de fingerprint
+docker compose exec worker node dist/cli.js detect-ats https://jobs.lever.co/acme [--name Acme] [--dry-run]
+docker compose exec worker node dist/cli.js stats                        # compteurs, doublons, entreprises par origine
 ```
 
-Hors Docker : `pnpm --filter @jobradar/worker cli run all`.
+Hors Docker : `pnpm --filter @jobradar/worker cli run all`, et `pnpm detect-ats <url-carrières>` pour ajouter une entreprise à la main (détection par URL, sinon sondage des API publiques des ATS avec le nom de domaine ; jamais de scraping HTML).
 
-Le worker lance automatiquement le balayage ATS selon `ATS_CRON` (toutes les 6 h, heure de Toronto), avec un jitter de 0 à 10 min par connecteur.
+Planification (heure de Toronto) :
+
+- `ATS_CRON` (toutes les 6 h) : balayage des ATS, jitter de 0 à 10 min par connecteur, budget `ATS_SWEEP_MAX_MINUTES`. Les entreprises sont prises par priorité puis de la moins récemment à jour à la plus récente : celles non atteintes passent en tête au balayage suivant.
+- `AGGREGATORS_CRON` (05:30) : Adzuna, Jooble, JSearch, Findwork, avec leurs quotas journaliers (`*_DAILY_MAX_CALLS`, table `api_usage`).
+- `FEEDS_CRON` (toutes les 6 h) : listes GitHub new grad, flux remote, HN « Who is hiring? ».
+
+Chaque run passe toutes les URLs vues dans `detectAts` : les boards inconnus deviennent des entreprises « découvertes », visibles dans `/companies` et balayées au run ATS suivant.
 
 ## Git
 
