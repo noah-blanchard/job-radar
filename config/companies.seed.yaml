@@ -1,0 +1,37 @@
+# Entreprises cibles. `ats`/`ats_key` sont remplis après détection réelle (jamais supposés).
+# priority: high | normal | low. Les entreprises extraites des repos new grad GitHub
+# seront ajoutées automatiquement (origin = discovered) à partir de M2.
+
+companies:
+  - { name: Atlassian, priority: high, ats: null, ats_key: null }
+  - { name: Bell, priority: high, ats: null, ats_key: null }
+  - { name: Stripe, priority: high, ats: null, ats_key: null }
+  - { name: Databricks, priority: high, ats: null, ats_key: null }
+  - { name: DoorDash, priority: high, ats: null, ats_key: null }
+  - { name: NVIDIA, priority: high, ats: null, ats_key: null }
+  - { name: Amazon, priority: high, ats: null, ats_key: null }
+  - { name: Microsoft, priority: high, ats: null, ats_key: null }
+  - { name: Akuna Capital, priority: high, ats: null, ats_key: null }
+  - { name: NXP, priority: high, ats: null, ats_key: null }
+  - { name: Cummins, priority: high, ats: null, ats_key: null }
+  - { name: Xiaomi, priority: normal, ats: null, ats_key: null, note: "bureaux hors Chine uniquement" }
+  - { name: Shopify, priority: high, ats: null, ats_key: null }
+  - { name: Ubisoft Montréal, priority: high, ats: null, ats_key: null }
+  - { name: EA, priority: high, ats: null, ats_key: null }
+  - { name: Unity, priority: high, ats: null, ats_key: null }
+  - { name: Autodesk, priority: high, ats: null, ats_key: null }
+  - { name: Cohere, priority: high, ats: null, ats_key: null }
+  - { name: Mila, priority: high, ats: null, ats_key: null }
+  - { name: ServiceNow, priority: high, ats: null, ats_key: null, note: "inclut l'ex-Element AI" }
+  - { name: Coveo, priority: high, ats: null, ats_key: null }
+  - { name: Lightspeed, priority: high, ats: null, ats_key: null }
+  - { name: Wealthsimple, priority: high, ats: null, ats_key: null }
+  - { name: Genetec, priority: high, ats: null, ats_key: null }
+  - { name: Behaviour Interactive, priority: high, ats: null, ats_key: null }
+  - { name: Eidos, priority: high, ats: null, ats_key: null }
+  - { name: Moment Factory, priority: high, ats: null, ats_key: null }
+  - { name: LANDR, priority: high, ats: null, ats_key: null }
+  - { name: Native Instruments, priority: high, ats: null, ats_key: null }
+  - { name: Ableton, priority: high, ats: null, ats_key: null }
+  - { name: Spotify, priority: high, ats: null, ats_key: null }
+  - { name: Splice, priority: high, ats: null, ats_key: null }

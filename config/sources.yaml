@@ -1,0 +1,43 @@
+# Activation, fréquence et quotas de chaque source.
+# status: verified | disabled | unverified (à vérifier par un vrai appel avant d'écrire le connecteur)
+# schedule: ats (ATS_CRON, 6 h) | aggregators (AGGREGATORS_CRON, 1x/jour 05:30) | feeds (FEEDS_CRON, 6 h)
+# Les quotas journaliers des API à clé viennent des variables *_DAILY_MAX_CALLS du .env.
+# L'état détaillé (raison de désactivation, notes de vérification) est dans SOURCES.md.
+
+ats:
+  greenhouse: { enabled: false, status: unverified, schedule: ats }
+  lever: { enabled: false, status: unverified, schedule: ats }
+  ashby: { enabled: false, status: unverified, schedule: ats }
+  smartrecruiters: { enabled: false, status: unverified, schedule: ats }
+  workday: { enabled: false, status: unverified, schedule: ats, min_interval_ms: 1000 }
+  workable: { enabled: false, status: unverified, schedule: ats }
+  recruitee: { enabled: false, status: unverified, schedule: ats }
+  personio: { enabled: false, status: unverified, schedule: ats }
+  bamboohr: { enabled: false, status: unverified, schedule: ats }
+  breezy: { enabled: false, status: unverified, schedule: ats }
+  teamtailor: { enabled: false, status: unverified, schedule: ats }
+  pinpoint: { enabled: false, status: unverified, schedule: ats }
+  rippling: { enabled: false, status: unverified, schedule: ats }
+  oracle_rc: { enabled: false, status: unverified, schedule: ats }
+  eightfold: { enabled: false, status: unverified, schedule: ats }
+
+aggregators:
+  github_simplify_newgrad: { enabled: false, status: unverified, schedule: feeds }
+  adzuna: { enabled: false, status: unverified, schedule: aggregators, quota_env: ADZUNA_DAILY_MAX_CALLS }
+  jooble: { enabled: false, status: unverified, schedule: aggregators, quota_env: JOOBLE_DAILY_MAX_CALLS }
+  careerjet: { enabled: false, status: unverified, schedule: aggregators }
+  france_travail: { enabled: false, status: unverified, schedule: aggregators, quota_env: FT_DAILY_MAX_CALLS }
+  ba_jobsuche: { enabled: false, status: unverified, schedule: aggregators } # BA_JOBSUCHE_ENABLED
+  themuse: { enabled: false, status: unverified, schedule: aggregators }
+  findwork: { enabled: false, status: unverified, schedule: aggregators, quota_env: FINDWORK_DAILY_MAX_CALLS }
+  jsearch: { enabled: false, status: unverified, schedule: aggregators, quota_env: JSEARCH_DAILY_MAX_CALLS }
+  jobbank_ca: { enabled: false, status: unverified, schedule: aggregators }
+
+feeds:
+  arbeitnow: { enabled: false, status: unverified, schedule: feeds }
+  remotive: { enabled: false, status: unverified, schedule: feeds }
+  remoteok: { enabled: false, status: unverified, schedule: feeds }
+  himalayas: { enabled: false, status: unverified, schedule: feeds }
+  jobicy: { enabled: false, status: unverified, schedule: feeds }
+  weworkremotely: { enabled: false, status: unverified, schedule: feeds }
+  hn_whoishiring: { enabled: false, status: unverified, schedule: feeds }
