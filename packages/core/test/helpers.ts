@@ -14,8 +14,13 @@ import type { HttpClient, HttpRequestOptions, HttpResponse } from "../src/http/t
 export const silentLog = pino({ level: "silent" });
 
 export const CONFIG_DIR = fileURLToPath(new URL("../../../config", import.meta.url));
-/** The real config/profile.yaml. */
-export const profile = loadProfile(CONFIG_DIR);
+/**
+ * Frozen copy of the profile the scoring tests were written against (fixtures/profile/), so
+ * editing the real config/profile.yaml never breaks them. score.test.ts still checks that the
+ * real file loads.
+ */
+export const PROFILE_FIXTURE_DIR = fileURLToPath(new URL("./fixtures/profile", import.meta.url));
+export const profile = loadProfile(PROFILE_FIXTURE_DIR);
 
 /** Env with fake keys (tests never hit the network). */
 export function testEnv(over: Record<string, string> = {}): Env {

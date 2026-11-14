@@ -50,7 +50,7 @@ const ng = (value: boolean | null): NewGradInfo => ({
 });
 const part = (b: ScoreBreakdown, key: string) => b.parts.find((p) => p.key === key)?.points;
 
-describe("scoreJob (config/profile.yaml)", () => {
+describe("scoreJob (fixture profile)", () => {
   it("gives the weight of the first matching location rule", () => {
     const mtl = scoreJob(job({ city: "Montréal", country: "CA" }), ng(null), cp, NOW);
     expect(part(mtl.breakdown, "location")).toBe(30);
@@ -307,7 +307,8 @@ describe("profile.yaml changes", () => {
 
   it("loads the real config/profile.yaml", () => {
     const p = loadProfileFile(CONFIG_DIR);
-    expect(Object.keys(p.profile.domains)).toContain("audio_dsp");
+    expect(p.profile.locations.length).toBeGreaterThan(0);
+    expect(Object.keys(p.profile.domains).length).toBeGreaterThan(0);
     expect(p.hash).toMatch(/^[0-9a-f]{16}$/);
   });
 });
