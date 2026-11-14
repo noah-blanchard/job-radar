@@ -63,6 +63,15 @@ export const users = pgTable(
     /** Hash (profile text + scoring version) the stored `job_scores` reflect. */
     scoredHash: text("scored_hash"),
     scoredAt: tstz("scored_at"),
+    // ---- alerts (the owner's channels are the .env ones; thresholds null = .env defaults) ----
+    digestEnabled: boolean("digest_enabled").notNull().default(true),
+    digestMinScore: smallint("digest_min_score"),
+    instantEnabled: boolean("instant_enabled").notNull().default(true),
+    instantMinScore: smallint("instant_min_score"),
+    /** E-mail alerts, through the shared SMTP server (SMTP_*). */
+    alertEmail: text("alert_email"),
+    /** Personal ntfy topic on NTFY_URL. */
+    ntfyTopic: text("ntfy_topic"),
     createdAt: tstz("created_at").notNull().defaultNow(),
   },
   (t) => [uniqueIndex("users_email_uq").on(sql`lower(${t.email})`)],
@@ -292,6 +301,10 @@ export const alertsSent = pgTable(
   "alerts_sent",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
+    /** Recipient (health alerts go to the owner). */
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
     /** Null for alerts not tied to a single job (health, digest summary). */
     jobId: bigint("job_id", { mode: "number" }).references(() => jobs.id, {
       onDelete: "cascade",
@@ -302,7 +315,7 @@ export const alertsSent = pgTable(
     dedupKey: text("dedup_key").notNull(),
     sentAt: tstz("sent_at").notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("alerts_sent_dedup_uq").on(t.channel, t.kind, t.dedupKey)],
+  (t) => [uniqueIndex("alerts_sent_dedup_uq").on(t.userId, t.channel, t.kind, t.dedupKey)],
 );
 
 /** Small key/value store: worker heartbeat, profile.yaml hash, LLM cache, ... */

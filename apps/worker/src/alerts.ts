@@ -2,7 +2,10 @@ import {
   ALERT_TEST_REQUEST_KEY,
   ALERT_TEST_RESULT_KEY,
   alertSecrets,
+  alertTestResultKey,
   createChannels,
+  createUserChannels,
+  listUsers,
   runDigest,
   runHealthChecks,
   runInstantAlerts,
@@ -13,7 +16,7 @@ import {
   type ChannelResult,
   type Env,
 } from "@jobradar/core";
-import { kvSet, queryRows, sql } from "@jobradar/db";
+import { kvSet, queryRows, sql, type User } from "@jobradar/db";
 import { Cron } from "croner";
 import type { Runtime } from "./runtime";
 
@@ -38,22 +41,55 @@ function quotaMap(rt: Runtime): Record<string, number> {
   return out;
 }
 
+/** One account the alerts go to: its scores, statuses, thresholds and channels. */
+interface Recipient {
+  user: User;
+  isOwner: boolean;
+  deps: AlertDeps;
+  digestMinScore: number;
+  instantMinScore: number;
+}
+
+export interface UserResults<T = ChannelResult[]> {
+  userId: number;
+  results: T;
+}
+
 /**
- * Alert jobs of the worker. Every send goes through one queue (no two alert jobs at once), and
- * each kind is idempotent through `alerts_sent`, so calling them more often is always safe.
+ * Alert jobs of the worker, per account: each user gets their own digest and instant alerts
+ * (their scores, statuses and thresholds) on their own channels. The owner's channels are the
+ * .env ones and also receive the health alerts. Every send goes through one queue (no two alert
+ * jobs at once), and each kind is idempotent per user through `alerts_sent`, so calling them
+ * more often is always safe.
  */
 export function createAlerts(rt: Runtime, opts: { channels?: AlertChannel[] } = {}) {
-  const channels = opts.channels ?? createChannels(rt.env);
-  const base0: Omit<AlertDeps, "userId"> = {
-    db: rt.db,
-    channels,
-    log: rt.log,
-    secrets: alertSecrets(rt.env),
-  };
-  // The env channels belong to the owner: their scores and statuses pick the jobs.
-  const ownerDeps = (): AlertDeps => ({ ...base0, userId: rt.ownerId });
   const env = rt.env;
   const base = env.PUBLIC_BASE_URL;
+  const ownerChannels = opts.channels ?? createChannels(env);
+
+  async function recipients(): Promise<Recipient[]> {
+    const users = await listUsers(rt.db);
+    return users
+      .filter((u) => u.id === rt.ownerId || u.passwordHash)
+      .map((user) => {
+        const isOwner = user.id === rt.ownerId;
+        const channels = isOwner ? ownerChannels : createUserChannels(env, user, false);
+        return {
+          user,
+          isOwner,
+          deps: {
+            db: rt.db,
+            userId: user.id,
+            channels,
+            log: rt.log.child({ userId: user.id }),
+            secrets: alertSecrets(env),
+          },
+          digestMinScore: user.digestMinScore ?? env.DIGEST_MIN_SCORE,
+          instantMinScore: user.instantMinScore ?? env.INSTANT_MIN_SCORE,
+        };
+      })
+      .filter((r) => r.deps.channels.length > 0);
+  }
 
   let queue: Promise<unknown> = Promise.resolve();
   const serial = <T>(name: string, fn: () => Promise<T>): Promise<T | undefined> => {
@@ -64,27 +100,64 @@ export function createAlerts(rt: Runtime, opts: { channels?: AlertChannel[] } = 
     queue = p;
     return p;
   };
-  const logSent = (kind: string, results: ChannelResult[]) => {
+  const logSent = (kind: string, userId: number, results: ChannelResult[]) => {
     const sent = results.filter((r) => r.sent > 0);
     if (sent.length > 0 || results.some((r) => !r.ok))
-      rt.log.info({ kind, results }, "alerts sent");
+      rt.log.info({ kind, userId, results }, "alerts sent");
   };
 
-  async function digestFor(anchor: Date) {
-    const results = await runDigest(ownerDeps(), {
-      anchor,
-      minScore: env.DIGEST_MIN_SCORE,
+  /** Runs `fn` for each recipient; one user's failure never stops the others. */
+  async function forEach<T>(
+    kind: string,
+    pick: (r: Recipient) => boolean,
+    fn: (r: Recipient) => Promise<T>,
+  ): Promise<UserResults<T>[]> {
+    const out: UserResults<T>[] = [];
+    for (const r of (await recipients()).filter(pick)) {
+      try {
+        out.push({ userId: r.user.id, results: await fn(r) });
+      } catch (err) {
+        rt.log.error({ err, kind, userId: r.user.id }, "alert job failed for this user");
+      }
+    }
+    return out;
+  }
+
+  const digestFor = (anchor: Date) =>
+    forEach(
+      "digest",
+      (r) => r.user.digestEnabled,
+      async (r) => {
+        const results = await runDigest(r.deps, {
+          anchor,
+          minScore: r.digestMinScore,
+          publicBaseUrl: base,
+          // Exhausted quotas are an operations matter: the owner's digest only.
+          quotas: r.isOwner ? quotaMap(rt) : {},
+        });
+        logSent("digest", r.user.id, results);
+        return results;
+      },
+    );
+
+  async function runTest(r: Recipient, requestedAt?: string): Promise<AlertTestResult> {
+    const results = await sendTestAlerts(r.deps, {
+      minScore: r.digestMinScore,
       publicBaseUrl: base,
-      quotas: quotaMap(rt),
+      quotas: r.isOwner ? quotaMap(rt) : {},
     });
-    logSent("digest", results);
-    return results;
+    const out: AlertTestResult = { requestedAt, finishedAt: new Date().toISOString(), results };
+    await kvSet(rt.db, alertTestResultKey(r.user.id), out);
+    if (r.isOwner) await kvSet(rt.db, ALERT_TEST_RESULT_KEY, out);
+    rt.log.info({ userId: r.user.id, results }, "test alerts sent");
+    return out;
   }
 
   let instantPending = false;
 
   return {
-    channels: channels.map((c) => c.id),
+    /** The owner's channels (.env), for the startup log. */
+    channels: ownerChannels.map((c) => c.id),
 
     /** DIGEST_CRON callback: the digest of the occurrence that just fired. */
     digest: (now = new Date()) =>
@@ -108,57 +181,80 @@ export function createAlerts(rt: Runtime, opts: { channels?: AlertChannel[] } = 
       instantPending = true;
       return serial("instant", async () => {
         instantPending = false;
-        const results = await runInstantAlerts(ownerDeps(), {
-          minScore: env.INSTANT_MIN_SCORE,
-          highPriorityMinScore: env.DIGEST_MIN_SCORE,
-          publicBaseUrl: base,
-        });
-        logSent("instant", results);
-        return results;
+        return forEach(
+          "instant",
+          (r) => r.user.instantEnabled,
+          async (r) => {
+            const results = await runInstantAlerts(r.deps, {
+              minScore: r.instantMinScore,
+              highPriorityMinScore: r.digestMinScore,
+              publicBaseUrl: base,
+            });
+            logSent("instant", r.user.id, results);
+            return results;
+          },
+        );
       });
     },
 
+    /** Health issues: the owner only (sources, worker, backups are shared infrastructure). */
     health: (previousTick?: Date) =>
       serial("health", async () => {
-        const r = await runHealthChecks(ownerDeps(), {
+        const owner = (await recipients()).find((r) => r.isOwner);
+        if (!owner) return undefined;
+        const r = await runHealthChecks(owner.deps, {
           silenceHours: env.HEALTH_SILENCE_HOURS,
           previousTick,
           publicBaseUrl: base,
         });
         if (r.issues.length > 0)
           rt.log.warn({ alert: "health", issues: r.issues.map((i) => i.text) }, "health issues");
-        logSent("health", r.results);
+        logSent("health", owner.user.id, r.results);
         return r;
       }),
 
-    /** "Tester les canaux" on /settings: the request is claimed atomically, the result stored. */
+    /**
+     * "Tester les canaux" on /settings: each user's request (`alert_test_request:<id>`, or the
+     * bare key for the owner) is claimed atomically and answered on that user's channels.
+     */
     processTestRequest: () =>
       serial("test", async () => {
-        const [req] = await queryRows<{ value: { requestedAt?: string } }>(
+        const reqs = await queryRows<{ key: string; value: { requestedAt?: string } }>(
           rt.db,
-          sql`delete from kv where key = ${ALERT_TEST_REQUEST_KEY} returning value`,
+          sql`delete from kv where key = ${ALERT_TEST_REQUEST_KEY}
+                or key like ${`${ALERT_TEST_REQUEST_KEY}:%`} returning key, value`,
         );
-        if (!req) return undefined;
-        return runTest(req.value?.requestedAt);
+        if (reqs.length === 0) return undefined;
+        const all = await recipients();
+        const users = await listUsers(rt.db);
+        for (const req of reqs) {
+          const id =
+            req.key === ALERT_TEST_REQUEST_KEY
+              ? rt.ownerId
+              : Number(req.key.slice(ALERT_TEST_REQUEST_KEY.length + 1));
+          const r = all.find((x) => x.user.id === id);
+          if (r) await runTest(r, req.value?.requestedAt);
+          else if (users.some((u) => u.id === id))
+            // No channel configured: record an empty result so the page stops waiting.
+            await kvSet(rt.db, alertTestResultKey(id), {
+              requestedAt: req.value?.requestedAt,
+              finishedAt: new Date().toISOString(),
+              results: [],
+            } satisfies AlertTestResult);
+        }
+        return reqs.length;
       }),
 
-    test: (requestedAt?: string) => serial("test", () => runTest(requestedAt)),
+    /** CLI `alerts test`: every recipient. */
+    test: (requestedAt?: string) =>
+      serial("test", async () =>
+        forEach(
+          "test",
+          () => true,
+          (r) => runTest(r, requestedAt),
+        ),
+      ),
   };
-
-  async function runTest(requestedAt?: string): Promise<AlertTestResult> {
-    const results =
-      channels.length === 0
-        ? []
-        : await sendTestAlerts(ownerDeps(), {
-            minScore: env.DIGEST_MIN_SCORE,
-            publicBaseUrl: base,
-            quotas: quotaMap(rt),
-          });
-    const out: AlertTestResult = { requestedAt, finishedAt: new Date().toISOString(), results };
-    await kvSet(rt.db, ALERT_TEST_RESULT_KEY, out);
-    rt.log.info({ results, channels: channels.map((c) => c.id) }, "test alerts sent");
-    return out;
-  }
 }
 
 export type Alerts = ReturnType<typeof createAlerts>;

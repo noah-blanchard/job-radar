@@ -10,9 +10,12 @@ import { requestAlertTest } from "./actions";
 export function TestChannelsButton({
   disabled,
   pendingSince,
+  ownerChannels = false,
 }: {
   disabled: boolean;
   pendingSince?: string;
+  /** The owner's channels come from the .env; other users set theirs above. */
+  ownerChannels?: boolean;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -33,7 +36,9 @@ export function TestChannelsButton({
       className="mt-3"
       title={
         disabled
-          ? "Aucun canal configuré (variables NTFY_*, SMTP_*, DISCORD_*, TELEGRAM_* du .env)"
+          ? ownerChannels
+            ? "Aucun canal configuré (variables NTFY_*, SMTP_*, DISCORD_*, TELEGRAM_* du .env)"
+            : "Aucun canal configuré : renseigne un e-mail ou un topic ntfy, puis enregistre"
           : "Envoie un aperçu du digest [TEST] sur chaque canal configuré (via le worker, dans la minute)"
       }
       onClick={() =>

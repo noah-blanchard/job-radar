@@ -38,8 +38,8 @@ export const DIGEST_MAX_JOBS = 150;
 const PUSH_TOP = 5;
 
 /**
- * Open jobs worth alerting for one user: new grad or unknown (never `false`), not ignored in
- * their dashboard. Sorted by their score, then freshness.
+ * Open jobs worth alerting for one user: not ignored in their dashboard, sorted by their score,
+ * then freshness. The level is in the score: a level outside the profile caps it at 20.
  */
 export async function selectAlertJobs(
   db: AnyDb,
@@ -67,14 +67,7 @@ export async function selectAlertJobs(
     .innerJoin(jobScores, and(eq(jobScores.jobId, jobs.id), eq(jobScores.userId, userId)))
     .leftJoin(companies, eq(companies.id, jobs.companyId))
     .leftJoin(jobStatus, and(eq(jobStatus.jobId, jobs.id), eq(jobStatus.userId, userId)))
-    .where(
-      and(
-        isNull(jobs.closedAt),
-        sql`${jobs.isNewGrad} is distinct from false`,
-        sql`${jobStatus.status} is distinct from 'ignored'`,
-        where,
-      ),
-    )
+    .where(and(isNull(jobs.closedAt), sql`${jobStatus.status} is distinct from 'ignored'`, where))
     .orderBy(desc(jobScores.score), desc(jobs.firstSeenAt), desc(jobs.id))
     .limit(limit);
 }
@@ -107,7 +100,6 @@ export async function selectDigest(
     .where(
       and(
         isNull(jobs.closedAt),
-        sql`${jobs.isNewGrad} is distinct from false`,
         sql`${jobStatus.status} is distinct from 'ignored'`,
         digestWhere(w),
       ),
@@ -299,7 +291,13 @@ export async function runDigest(deps: AlertDeps, o: DigestOptions): Promise<Chan
   const done = await deps.db
     .select({ channel: alertsSent.channel })
     .from(alertsSent)
-    .where(and(eq(alertsSent.kind, "digest"), eq(alertsSent.dedupKey, key)));
+    .where(
+      and(
+        eq(alertsSent.userId, deps.userId),
+        eq(alertsSent.kind, "digest"),
+        eq(alertsSent.dedupKey, key),
+      ),
+    );
   const doneSet = new Set(done.map((d) => d.channel));
   if (deps.channels.every((c) => doneSet.has(c.id)))
     return deps.channels.map((c) => ({ channel: c.id, sent: 0, ok: true }));

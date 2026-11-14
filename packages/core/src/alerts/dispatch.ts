@@ -27,9 +27,10 @@ export interface ChannelResult {
   error?: string;
 }
 
-/** Inserts the (channel, kind, key) rows that do not exist yet; returns the ones inserted. */
+/** Inserts the (user, channel, kind, key) rows that do not exist yet; returns those inserted. */
 async function claim(
   db: AnyDb,
+  userId: number,
   channel: string,
   kind: AlertKind,
   items: readonly DedupItem[],
@@ -37,18 +38,27 @@ async function claim(
   if (items.length === 0) return new Set();
   const rows = await db
     .insert(alertsSent)
-    .values(items.map((i) => ({ channel, kind, dedupKey: i.key, jobId: i.jobId ?? null })))
-    .onConflictDoNothing({ target: [alertsSent.channel, alertsSent.kind, alertsSent.dedupKey] })
+    .values(items.map((i) => ({ userId, channel, kind, dedupKey: i.key, jobId: i.jobId ?? null })))
+    .onConflictDoNothing({
+      target: [alertsSent.userId, alertsSent.channel, alertsSent.kind, alertsSent.dedupKey],
+    })
     .returning({ key: alertsSent.dedupKey });
   return new Set(rows.map((r) => r.key));
 }
 
-async function release(db: AnyDb, channel: string, kind: AlertKind, keys: readonly string[]) {
+async function release(
+  db: AnyDb,
+  userId: number,
+  channel: string,
+  kind: AlertKind,
+  keys: readonly string[],
+) {
   if (keys.length === 0) return;
   await db
     .delete(alertsSent)
     .where(
       and(
+        eq(alertsSent.userId, userId),
         eq(alertsSent.channel, channel),
         eq(alertsSent.kind, kind),
         inArray(alertsSent.dedupKey, [...keys]),
@@ -71,7 +81,7 @@ export async function sendOnce(
 ): Promise<ChannelResult[]> {
   const results: ChannelResult[] = [];
   for (const ch of deps.channels) {
-    const claimed = await claim(deps.db, ch.id, kind, items);
+    const claimed = await claim(deps.db, deps.userId, ch.id, kind, items);
     const fresh = items.filter((i) => claimed.has(i.key));
     if (fresh.length === 0) {
       results.push({ channel: ch.id, sent: 0, ok: true });
@@ -79,7 +89,7 @@ export async function sendOnce(
     }
     const msg = build(fresh);
     if (!msg) {
-      await release(deps.db, ch.id, kind, [...claimed]);
+      await release(deps.db, deps.userId, ch.id, kind, [...claimed]);
       results.push({ channel: ch.id, sent: 0, ok: true });
       continue;
     }
@@ -87,7 +97,7 @@ export async function sendOnce(
       await ch.send(msg);
       results.push({ channel: ch.id, sent: fresh.length, ok: true });
     } catch (err) {
-      await release(deps.db, ch.id, kind, [...claimed]);
+      await release(deps.db, deps.userId, ch.id, kind, [...claimed]);
       const error = redact(err instanceof Error ? err.message : String(err), deps.secrets ?? []);
       deps.log.error({ channel: ch.id, kind, error }, "alert send failed (will retry)");
       results.push({ channel: ch.id, sent: 0, ok: false, error });

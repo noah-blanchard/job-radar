@@ -98,6 +98,8 @@ Chaque run passe toutes les URLs vues dans `detectAts` : les boards inconnus dev
 
 ## Alertes
 
+Chaque compte reçoit son digest et ses alertes instantanées, avec ses scores et ses seuils (`/settings` → Alertes). Les canaux ci-dessous (`.env`) sont ceux du propriétaire, qui reçoit aussi les alertes de santé ; les autres comptes renseignent leur propre e-mail (envoyé par le serveur SMTP commun) et/ou leur topic ntfy.
+
 Canaux activés par leurs variables (`.env`) : **ntfy** (`NTFY_TOPIC`, plus `NTFY_TOKEN` si le topic est protégé), **e-mail** (`SMTP_HOST` + `ALERT_EMAIL_TO`, plus `SMTP_USER`/`SMTP_PASS`/`SMTP_FROM`), Discord (`DISCORD_WEBHOOK_URL`), Telegram (`TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID`).
 
 - **Digest** à `DIGEST_CRON` (08:00 Toronto) : offres vues dans les 24 h avant l'échéance, new grad ou inconnu, score ≥ `DIGEST_MIN_SCORE`, triées par score et groupées par pays. E-mail HTML (25 offres par pays, 150 au plus, lien vers le reste) ; push = compteur + top 5. Les quotas épuisés y sont signalés. Envoyé même vide. Rattrapé dans les 12 h si le worker était arrêté à 08:00.

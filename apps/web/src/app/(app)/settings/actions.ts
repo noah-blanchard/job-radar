@@ -1,6 +1,6 @@
 "use server";
 
-import { ALERT_TEST_REQUEST_KEY } from "@jobradar/core/alerts/keys";
+import { alertTestRequestKey } from "@jobradar/core/alerts/keys";
 import {
   createInvite,
   deleteUser,
@@ -8,6 +8,7 @@ import {
   getUser,
   hashPassword,
   MIN_PASSWORD_LENGTH,
+  ownerUser,
   verifyPassword,
 } from "@jobradar/core/users";
 import { parseProfileText, profileProblems } from "@jobradar/core/score";
@@ -18,12 +19,12 @@ import { getDb } from "@/lib/db";
 
 /**
  * "Tester les canaux": the dashboard never sends anything itself. It records a request in `kv`
- * that the worker claims at its one-minute tick; the outcome comes back in `alert_test_result`.
- * The env channels are the owner's: admins only.
+ * (`alert_test_request:<user id>`) that the worker claims at its one-minute tick; it sends a
+ * [TEST] digest on this user's channels and stores the outcome in `alert_test_result:<user id>`.
  */
 export async function requestAlertTest(): Promise<{ ok: boolean }> {
-  if ((await sessionUser())?.role !== "admin") return { ok: false };
-  await kvSet(getDb(), ALERT_TEST_REQUEST_KEY, { requestedAt: new Date().toISOString() });
+  const me = await currentUser();
+  await kvSet(getDb(), alertTestRequestKey(me.id), { requestedAt: new Date().toISOString() });
   revalidatePath("/settings");
   return { ok: true };
 }
@@ -138,4 +139,44 @@ export async function saveProfile(
   revalidatePath("/settings");
   revalidatePath("/");
   return { ok: "Profil enregistré : tes scores sont recalculés dans la minute." };
+}
+
+const score = (v: FormDataEntryValue | null): number | null | "invalid" => {
+  const s = String(v ?? "").trim();
+  if (!s) return null;
+  const n = Number(s);
+  return Number.isInteger(n) && n >= 0 && n <= 100 ? n : "invalid";
+};
+
+/**
+ * The signed-in user's alert settings. The owner's channels are the .env ones; everyone else
+ * sets their own e-mail address and ntfy topic. Empty thresholds = the server defaults.
+ */
+export async function saveAlertSettings(_prev: FormState, form: FormData): Promise<FormState> {
+  const me = await currentUser();
+  const db = getDb();
+  const owner = await ownerUser(db);
+  const digestMinScore = score(form.get("digestMinScore"));
+  const instantMinScore = score(form.get("instantMinScore"));
+  if (digestMinScore === "invalid" || instantMinScore === "invalid")
+    return { error: "Les scores vont de 0 à 100." };
+  const patch: Partial<typeof users.$inferInsert> = {
+    digestEnabled: form.get("digestEnabled") === "on",
+    digestMinScore,
+    instantEnabled: form.get("instantEnabled") === "on",
+    instantMinScore,
+  };
+  if (owner?.id !== me.id) {
+    const email = String(form.get("alertEmail") ?? "").trim();
+    const topic = String(form.get("ntfyTopic") ?? "").trim();
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "E-mail invalide." };
+    if (topic && !/^[A-Za-z0-9_-]{8,64}$/.test(topic))
+      return { error: "Topic ntfy : 8 à 64 lettres, chiffres, - ou _." };
+    // A disabled field (no SMTP server) is not submitted: keep the stored address.
+    if (form.has("alertEmail")) patch.alertEmail = email || null;
+    patch.ntfyTopic = topic || null;
+  }
+  await db.update(users).set(patch).where(eq(users.id, me.id));
+  revalidatePath("/settings");
+  return { ok: "Enregistré." };
 }

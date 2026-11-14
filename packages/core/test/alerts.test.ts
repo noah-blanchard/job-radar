@@ -16,6 +16,7 @@ import {
   BACKUP_STATUS_KEY,
   buildDigestMessage,
   createChannels,
+  createUserChannels,
   emailChannel,
   findHealthIssues,
   ntfyChannel,
@@ -106,7 +107,8 @@ describe("digest", () => {
     const top = await addJob({ title: "Top", score: 90 });
     await addJob({ title: "Paris", score: 70, country: "FR", city: "Paris", region: null });
     await addJob({ title: "Unknown seniority", score: 50, isNewGrad: null });
-    await addJob({ title: "Senior", score: 95, isNewGrad: false });
+    // Off-target level: the scorer caps it at 20, under the threshold.
+    await addJob({ title: "Senior", score: 20, isNewGrad: false });
     await addJob({ title: "Low score", score: 39 });
     await addJob({ title: "Too old", score: 80, firstSeenAt: new Date(NOW.getTime() - 25 * H) });
     await addJob({
@@ -236,7 +238,7 @@ describe("instant alerts", () => {
     await addJob({ title: "Priority but excluded", score: 0, companyId: hp!.id });
     await addJob({ title: "Average", score: 60 });
     await addJob({ title: "Old", score: 90, firstSeenAt: new Date(NOW.getTime() - 30 * H) });
-    await addJob({ title: "Not new grad", score: 90, isNewGrad: false });
+    await addJob({ title: "Not new grad", score: 20, isNewGrad: false });
 
     const ch = fakeChannel("ntfy");
     const d = deps([ch]);
@@ -272,11 +274,36 @@ describe("per-user selection", () => {
     expect(own.sent[0]!.text).toContain("Mine");
 
     const theirs = fakeChannel("ntfy");
-    await runDigest(deps([theirs], other!.id), {
-      ...digestOpts,
-      anchor: new Date(NOW.getTime() + 1),
-    });
+    // Same digest, same channel id: each user gets their own (dedup is per user).
+    await runDigest(deps([theirs], other!.id), digestOpts);
+    expect(theirs.sent).toHaveLength(1);
     expect(theirs.sent[0]!.text).not.toContain("Mine");
+    expect(await runDigest(deps([theirs], other!.id), digestOpts)).toEqual([
+      { channel: "ntfy", sent: 0, ok: true },
+    ]);
+    const rows = await db.select().from(alertsSent);
+    expect(rows.map((r) => r.userId).sort()).toEqual([OWNER, other!.id].sort());
+  });
+
+  it("gives a non-owner only their own channels, never the .env ones", () => {
+    const env = testEnv({
+      NTFY_TOPIC: "owner-topic",
+      SMTP_HOST: "smtp.example.test",
+      ALERT_EMAIL_TO: "owner@example.test",
+      DISCORD_WEBHOOK_URL: "https://discord.example.test/hook",
+    });
+    const none = { alertEmail: null, ntfyTopic: null };
+    expect(createUserChannels(env, none, true).map((c) => c.id)).toEqual([
+      "ntfy",
+      "email",
+      "discord",
+    ]);
+    expect(createUserChannels(env, none, false)).toEqual([]);
+    const own = { alertEmail: "b@example.test", ntfyTopic: "b-topic" };
+    expect(createUserChannels(env, own, false).map((c) => c.id)).toEqual(["ntfy", "email"]);
+    // No SMTP server: no e-mail channel, whatever the address.
+    const noSmtp = testEnv({});
+    expect(createUserChannels(noSmtp, own, false).map((c) => c.id)).toEqual(["ntfy"]);
   });
 });
 

@@ -1,10 +1,13 @@
 import {
   ALERT_TEST_REQUEST_KEY,
   ALERT_TEST_RESULT_KEY,
+  alertTestRequestKey,
+  alertTestResultKey,
   type AlertTestResult,
 } from "@jobradar/core/alerts/keys";
 import { listProfileTemplates, profileHash, type ProfileTemplate } from "@jobradar/core/score";
-import { listUsers } from "@jobradar/core/users";
+import { getUser, listUsers, ownerUser } from "@jobradar/core/users";
+import { randomBytes } from "node:crypto";
 import { kvGet } from "@jobradar/db";
 import type { Metadata } from "next";
 import { PageFrame, PageHeader, PageScroll } from "@/components/placeholder";
@@ -15,6 +18,7 @@ import { getDb } from "@/lib/db";
 import { readProfile } from "@/lib/profile";
 import { formatDateTime } from "@/lib/utils";
 import { DeleteUserButton, InviteForm, PasswordForm } from "./account-forms";
+import { AlertSettingsForm } from "./alert-form";
 import { ProfileEditor } from "./profile-editor";
 import { TestChannelsButton } from "./test-button";
 
@@ -117,19 +121,39 @@ export default async function SettingsPage() {
   const me = await currentUser();
   const admin = me.role === "admin";
   const db = getDb();
-  const [file, testRequest, testResult, accounts] = await Promise.all([
+  const [file, user, owner, accounts] = await Promise.all([
     readProfile(me.id),
-    kvGet<{ requestedAt?: string }>(db, ALERT_TEST_REQUEST_KEY),
-    kvGet<AlertTestResult>(db, ALERT_TEST_RESULT_KEY),
+    getUser(db, me.id),
+    ownerUser(db),
     admin ? listUsers(db) : Promise.resolve([]),
   ]);
+  const isOwner = owner?.id === me.id;
+  // The owner's test request/result may still sit under the pre-accounts keys.
+  const [testRequest, testResult] = await Promise.all([
+    kvGet<{ requestedAt?: string }>(db, alertTestRequestKey(me.id)).then(
+      async (r) => r ?? (isOwner ? kvGet<{ requestedAt?: string }>(db, ALERT_TEST_REQUEST_KEY) : r),
+    ),
+    kvGet<AlertTestResult>(db, alertTestResultKey(me.id)).then(
+      async (r) => r ?? (isOwner ? kvGet<AlertTestResult>(db, ALERT_TEST_RESULT_KEY) : r),
+    ),
+  ]);
 
-  const channels = [
-    { id: "ntfy", name: "ntfy", ok: isSet("NTFY_TOPIC") },
-    { id: "email", name: "E-mail (SMTP)", ok: isSet("SMTP_HOST", "ALERT_EMAIL_TO") },
-    { id: "discord", name: "Discord", ok: isSet("DISCORD_WEBHOOK_URL") },
-    { id: "telegram", name: "Telegram", ok: isSet("TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID") },
-  ];
+  const smtp = isSet("SMTP_HOST");
+  const channels = isOwner
+    ? [
+        { id: "ntfy", name: "ntfy", ok: isSet("NTFY_TOPIC") },
+        { id: "email", name: "E-mail (SMTP)", ok: isSet("SMTP_HOST", "ALERT_EMAIL_TO") },
+        { id: "discord", name: "Discord", ok: isSet("DISCORD_WEBHOOK_URL") },
+        { id: "telegram", name: "Telegram", ok: isSet("TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID") },
+      ]
+    : [
+        { id: "ntfy", name: "ntfy", ok: !!user?.ntfyTopic },
+        { id: "email", name: "E-mail", ok: smtp && !!user?.alertEmail },
+      ];
+  const num = (k: string, def: number) => {
+    const n = Number(env(k, String(def)));
+    return Number.isFinite(n) ? n : def;
+  };
 
   return (
     <PageFrame>
@@ -213,61 +237,94 @@ export default async function SettingsPage() {
             </Section>
           ) : null}
 
+          <Section title="Alertes">
+            {user ? (
+              <AlertSettingsForm
+                values={{
+                  digestEnabled: user.digestEnabled,
+                  digestMinScore: user.digestMinScore,
+                  instantEnabled: user.instantEnabled,
+                  instantMinScore: user.instantMinScore,
+                  alertEmail: user.alertEmail,
+                  ntfyTopic: user.ntfyTopic,
+                }}
+                defaults={{
+                  digest: num("DIGEST_MIN_SCORE", 40),
+                  instant: num("INSTANT_MIN_SCORE", 75),
+                  digestTime:
+                    env("DIGEST_CRON", "0 8 * * *") === "0 8 * * *" ? "8 h" : env("DIGEST_CRON"),
+                }}
+                ownChannels={!isOwner}
+                smtp={smtp}
+                suggestedTopic={`jobradar-${randomBytes(9)
+                  .toString("base64url")
+                  .replace(/[^A-Za-z0-9]/g, "x")}`}
+                ntfyUrl={env("NTFY_URL", "https://ntfy.sh")}
+              />
+            ) : null}
+            <div className="mt-5">
+              {channels.map((c) => (
+                <Row key={c.name} label={c.name}>
+                  {c.ok ? (
+                    <span className="text-success">configuré</span>
+                  ) : (
+                    <span className="text-muted-foreground">non configuré</span>
+                  )}
+                </Row>
+              ))}
+              {isOwner ? (
+                <p className="text-muted-foreground mt-1 text-xs">
+                  Tes canaux sont ceux du .env (NTFY_*, SMTP_* et ALERT_EMAIL_TO, DISCORD_*,
+                  TELEGRAM_*) ; tu reçois aussi les alertes de santé.
+                </p>
+              ) : null}
+              <TestChannelsButton
+                disabled={!channels.some((c) => c.ok)}
+                ownerChannels={isOwner}
+                pendingSince={testRequest?.requestedAt}
+              />
+              {testResult ? (
+                <div className="mt-3 text-xs">
+                  <p className="text-muted-foreground mb-1">
+                    Dernier test : {formatDateTime(new Date(testResult.finishedAt))}
+                  </p>
+                  {testResult.results.length === 0 ? (
+                    <p className="text-muted-foreground">aucun canal configuré</p>
+                  ) : (
+                    <ul className="space-y-1">
+                      {testResult.results.map((r) => (
+                        <li key={r.channel} className="flex items-baseline justify-between gap-2">
+                          <span>{channels.find((c) => c.id === r.channel)?.name ?? r.channel}</span>
+                          {r.ok ? (
+                            <span className="text-success">envoyé</span>
+                          ) : (
+                            <span className="text-destructive text-right break-all">
+                              {r.error ?? "échec"}
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ) : null}
+            </div>
+          </Section>
+
           {admin ? (
             <>
-              <Section title="Alertes">
+              <Section title="Technique">
                 <Row label="Digest quotidien">{env("DIGEST_CRON", "0 8 * * *")} (Toronto)</Row>
-                <Row label="Score minimum du digest">{env("DIGEST_MIN_SCORE", "40")}</Row>
-                <Row label="Alertes instantanées">
-                  {env("INSTANT_ALERTS_ENABLED", "true") === "true" ? "activées" : "désactivées"}
+                <Row label="Seuils par défaut">
+                  digest {env("DIGEST_MIN_SCORE", "40")} · instantané{" "}
+                  {env("INSTANT_MIN_SCORE", "75")}
                 </Row>
-                <Row label="Score minimum instantané">{env("INSTANT_MIN_SCORE", "75")}</Row>
+                <Row label="Alertes instantanées">
+                  {env("INSTANT_ALERTS_ENABLED", "true") === "true"
+                    ? "activées"
+                    : "désactivées pour tous"}
+                </Row>
                 <Row label="Worker silencieux après">{env("HEALTH_SILENCE_HOURS", "12")} h</Row>
-              </Section>
-
-              <Section title="Canaux">
-                {channels.map((c) => (
-                  <Row key={c.name} label={c.name}>
-                    {c.ok ? (
-                      <span className="text-success">configuré</span>
-                    ) : (
-                      <span className="text-muted-foreground">non configuré</span>
-                    )}
-                  </Row>
-                ))}
-                <TestChannelsButton
-                  disabled={!channels.some((c) => c.ok)}
-                  pendingSince={testRequest?.requestedAt}
-                />
-                {testResult ? (
-                  <div className="mt-3 text-xs">
-                    <p className="text-muted-foreground mb-1">
-                      Dernier test : {formatDateTime(new Date(testResult.finishedAt))}
-                    </p>
-                    {testResult.results.length === 0 ? (
-                      <p className="text-muted-foreground">
-                        aucun canal configuré côté worker (variables du .env du worker)
-                      </p>
-                    ) : (
-                      <ul className="space-y-1">
-                        {testResult.results.map((r) => (
-                          <li key={r.channel} className="flex items-baseline justify-between gap-2">
-                            <span>
-                              {channels.find((c) => c.id === r.channel)?.name ?? r.channel}
-                            </span>
-                            {r.ok ? (
-                              <span className="text-success">envoyé</span>
-                            ) : (
-                              <span className="text-destructive text-right break-all">
-                                {r.error ?? "échec"}
-                              </span>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ) : null}
               </Section>
 
               <Section title="Classification">
