@@ -14,7 +14,8 @@ import {
 } from "@jobradar/db";
 import { isClearlyNotNewGrad } from "../classify/rules";
 import type { Company, Connector, FetchCtx, QuotaCounter } from "../connectors/types";
-import { HttpShared, PoliteHttpClient } from "../http/client";
+import type { HttpShared } from "../http/client";
+import { PoliteHttpClient } from "../http/client";
 import type { Logger } from "../logger";
 import { ingestJob } from "./ingest";
 

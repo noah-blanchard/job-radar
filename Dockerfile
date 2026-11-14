@@ -40,7 +40,8 @@ CMD ["node", "migrate.js"]
 # ---------- worker ----------
 FROM runtime AS worker
 COPY --from=build --chown=node:node /repo/apps/worker/dist ./dist
-ENV WORKER_HEALTH_PORT=8081
+COPY --chown=node:node config ./config
+ENV WORKER_HEALTH_PORT=8081 CONFIG_DIR=/app/config
 EXPOSE 8081
 USER node
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \

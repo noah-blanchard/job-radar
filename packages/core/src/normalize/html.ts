@@ -57,7 +57,7 @@ export function htmlToText(html: string | null | undefined): string {
     .replace(/<\/(p|div|ul|ol|h[1-6]|tr|section|article)>/gi, "\n")
     .replace(/<[^>]+>/g, " ");
   return decodeEntities(text)
-    .replace(/ /g, " ")
+    .replaceAll(String.fromCharCode(160), " ")
     .split("\n")
     .map((l) => l.replace(/[ \t]+/g, " ").trim())
     .filter((l, i, arr) => l !== "" || (i > 0 && arr[i - 1] !== ""))

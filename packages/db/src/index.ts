@@ -2,6 +2,7 @@ export * from "./schema";
 export * from "./client";
 export * from "./kv";
 export type { AnyDb } from "./types";
+export type { Sql } from "postgres";
 export {
   and,
   asc,
