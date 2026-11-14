@@ -56,6 +56,19 @@ pnpm check        # lint + typecheck + tests (aucun test n'appelle le réseau)
 
 Modifier le schéma : éditer `packages/db/src/schema.ts`, puis `pnpm db:generate` et commiter le SQL généré dans `packages/db/migrations/`.
 
+## Opérations (CLI du worker)
+
+```bash
+docker compose exec worker node dist/cli.js seed                         # synchronise config/companies.seed.yaml
+docker compose exec worker node dist/cli.js run all                      # toutes les sources ATS activées
+docker compose exec worker node dist/cli.js run greenhouse --company stripe
+docker compose exec worker node dist/cli.js stats                        # compteurs + doublons de fingerprint
+```
+
+Hors Docker : `pnpm --filter @jobradar/worker cli run all`.
+
+Le worker lance automatiquement le balayage ATS selon `ATS_CRON` (toutes les 6 h, heure de Toronto), avec un jitter de 0 à 10 min par connecteur.
+
 ## Git
 
 - `main` : branche principale.
