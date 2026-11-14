@@ -11,7 +11,7 @@ Agrégateur personnel d'offres new grad 2027. Il collecte les offres depuis des 
 ```
 apps/web        Next.js (App Router) : dashboard, auth, /healthz
 apps/worker     process long-vivant : scheduler croner, runs des connecteurs, /healthz :8081
-packages/core   env, logger, connecteurs, normalisation, classification, scoring, alertes
+packages/core   env, logger, connecteurs, normalisation, classification (classify/), score (score/), alertes
 packages/db     schéma Drizzle, migrations SQL, client Postgres
 config/         profile.yaml, sources.yaml, companies.seed.yaml
 ```
@@ -66,6 +66,8 @@ docker compose exec worker node dist/cli.js run tier-b                   # agré
 docker compose exec worker node dist/cli.js run greenhouse --company stripe
 docker compose exec worker node dist/cli.js detect-ats https://jobs.lever.co/acme [--name Acme] [--dry-run]
 docker compose exec worker node dist/cli.js stats                        # compteurs, doublons, entreprises par origine
+docker compose exec worker node dist/cli.js rescore                      # reclasse et rescore toutes les offres (lots de 1 000)
+docker compose exec worker node dist/cli.js rescore --if-changed         # seulement si profile.yaml a changé
 ```
 
 Hors Docker : `pnpm --filter @jobradar/worker cli run all`, et `pnpm detect-ats <url-carrières>` pour ajouter une entreprise à la main (détection par URL, sinon sondage des API publiques des ATS avec le nom de domaine ; jamais de scraping HTML).
@@ -77,6 +79,25 @@ Planification (heure de Toronto) :
 - `FEEDS_CRON` (toutes les 6 h) : listes GitHub new grad, flux remote, HN « Who is hiring? ».
 
 Chaque run passe toutes les URLs vues dans `detectAts` : les boards inconnus deviennent des entreprises « découvertes », visibles dans `/companies` et balayées au run ATS suivant.
+
+## Classification et score
+
+- **New grad (règles)** : titre (positif : new grad, junior, entry-level, early career, graduate…, négatif : senior, staff, lead, manager, II/III, et stage/intern/co-op car seul le temps plein compte), années d'expérience dans la description (> 2 ans = pas new grad), indice de la source (listes new grad, filtre entry-level). Cas ambigus : `is_new_grad = null`. La raison s'affiche dans la fiche.
+- **Score 0-100** piloté par `config/profile.yaml` : lieu (premier critère qui matche), new grad, domaines (titre ×2, description ×1), langue, priorité `high`, fraîcheur < 24 h, salaire affiché ; exclusions = 0 ; pas new grad = 20 max. Le détail (`score_breakdown`) est affiché sur `/jobs/[id]`.
+- **Recalcul** : après chaque run (offres touchées), et en entier quand `profile.yaml` change (hash dans `kv`, vérifié au démarrage du worker et avant chaque balayage). Modifier le profil = éditer le fichier puis redéployer ; `cli rescore` force un recalcul complet (~75 s pour 93 000 offres).
+- **LLM (optionnel)** : `LLM_ENABLED=true` + `ANTHROPIC_API_KEY` ; `claude-haiku-5-5` tranche seulement les offres ambiguës, dans la limite de `LLM_DAILY_MAX_CALLS` par jour, avec un cache par empreinte. Sans clé, tout fonctionne par règles.
+
+## Dashboard
+
+| Page | Contenu |
+|---|---|
+| `/` Inbox | Table paginée côté serveur (50/page), filtres dans l'URL (texte, pays, ville, mode, new grad, domaine, source, entreprise, score min., vu depuis 24 h/3 j/7 j, statut, fermées), tri score/fraîcheur. Clavier : `j/k`, `s` sauvegarder, `a` postulé, `x` ignorer, `o` ouvrir, `Entrée` fiche. |
+| `/jobs/[id]` | Description nettoyée, détail du score, sources, statut et notes, zone « Actions » (phase 2). |
+| `/pipeline` | Kanban sauvegardée / postulé / entretien / refusée (glisser-déposer ou menu). |
+| `/companies` | Entreprises, ATS, statut, offres ouvertes, priorité éditable, ajout par URL. |
+| `/sources` | Santé, quota du jour utilisé/restant, bouton « lancer » (demande exécutée par le worker dans la minute). |
+| `/stats` | Nouvelles offres par jour (30 j) par source et par pays, part new grad, top entreprises. |
+| `/settings` | `profile.yaml` effectif et son hash, seuils d'alerte, canaux (test en M5). |
 
 ## Git
 
