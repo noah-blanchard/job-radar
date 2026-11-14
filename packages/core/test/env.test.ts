@@ -14,7 +14,11 @@ describe("parseEnv", () => {
   });
 
   it("treats empty strings as unset", () => {
-    const env = parseEnv({ ANTHROPIC_API_KEY: "", DIGEST_MIN_SCORE: "  ", DISCORD_WEBHOOK_URL: "" });
+    const env = parseEnv({
+      ANTHROPIC_API_KEY: "",
+      DIGEST_MIN_SCORE: "  ",
+      DISCORD_WEBHOOK_URL: "",
+    });
     expect(env.ANTHROPIC_API_KEY).toBeUndefined();
     expect(env.DIGEST_MIN_SCORE).toBe(40);
     expect(env.DISCORD_WEBHOOK_URL).toBeUndefined();

@@ -2,7 +2,10 @@ import { z } from "zod";
 
 /** Empty strings in .env files mean "not set". */
 const opt = <T extends z.ZodType>(schema: T) =>
-  z.preprocess((v) => (typeof v === "string" && v.trim() === "" ? undefined : v), schema.optional());
+  z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    schema.optional(),
+  );
 
 /** `prefault` runs the default through the schema (so "false" becomes false, "ca,us" a list). */
 const withDefault = <T extends z.ZodType>(schema: T, def: z.input<T>) =>
@@ -13,9 +16,12 @@ const withDefault = <T extends z.ZodType>(schema: T, def: z.input<T>) =>
 
 const int = z.coerce.number().int().nonnegative();
 const bool = z.stringbool();
-const csv = z
-  .string()
-  .transform((s) => s.split(",").map((x) => x.trim()).filter(Boolean));
+const csv = z.string().transform((s) =>
+  s
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean),
+);
 
 export const envSchema = z.object({
   // --- General ---

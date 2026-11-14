@@ -7,7 +7,13 @@ const folder =
 const url = process.env.DATABASE_URL;
 
 function log(level: "info" | "error", msg: string, extra: Record<string, unknown> = {}) {
-  const line = JSON.stringify({ level, time: new Date().toISOString(), service: "migrate", msg, ...extra });
+  const line = JSON.stringify({
+    level,
+    time: new Date().toISOString(),
+    service: "migrate",
+    msg,
+    ...extra,
+  });
   if (level === "error") console.error(line);
   else console.log(line);
 }

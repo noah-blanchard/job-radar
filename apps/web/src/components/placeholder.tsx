@@ -7,7 +7,15 @@ export function PageHeader({ title, description }: { title: string; description?
   );
 }
 
-export function ComingSoon({ title, milestone, children }: { title: string; milestone: string; children?: React.ReactNode }) {
+export function ComingSoon({
+  title,
+  milestone,
+  children,
+}: {
+  title: string;
+  milestone: string;
+  children?: React.ReactNode;
+}) {
   return (
     <>
       <PageHeader title={title} />

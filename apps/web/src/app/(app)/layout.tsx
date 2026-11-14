@@ -14,7 +14,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </Link>
           <Nav />
           <form action={logout} className="ml-auto">
-            <Button variant="ghost" size="icon" type="submit" aria-label="Se déconnecter" title="Se déconnecter">
+            <Button
+              variant="ghost"
+              size="icon"
+              type="submit"
+              aria-label="Se déconnecter"
+              title="Se déconnecter"
+            >
               <LogOut />
             </Button>
           </form>

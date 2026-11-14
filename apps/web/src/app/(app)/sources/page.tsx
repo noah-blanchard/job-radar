@@ -2,7 +2,14 @@ import { sql } from "@jobradar/db";
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/placeholder";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { getDb } from "@/lib/db";
 import { formatDateTime, formatDuration } from "@/lib/utils";
 
@@ -69,11 +76,14 @@ export default async function SourcesPage() {
   const rows = await loadSourceHealth();
   return (
     <>
-      <PageHeader title="Sources" description="Santé de chaque source : dernier run, volumes, erreurs, quota du jour." />
+      <PageHeader
+        title="Sources"
+        description="Santé de chaque source : dernier run, volumes, erreurs, quota du jour."
+      />
       {rows.length === 0 ? (
         <div className="text-muted-foreground rounded-lg border border-dashed p-6 text-sm">
-          Aucun run enregistré pour l&apos;instant. Les connecteurs arrivent au jalon M1 ; chaque exécution
-          apparaîtra ici.
+          Aucun run enregistré pour l&apos;instant. Les connecteurs arrivent au jalon M1 ; chaque
+          exécution apparaîtra ici.
         </div>
       ) : (
         <div className="rounded-lg border">
@@ -106,7 +116,10 @@ export default async function SourcesPage() {
                   <TableCell className="text-right">{r.runs_24h}</TableCell>
                   <TableCell className="text-right">{r.errors_24h}</TableCell>
                   <TableCell className="text-right">{r.calls_today ?? "—"}</TableCell>
-                  <TableCell className="text-muted-foreground max-w-xs truncate" title={r.last_error ?? undefined}>
+                  <TableCell
+                    className="text-muted-foreground max-w-xs truncate"
+                    title={r.last_error ?? undefined}
+                  >
                     {r.last_error ?? "—"}
                   </TableCell>
                 </TableRow>

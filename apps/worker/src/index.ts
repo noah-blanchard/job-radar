@@ -47,7 +47,10 @@ const server = createServer(
 );
 
 server.listen(env.WORKER_HEALTH_PORT, () => {
-  log.info({ port: env.WORKER_HEALTH_PORT, tz: TZ, jobs: jobs.map((j) => j.name) }, "worker started");
+  log.info(
+    { port: env.WORKER_HEALTH_PORT, tz: TZ, jobs: jobs.map((j) => j.name) },
+    "worker started",
+  );
 });
 
 // First tick right away so /healthz reports a real timestamp quickly.
