@@ -93,7 +93,9 @@ export async function syncCompanySeed(db: AnyDb, seed: SeedCompany[]) {
       patch.consecutiveFailures = 0;
     }
     if (s.careers_url && s.careers_url !== existing.careersUrl) patch.careersUrl = s.careers_url;
-    if (existing.origin === "seed" && s.priority !== existing.priority) patch.priority = s.priority;
+    // A priority edited in the dashboard (priority_manual) wins over the seed file.
+    if (existing.origin === "seed" && !existing.priorityManual && s.priority !== existing.priority)
+      patch.priority = s.priority;
     if (Object.keys(patch).length > 0) {
       await db.update(companies).set(patch).where(eq(companies.id, existing.id));
       updated++;

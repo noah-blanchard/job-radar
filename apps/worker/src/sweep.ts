@@ -65,6 +65,8 @@ function depsFor(rt: Runtime, sourceId: string) {
     env: rt.env,
     profile: rt.profile,
     quota: rt.quotaFor(sourceId),
+    // Classify and score the jobs each run touched (optional LLM for the ambiguous ones).
+    rescore: { llm: rt.llm },
   };
 }
 

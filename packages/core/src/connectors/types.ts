@@ -13,6 +13,8 @@ export interface Company {
   priority: "low" | "normal" | "high";
 }
 
+export type SeniorityHint = "intern" | "entry" | "experienced" | "executive";
+
 /** Raw job as emitted by a connector, before normalization/dedup/classification. */
 export interface RawJob {
   source: string;
@@ -32,6 +34,11 @@ export interface RawJob {
   salaryMin?: number;
   salaryMax?: number;
   salaryCurrency?: string;
+  /**
+   * Seniority stated by the source itself (a curated new-grad list, an "Entry-level" search
+   * filter, an explicit ATS field). Feeds the new-grad classifier; never a per-source special case.
+   */
+  seniorityHint?: SeniorityHint;
   /** Other URLs seen in the payload (fed to ATS discovery). */
   relatedUrls?: string[];
 }

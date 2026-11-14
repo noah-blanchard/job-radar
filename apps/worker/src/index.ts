@@ -4,6 +4,8 @@ import { kvSet, sql } from "@jobradar/db";
 import { Cron } from "croner";
 
 import { createHealthHandler } from "./health";
+import { processRequests } from "./requests";
+import { ensureProfileScores, refreshExpiredFreshness } from "./scoring";
 import { createRuntime } from "./runtime";
 import { runSweep, type Schedule } from "./sweep";
 
@@ -25,11 +27,15 @@ async function heartbeat(): Promise<void> {
   await kvSet(db, "worker_last_tick", now.toISOString());
   lastTick = now;
   log.debug({ at: now.toISOString() }, "heartbeat");
+  // Dashboard requests ("lancer maintenant", priority changes), picked up within a minute.
+  await processRequests(rt);
 }
 
 function sweep(schedule: Schedule) {
   return async (): Promise<void> => {
     const t0 = Date.now();
+    // profile.yaml edited since the stored scores? Full rescore first.
+    await ensureProfileScores(rt);
     const { runs, deferred } = await runSweep(rt, {
       schedules: [schedule],
       maxJitterMs: JITTER_MS[schedule],
@@ -48,6 +54,7 @@ function sweep(schedule: Schedule) {
       },
       "sweep done",
     );
+    await refreshExpiredFreshness(rt);
   };
 }
 
@@ -97,6 +104,10 @@ const server = createServer(
 async function start(): Promise<void> {
   const seeded = await syncCompanySeed(db, loadCompanySeed());
   log.info(seeded, "company seed synced");
+  // Not awaited: a full rescore (~1 min on 100k jobs) must not delay the health endpoint.
+  void ensureProfileScores(rt).catch((err: unknown) =>
+    log.error({ err }, "startup profile rescore failed"),
+  );
   await heartbeat();
   server.listen(env.WORKER_HEALTH_PORT, () => {
     log.info(

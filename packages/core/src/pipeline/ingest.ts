@@ -33,6 +33,7 @@ export function normalizeJob(raw: RawJob, companyId: number | null, seenAt: Date
       country: loc.country,
       remote: loc.remote,
       employmentType: raw.employmentType ?? null,
+      seniorityHint: raw.seniorityHint ?? null,
       salaryMin: raw.salaryMin != null ? Math.round(raw.salaryMin) : null,
       salaryMax: raw.salaryMax != null ? Math.round(raw.salaryMax) : null,
       salaryCurrency: raw.salaryCurrency ?? null,
@@ -72,6 +73,8 @@ async function touchJob(
       ...(opts.reopen ? { closedAt: null, missedRuns: 0 } : {}),
       // Attach the company when an earlier sighting could not (e.g. discovered since).
       companyId: sql`coalesce(${jobs.companyId}, ${n.values.companyId ?? null})`,
+      // A later source may state the seniority the first one did not.
+      seniorityHint: sql`coalesce(${jobs.seniorityHint}, ${n.values.seniorityHint ?? null})`,
       // Keep the richest description: a list-only pass or an aggregator snippet seen first
       // must not hide the full ATS description seen later.
       descriptionHtml: sql`case when ${longer} then ${n.values.descriptionHtml} else ${jobs.descriptionHtml} end`,

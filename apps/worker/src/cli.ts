@@ -4,6 +4,7 @@
  *   node dist/cli.js run <all|ats|tier-b|aggregators|feeds|<source>> [--company <name>] [--max-minutes N]
  *   node dist/cli.js detect-ats <careers-url> [--name <company>] [--dry-run]
  *   node dist/cli.js stats
+ *   node dist/cli.js rescore [--if-changed]
  */
 import { parseArgs } from "node:util";
 import {
@@ -16,6 +17,7 @@ import {
 } from "@jobradar/core";
 import { companies, count, isNull, jobs, jobSources, sql } from "@jobradar/db";
 import { createRuntime } from "./runtime";
+import { ensureProfileScores } from "./scoring";
 import { runSweep, type Schedule } from "./sweep";
 
 const { positionals, values } = parseArgs({
@@ -25,6 +27,7 @@ const { positionals, values } = parseArgs({
     name: { type: "string" },
     "max-minutes": { type: "string" },
     "dry-run": { type: "boolean" },
+    "if-changed": { type: "boolean" },
   },
 });
 const [cmd, target] = positionals;
@@ -161,9 +164,20 @@ async function main() {
     case "stats":
       await stats();
       break;
+    case "rescore": {
+      // Full reclassification + rescore (forced unless --if-changed), batches of 1000 jobs.
+      const r = await ensureProfileScores(rt, { force: !values["if-changed"] });
+      if (!r) console.log("a full rescore is already running");
+      else if (!r.changed) console.log(`profile unchanged (${r.hash}): nothing to do`);
+      else
+        console.log(
+          `rescored ${r.rescore?.scanned} jobs (${r.rescore?.updated} changed, ${r.rescore?.llmCalls} LLM calls) in ${((r.rescore?.ms ?? 0) / 1000).toFixed(1)} s, profile ${r.hash}`,
+        );
+      break;
+    }
     default:
       throw new Error(
-        "usage: seed | run <all|ats|tier-b|aggregators|feeds|<source>> [--company <name>] [--max-minutes N] | detect-ats <url> [--name X] [--dry-run] | stats",
+        "usage: seed | run <all|ats|tier-b|aggregators|feeds|<source>> [--company <name>] [--max-minutes N] | detect-ats <url> [--name X] [--dry-run] | stats | rescore [--if-changed]",
       );
   }
 }

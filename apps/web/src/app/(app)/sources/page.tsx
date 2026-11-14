@@ -1,4 +1,5 @@
-import { sql } from "@jobradar/db";
+import { loadSourcesConfig, type SourceConfig } from "@jobradar/core/config";
+import { queryRows, sql } from "@jobradar/db";
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/placeholder";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +12,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getDb } from "@/lib/db";
-import { formatDateTime, formatDuration } from "@/lib/utils";
+import { cn, formatDateTime, formatDuration } from "@/lib/utils";
+import { RunButton } from "./run-button";
 
 export const metadata: Metadata = { title: "Sources" };
 export const dynamic = "force-dynamic";
@@ -26,11 +28,14 @@ interface SourceHealthRow extends Record<string, unknown> {
   last_error: string | null;
   runs_24h: number;
   errors_24h: number;
-  calls_today: number | null;
 }
 
-async function loadSourceHealth(): Promise<SourceHealthRow[]> {
-  const rows = await getDb().execute<SourceHealthRow>(sql`
+async function loadSourceHealth() {
+  const db = getDb();
+  // Latest run per source (for ATS sources: the latest company run) + 24 h counters.
+  const health = await queryRows<SourceHealthRow>(
+    db,
+    sql`
     with latest as (
       select distinct on (source)
         source, started_at, status, nb_fetched, nb_new, error,
@@ -54,15 +59,24 @@ async function loadSourceHealth(): Promise<SourceHealthRow[]> {
       l.nb_new as last_new,
       l.error as last_error,
       coalesce(a.runs_24h, 0) as runs_24h,
-      coalesce(a.errors_24h, 0) as errors_24h,
-      u.calls as calls_today
+      coalesce(a.errors_24h, 0) as errors_24h
     from latest l
-    left join agg a using (source)
-    left join api_usage u
-      on u.source = l.source
-     and u.day = (now() at time zone 'America/Toronto')::date
-    order by l.source`);
-  return rows.map((r) => ({ ...r, last_started_at: new Date(r.last_started_at) }));
+    left join agg a using (source)`,
+  );
+  const usage = await queryRows<{ source: string; calls: number }>(
+    db,
+    sql`select source, calls from api_usage
+        where day = (now() at time zone 'America/Toronto')::date`,
+  );
+  const requests = await queryRows<{ key: string; value: { requestedAt: string } }>(
+    db,
+    sql`select key, value from kv where key like 'run_request:%'`,
+  );
+  return {
+    health: new Map(health.map((r) => [r.source, r])),
+    usage: new Map(usage.map((u) => [u.source, u.calls])),
+    requests: new Map(requests.map((r) => [r.key.slice("run_request:".length), r.value])),
+  };
 }
 
 const STATUS_VARIANT = {
@@ -72,62 +86,136 @@ const STATUS_VARIANT = {
   skipped: "outline",
 } as const;
 
+const SCHEDULE_LABEL: Record<SourceConfig["schedule"], string> = {
+  ats: "ATS (6 h)",
+  aggregators: "agrégateur (1/j)",
+  feeds: "flux (6 h)",
+};
+
+/** Daily cap of a source from its `quota_env` variable (same env as the worker). */
+function dailyMax(cfg: SourceConfig): number | null {
+  if (!cfg.quota_env) return null;
+  const n = Number(process.env[cfg.quota_env]);
+  return Number.isFinite(n) && process.env[cfg.quota_env] !== "" ? n : null;
+}
+
 export default async function SourcesPage() {
-  const rows = await loadSourceHealth();
+  const config = loadSourcesConfig();
+  const { health, usage, requests } = await loadSourceHealth();
+  // Configured sources first (enabled, then disabled), then sources only seen in runs.
+  const ids = [
+    ...config.filter((c) => c.enabled).map((c) => c.id),
+    ...[...health.keys()].filter((id) => !config.some((c) => c.id === id)),
+    ...config.filter((c) => !c.enabled).map((c) => c.id),
+  ];
+  const llmMax = Number(process.env.LLM_DAILY_MAX_CALLS ?? 200);
+  const llmEnabled = process.env.LLM_ENABLED === "true";
+
   return (
     <>
       <PageHeader
         title="Sources"
-        description="Santé de chaque source : dernier run, volumes, erreurs, quota du jour."
+        description="Santé de chaque source : dernier run, volumes, erreurs, quota du jour (heure de Toronto). « Lancer » enregistre une demande que le worker exécute dans la minute."
       />
-      {rows.length === 0 ? (
-        <div className="text-muted-foreground rounded-lg border border-dashed p-6 text-sm">
-          Aucun run enregistré pour l&apos;instant. Les connecteurs arrivent au jalon M1 ; chaque
-          exécution apparaîtra ici.
-        </div>
-      ) : (
-        <div className="rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Source</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Dernier run</TableHead>
-                <TableHead className="text-right">Durée</TableHead>
-                <TableHead className="text-right">Récupérées</TableHead>
-                <TableHead className="text-right">Nouvelles</TableHead>
-                <TableHead className="text-right">Runs 24 h</TableHead>
-                <TableHead className="text-right">Erreurs 24 h</TableHead>
-                <TableHead className="text-right">Appels API (jour)</TableHead>
-                <TableHead>Dernière erreur</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((r) => (
-                <TableRow key={r.source}>
-                  <TableCell className="font-medium">{r.source}</TableCell>
-                  <TableCell>
-                    <Badge variant={STATUS_VARIANT[r.last_status]}>{r.last_status}</Badge>
+      <div className="overflow-x-auto rounded-lg border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Source</TableHead>
+              <TableHead>Statut</TableHead>
+              <TableHead>Dernier run</TableHead>
+              <TableHead className="text-right">Durée</TableHead>
+              <TableHead className="text-right">Récup.</TableHead>
+              <TableHead className="text-right">Nouv.</TableHead>
+              <TableHead className="text-right">Runs 24 h</TableHead>
+              <TableHead className="text-right">Erreurs 24 h</TableHead>
+              <TableHead className="text-right">Quota (jour)</TableHead>
+              <TableHead>Dernière erreur</TableHead>
+              <TableHead>
+                <span className="sr-only">Lancer</span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {ids.map((id) => {
+              const cfg = config.find((c) => c.id === id);
+              const r = health.get(id);
+              const max = cfg ? dailyMax(cfg) : null;
+              const used = usage.get(id) ?? 0;
+              return (
+                <TableRow key={id} className={cn(cfg && !cfg.enabled && "opacity-50")}>
+                  <TableCell className="font-medium">
+                    {id}
+                    <div className="text-muted-foreground text-xs font-normal">
+                      {cfg ? SCHEDULE_LABEL[cfg.schedule] : "hors sources.yaml"}
+                      {cfg && !cfg.enabled ? " · désactivée" : ""}
+                    </div>
                   </TableCell>
-                  <TableCell>{formatDateTime(r.last_started_at)}</TableCell>
-                  <TableCell className="text-right">{formatDuration(r.last_duration_ms)}</TableCell>
-                  <TableCell className="text-right">{r.last_fetched}</TableCell>
-                  <TableCell className="text-right">{r.last_new}</TableCell>
-                  <TableCell className="text-right">{r.runs_24h}</TableCell>
-                  <TableCell className="text-right">{r.errors_24h}</TableCell>
-                  <TableCell className="text-right">{r.calls_today ?? "—"}</TableCell>
+                  <TableCell>
+                    {r ? (
+                      <Badge variant={STATUS_VARIANT[r.last_status]}>{r.last_status}</Badge>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">jamais lancée</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    {r ? formatDateTime(new Date(r.last_started_at)) : "—"}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {formatDuration(r?.last_duration_ms)}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {r?.last_fetched ?? "—"}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">{r?.last_new ?? "—"}</TableCell>
+                  <TableCell className="text-right tabular-nums">{r?.runs_24h ?? 0}</TableCell>
+                  <TableCell
+                    className={cn(
+                      "text-right tabular-nums",
+                      (r?.errors_24h ?? 0) > 0 && "text-destructive",
+                    )}
+                  >
+                    {r?.errors_24h ?? 0}
+                  </TableCell>
+                  <TableCell className="text-right whitespace-nowrap tabular-nums">
+                    {max !== null ? (
+                      <span
+                        className={cn(used >= max && "text-destructive")}
+                        title={`${used} appels utilisés, ${Math.max(0, max - used)} restants`}
+                      >
+                        {used} / {max}
+                        <span className="text-muted-foreground block text-xs">
+                          {Math.max(0, max - used)} restants
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
                   <TableCell
                     className="text-muted-foreground max-w-xs truncate"
-                    title={r.last_error ?? undefined}
+                    title={r?.last_error ?? undefined}
                   >
-                    {r.last_error ?? "—"}
+                    {r?.last_error ?? "—"}
+                  </TableCell>
+                  <TableCell>
+                    {cfg?.enabled ? (
+                      <RunButton source={id} pendingSince={requests.get(id)?.requestedAt} />
+                    ) : null}
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+      <p className="text-muted-foreground mt-3 text-xs">
+        LLM (classification des offres ambiguës) :{" "}
+        {llmEnabled
+          ? `activé, ${usage.get("llm") ?? 0} / ${llmMax} appels aujourd'hui`
+          : "désactivé (LLM_ENABLED=false) : classification par règles uniquement"}
+        .
+      </p>
     </>
   );
 }

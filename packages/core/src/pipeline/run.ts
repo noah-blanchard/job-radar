@@ -21,6 +21,7 @@ import type { Company, Connector, FetchCtx, QuotaCounter } from "../connectors/t
 import type { HttpShared } from "../http/client";
 import { PoliteHttpClient } from "../http/client";
 import type { Logger } from "../logger";
+import { rescoreJobs, type LlmOptions } from "../score/rescore";
 import { ingestJob } from "./ingest";
 
 export const BROKEN_AFTER_FAILURES = 3;
@@ -38,6 +39,11 @@ export interface RunDeps {
   env?: Env;
   /** Defaults to an empty profile (no aggregator queries). */
   profile?: Profile;
+  /**
+   * Classify and score the jobs touched by the run (with `profile`) once it ends. Optional LLM
+   * pass for the ambiguous ones.
+   */
+  rescore?: { llm?: LlmOptions };
 }
 
 export interface RunSummary {
@@ -184,6 +190,7 @@ export async function runSource(
   let fetched = 0;
   let nbNew = 0;
   let closed = 0;
+  const touched = new Set<number>();
   const resolver = new CompanyResolver(
     db,
     log,
@@ -223,6 +230,7 @@ export async function runSource(
       const r = await ingestJob(db, raw, jobCompanyId, now(), {
         reopen: connector.needsCompany,
       });
+      touched.add(r.jobId);
       if (r.isNew) nbNew++;
     }
 
@@ -302,5 +310,17 @@ export async function runSource(
     };
   } finally {
     clearTimeout(timer);
+    if (deps.rescore && touched.size > 0) {
+      try {
+        const r = await rescoreJobs(
+          db,
+          { kind: "ids", ids: [...touched] },
+          { profile: deps.profile ?? parseProfile({}), log, now, llm: deps.rescore.llm },
+        );
+        log.info(r, "touched jobs rescored");
+      } catch (err) {
+        log.error({ err: String(err) }, "rescore after run failed");
+      }
+    }
   }
 }

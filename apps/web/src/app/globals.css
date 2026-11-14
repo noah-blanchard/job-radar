@@ -26,6 +26,9 @@
   --ring: oklch(0.705 0.015 286.067);
   --success: oklch(0.6 0.15 150);
   --warning: oklch(0.75 0.15 75);
+  /* Single-hue chart series (bars on /stats). */
+  --chart-1: oklch(0.55 0.14 250);
+  --chart-1-hover: oklch(0.45 0.14 250);
 }
 
 .dark {
@@ -49,6 +52,8 @@
   --ring: oklch(0.552 0.016 285.938);
   --success: oklch(0.72 0.17 150);
   --warning: oklch(0.8 0.15 75);
+  --chart-1: oklch(0.7 0.12 250);
+  --chart-1-hover: oklch(0.82 0.1 250);
 }
 
 @theme inline {
@@ -72,6 +77,8 @@
   --color-ring: var(--ring);
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --color-chart-1: var(--chart-1);
+  --color-chart-1-hover: var(--chart-1-hover);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -89,5 +96,69 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "tnum";
+  }
+}
+
+/* Job descriptions rendered by <SafeHtml>: readable, compact, no external styles. */
+@layer components {
+  .prose-job {
+    overflow-wrap: anywhere;
+  }
+  .prose-job p,
+  .prose-job ul,
+  .prose-job ol,
+  .prose-job table,
+  .prose-job pre,
+  .prose-job blockquote {
+    margin-block: 0.6em;
+  }
+  .prose-job ul {
+    list-style: disc;
+    padding-left: 1.25rem;
+  }
+  .prose-job ol {
+    list-style: decimal;
+    padding-left: 1.25rem;
+  }
+  .prose-job li {
+    margin-block: 0.15em;
+  }
+  .prose-job h3,
+  .prose-job h4,
+  .prose-job h5,
+  .prose-job h6 {
+    margin-top: 1.1em;
+    margin-bottom: 0.4em;
+    font-weight: 600;
+  }
+  .prose-job h3 {
+    font-size: 1rem;
+  }
+  .prose-job a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .prose-job strong {
+    font-weight: 600;
+  }
+  .prose-job blockquote {
+    border-left: 2px solid var(--border);
+    padding-left: 0.75rem;
+    color: var(--muted-foreground);
+  }
+  .prose-job pre {
+    overflow-x: auto;
+    font-size: 0.85em;
+  }
+  .prose-job td,
+  .prose-job th {
+    border: 1px solid var(--border);
+    padding: 0.25rem 0.5rem;
+  }
+  .prose-job hr {
+    margin-block: 1em;
+  }
+  .prose-job > :first-child {
+    margin-top: 0;
   }
 }
