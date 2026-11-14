@@ -3,8 +3,9 @@
 import { Bookmark, Check, EyeOff } from "lucide-react";
 import { memo } from "react";
 import { ScoreMark, StatusPill } from "@/components/score-badge";
+import { useFormat, useT } from "@/i18n/client";
 import type { JobStatus } from "@/lib/filters";
-import { cn, formatAge, placeLabel } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 export interface InboxItem {
   id: number;
@@ -25,9 +26,9 @@ export interface InboxItem {
 }
 
 const ACTIONS = [
-  { status: "saved", label: "Sauvegarder", key: "s", Icon: Bookmark },
-  { status: "applied", label: "Postulé", key: "a", Icon: Check },
-  { status: "ignored", label: "Ignorer", key: "x", Icon: EyeOff },
+  { status: "saved", label: "row.save", key: "s", Icon: Bookmark },
+  { status: "applied", label: "row.applied", key: "a", Icon: Check },
+  { status: "ignored", label: "row.ignore", key: "x", Icon: EyeOff },
 ] as const;
 
 /** One offer in the triage list. Memoized: j/k only re-renders the two rows that change. */
@@ -48,6 +49,8 @@ export const JobRow = memo(function JobRow({
   onActivate: (id: number) => void;
   onTriage: (id: number, status: JobStatus) => void;
 }) {
+  const t = useT();
+  const format = useFormat();
   return (
     <li className="row-leave" data-leaving={leaving || undefined}>
       <div>
@@ -79,17 +82,17 @@ export const JobRow = memo(function JobRow({
             <p className="text-muted-foreground flex min-w-0 items-center gap-2 truncate text-xs leading-4">
               <span className="truncate">
                 {item.company_name}
-                <span className="lg:hidden"> · {placeLabel(item)}</span>
+                <span className="lg:hidden"> · {format.place(item)}</span>
               </span>
               <StatusPill status={status} />
-              {item.closed_at ? <span className="text-destructive">fermée</span> : null}
+              {item.closed_at ? <span className="text-destructive">{t("row.closed")}</span> : null}
             </p>
           </div>
           <span className="text-muted-foreground hidden truncate text-xs lg:block lg:group-hover:invisible">
-            {placeLabel(item)}
+            {format.place(item)}
           </span>
           <span className="text-muted-foreground hidden text-right text-xs tabular-nums lg:block lg:group-hover:invisible lg:group-aria-[current=true]:invisible">
-            {formatAge(item.first_seen_at)}
+            {format.age(item.first_seen_at)}
           </span>
           {/* Mouse / touch actions: always on phones, on hover or selection on desktop. */}
           <div className="flex items-center gap-0.5 lg:absolute lg:right-4 lg:bg-inherit lg:pl-2 lg:opacity-0 lg:transition-opacity lg:group-hover:opacity-100 lg:group-aria-[current=true]:opacity-100">
@@ -97,8 +100,8 @@ export const JobRow = memo(function JobRow({
               <button
                 key={s}
                 type="button"
-                title={`${label} (${key})`}
-                aria-label={label}
+                title={`${t(label)} (${key})`}
+                aria-label={t(label)}
                 aria-pressed={status === s}
                 onClick={(e) => {
                   e.stopPropagation();

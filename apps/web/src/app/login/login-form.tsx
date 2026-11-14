@@ -3,15 +3,17 @@
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useT } from "@/i18n/client";
 import { login, type LoginState } from "./actions";
 
 export function LoginForm({ next }: { next: string }) {
   const [state, action, pending] = useActionState<LoginState, FormData>(login, {});
+  const t = useT();
   return (
     <form action={action} className="grid gap-3">
       <input type="hidden" name="next" value={next} />
       <label htmlFor="email" className="text-muted-foreground text-xs">
-        E-mail
+        {t("login.email")}
       </label>
       <Input
         id="email"
@@ -23,7 +25,7 @@ export function LoginForm({ next }: { next: string }) {
         className="h-9"
       />
       <label htmlFor="password" className="text-muted-foreground text-xs">
-        Mot de passe
+        {t("login.password")}
       </label>
       <Input
         id="password"
@@ -41,7 +43,7 @@ export function LoginForm({ next }: { next: string }) {
         </p>
       ) : null}
       <Button type="submit" disabled={pending} size="lg">
-        {pending ? "Connexion…" : "Entrer"}
+        {pending ? t("login.pending") : t("login.submit")}
       </Button>
     </form>
   );

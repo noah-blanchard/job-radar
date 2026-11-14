@@ -20,15 +20,15 @@ import {
   inboxHref,
   matchesStatus,
   PAGE_SIZE,
-  STATUS_LABEL,
   type InboxFilters,
   type JobStatus,
   type ViewId,
 } from "@/lib/filters";
 import type { JobDetail } from "@/lib/job-detail";
 import { popUndo, pushUndo, removeUndo, type UndoEntry } from "@/lib/undo";
+import { useFormat, useT } from "@/i18n/client";
 import { useSoftRefresh } from "@/lib/use-soft-refresh";
-import { cn, formatDueDate, isTyping } from "@/lib/utils";
+import { cn, isTyping } from "@/lib/utils";
 
 export type { InboxItem };
 
@@ -83,6 +83,8 @@ export function Inbox({
   const [pending, startNav] = useTransition();
   const paneVisible = usePaneVisible();
   const softRefresh = useSoftRefresh();
+  const t = useT();
+  const format = useFormat();
   const queue = filters.status === "todo"; // triaged rows leave the list
 
   const [statuses, setStatuses] = useState<Record<number, JobStatus>>({});
@@ -183,7 +185,11 @@ export function Inbox({
   const listRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const announce = selected
-    ? `${selected.title}, ${selected.company_name}, score ${selected.score ?? "non calculé"}`
+    ? t("inbox.announce", {
+        title: selected.title,
+        company: selected.company_name,
+        score: selected.score ?? t("inbox.notScored"),
+      })
     : "";
   useEffect(() => {
     listRef.current
@@ -248,9 +254,9 @@ export function Inbox({
       if (opts.undoable) {
         pushUndo(undo);
         toast({
-          message: `${next === "new" ? "Remise à trier" : STATUS_LABEL[next]} · ${r.title}`,
+          message: `${next === "new" ? t("status.backToTriage") : t(`status.${next}`)} · ${r.title}`,
           action: {
-            label: "Annuler",
+            label: t("common.undo"),
             hint: "z",
             run: () => {
               removeUndo(undo);
@@ -266,7 +272,7 @@ export function Inbox({
         unremove(r.id);
         setSelectedId(r.id);
         removeUndo(undo);
-        toast({ tone: "error", message: `Statut non enregistré pour « ${r.title} ». Réessaie.` });
+        toast({ tone: "error", message: t("inbox.statusFailed", { title: r.title }) });
       };
       void setJobStatus(r.id, next).then((res) => {
         if (!res.ok) return rollback();
@@ -281,7 +287,7 @@ export function Inbox({
           });
       }, rollback);
     },
-    [queue, nav, softRefresh],
+    [queue, nav, softRefresh, t],
   );
   useEffect(() => {
     applyRef.current = applyStatus;
@@ -320,19 +326,19 @@ export function Inbox({
         pushUndo(undo);
         toast({
           message: iso
-            ? `Relance le ${formatDueDate(iso)} · ${r.title}`
-            : `Relance retirée · ${r.title}`,
-          action: { label: "Annuler", hint: "z", run: () => (removeUndo(undo), undo.run()) },
+            ? t("inbox.followUpOn", { date: format.dueDate(iso), title: r.title })
+            : t("inbox.followUpRemoved", { title: r.title }),
+          action: { label: t("common.undo"), hint: "z", run: () => (removeUndo(undo), undo.run()) },
         });
       }
       const rollback = () => {
         put(prevIso);
         removeUndo(undo);
-        toast({ tone: "error", message: "Date de relance non enregistrée. Réessaie." });
+        toast({ tone: "error", message: t("inbox.followUpFailed") });
       };
       void setNextAction(r.id, iso).then((res) => (res.ok ? softRefresh() : rollback()), rollback);
     },
-    [softRefresh],
+    [softRefresh, t, format],
   );
   useEffect(() => {
     changeFollowRef.current = changeFollow;
@@ -378,14 +384,14 @@ export function Inbox({
     } catch {
       toast({
         tone: "error",
-        message: "Impossible de charger la suite. Fais défiler pour réessayer.",
+        message: t("inbox.loadMoreFailed"),
       });
       return [];
     } finally {
       loading.current = false;
       setLoadingMore(false);
     }
-  }, [exhausted, listKey, all, filters, statusOf]);
+  }, [exhausted, listKey, all, filters, statusOf, t]);
 
   // Approaching the end of the list loads the next slice (600 px ahead).
   useEffect(() => {
@@ -418,7 +424,7 @@ export function Inbox({
         if (index > 0) setSelectedId(nav[index - 1]!.id);
       } else if (e.key === "z") {
         const u = popUndo();
-        if (!u) toast({ message: "Rien à annuler." });
+        if (!u) toast({ message: t("inbox.nothingToUndo") });
         else u.run();
       } else if (r && TRIAGE_KEYS[e.key]) {
         triage(r.id, TRIAGE_KEYS[e.key]!);
@@ -426,8 +432,12 @@ export function Inbox({
         window.open(r.apply_url ?? r.url, "_blank", "noopener");
         if (statusOf(r) !== "applied")
           toast({
-            message: "Offre ouverte dans un onglet.",
-            action: { label: "Marquer postulé", hint: "a", run: () => triage(r.id, "applied") },
+            message: t("inbox.openedInTab"),
+            action: {
+              label: t("inbox.markApplied"),
+              hint: "a",
+              run: () => triage(r.id, "applied"),
+            },
           });
       } else if (r && e.key === "Enter") {
         router.push(`/jobs/${r.id}`);
@@ -441,7 +451,7 @@ export function Inbox({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selected, index, nav, loadMore, triage, statusOf, router, paneVisible]);
+  }, [selected, index, nav, loadMore, triage, statusOf, router, paneVisible, t]);
 
   // ---------- render ----------
   const shownTotal = Math.max(0, base.total - removed.size);
@@ -456,7 +466,11 @@ export function Inbox({
         ref={gridRef}
         className="grid min-h-0 flex-1 md:grid-rows-[minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_1px_var(--pane-w,520px)]"
       >
-        <section aria-label="Offres" aria-busy={pending} className="flex min-h-0 flex-col">
+        <section
+          aria-label={t("inbox.offers")}
+          aria-busy={pending}
+          className="flex min-h-0 flex-col"
+        >
           <p className="sr-only" aria-live="polite">
             {announce}
           </p>
@@ -470,7 +484,7 @@ export function Inbox({
             {visible.length === 0 ? (
               <EmptyQueue filters={filters} navigate={navigate} loading={!exhausted} />
             ) : (
-              <ul aria-label="Offres">
+              <ul aria-label={t("inbox.offers")}>
                 {visible.map((r) => (
                   <JobRow
                     key={r.id}
@@ -488,11 +502,11 @@ export function Inbox({
             <div ref={sentinel} aria-hidden className="h-px" />
             {visible.length > 0 && (loadingMore || !exhausted) ? (
               <p className="text-muted-foreground px-4 py-4 text-center text-xs md:px-6">
-                {loadingMore ? "Chargement de la suite…" : "La suite se charge en descendant."}
+                {loadingMore ? t("inbox.loadingMore") : t("inbox.scrollForMore")}
               </p>
             ) : visible.length > 0 ? (
               <p className="text-muted-foreground px-4 py-4 text-center text-xs md:px-6">
-                Fin de la liste.
+                {t("inbox.endOfList")}
               </p>
             ) : null}
           </div>
@@ -508,7 +522,7 @@ export function Inbox({
         <PaneDivider grid={gridRef} />
         <aside
           ref={paneScroll}
-          aria-label="Lecture"
+          aria-label={t("inbox.reading")}
           className="bg-surface hidden min-h-0 overflow-y-auto lg:block"
         >
           {!selected ? (
@@ -539,9 +553,9 @@ export function Inbox({
                   onApplyClick={() =>
                     statusOf(selected) !== "applied" &&
                     toast({
-                      message: "Offre ouverte dans un onglet.",
+                      message: t("inbox.openedInTab"),
                       action: {
-                        label: "Marquer postulé",
+                        label: t("inbox.markApplied"),
                         hint: "a",
                         run: () => triage(selected.id, "applied"),
                       },
@@ -552,9 +566,9 @@ export function Inbox({
             </>
           ) : paneError ? (
             <p className="text-muted-foreground px-7 py-6 text-[13px]">
-              Impossible de charger cette offre.{" "}
+              {t("inbox.paneError")}{" "}
               <Link href={`/jobs/${selected.id}`} className="text-info underline">
-                Ouvrir la fiche
+                {t("inbox.openDetail")}
               </Link>
             </p>
           ) : (
@@ -571,19 +585,20 @@ export function Inbox({
 
 /** Pinned on top of the reading pane: the way to the full page stays in reach while reading. */
 function PaneBar({ id }: { id: number }) {
+  const t = useT();
   return (
     <div className="bg-surface sticky top-0 z-10 flex h-11 items-center gap-3 border-b px-7">
       <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
         <Kbd>j</Kbd>
-        <Kbd>k</Kbd> offre suivante / précédente
+        <Kbd>k</Kbd> {t("inbox.nextPrev")}
       </span>
       <Link
         href={`/jobs/${id}`}
         className={buttonVariants({ variant: "outline", size: "sm", className: "ml-auto" })}
-        title="Ouvrir la fiche en grand (↵)"
+        title={t("inbox.openLargeTitle")}
       >
         <Maximize2 className="size-3.5" aria-hidden />
-        Ouvrir en grand
+        {t("inbox.openLarge")}
         <Kbd className="ml-0.5">↵</Kbd>
       </Link>
     </div>
@@ -604,12 +619,13 @@ function ListFooter({
   sort: InboxFilters["sort"];
   onSort: (s: InboxFilters["sort"]) => void;
 }) {
+  const t = useT();
   return (
     <div className="bg-background text-muted-foreground sticky bottom-0 flex h-11 shrink-0 items-center gap-3 border-t px-4 text-xs md:px-6">
       <span className="tabular-nums">
-        {shown.toLocaleString("fr-CA")} offre{shown > 1 ? "s" : ""}
+        {t("inbox.total", { count: shown })}
         {loaded < shown ? (
-          <span className="hidden sm:inline"> · {loaded.toLocaleString("fr-CA")} affichées</span>
+          <span className="hidden sm:inline">{t("inbox.loaded", { count: loaded })}</span>
         ) : null}
       </span>
       <span
@@ -620,13 +636,13 @@ function ListFooter({
         aria-hidden
       />
       <Segmented
-        label="Tri"
+        label={t("inbox.sort")}
         size="sm"
         className="ml-auto h-7"
         value={sort}
         options={[
-          { value: "score", label: "Score" },
-          { value: "recent", label: "Récentes" },
+          { value: "score", label: t("inbox.sortScore") },
+          { value: "recent", label: t("inbox.sortRecent") },
         ]}
         onChange={onSort}
       />
@@ -659,13 +675,15 @@ function PaneSkeleton({ title, company }: { title: string; company: string }) {
 }
 
 function PaneHint() {
+  const t = useT();
   return (
     <div className="text-muted-foreground flex h-full flex-col items-center justify-center gap-3 px-8 text-center text-[13px]">
-      <p>Sélectionne une offre pour la lire ici.</p>
+      <p>{t("inbox.hint")}</p>
       <p className="flex flex-wrap items-center justify-center gap-1.5 text-xs">
         <Kbd>j</Kbd>
-        <Kbd>k</Kbd> naviguer · <Kbd>s</Kbd> sauvegarder · <Kbd>a</Kbd> postulé · <Kbd>x</Kbd>{" "}
-        ignorer · <Kbd>?</Kbd> tout
+        <Kbd>k</Kbd> {t("inbox.hintNavigate")} · <Kbd>s</Kbd> {t("inbox.hintSave")} · <Kbd>a</Kbd>{" "}
+        {t("inbox.hintApplied")} · <Kbd>x</Kbd> {t("inbox.hintIgnore")} · <Kbd>?</Kbd>{" "}
+        {t("inbox.hintAll")}
       </p>
     </div>
   );
@@ -680,18 +698,17 @@ function EmptyQueue({
   navigate: (f: InboxFilters) => void;
   loading: boolean;
 }) {
+  const t = useT();
   if (loading)
-    return <p className="text-muted-foreground px-6 py-10 text-[13px]">Chargement de la suite…</p>;
+    return <p className="text-muted-foreground px-6 py-10 text-[13px]">{t("inbox.loadingMore")}</p>;
   const triage = filters.status === "todo";
   return (
     <div className="px-6 py-12">
       <p className="text-[15px] font-medium">
-        {triage ? "Rien à trier ici." : "Aucune offre pour ces filtres."}
+        {triage ? t("inbox.emptyTriage") : t("inbox.emptyFilters")}
       </p>
       <p className="text-muted-foreground mt-1 text-[13px]">
-        {triage
-          ? "Le worker ajoute les nouvelles offres à chaque balayage ; le digest de 8 h les résume."
-          : "Élargis la recherche ou retire un filtre."}
+        {triage ? t("inbox.emptyTriageHelp") : t("inbox.emptyFiltersHelp")}
       </p>
       <div className="mt-4 flex flex-wrap gap-2 text-[13px]">
         {triage ? (
@@ -700,7 +717,7 @@ function EmptyQueue({
             onClick={() => navigate(applyView(filters, "saved"))}
             className="border-input hover:bg-secondary h-8 rounded-md border px-3"
           >
-            Voir les sauvegardées
+            {t("inbox.seeSaved")}
           </button>
         ) : null}
         <button
@@ -708,7 +725,7 @@ function EmptyQueue({
           onClick={() => navigate(applyView(filters, "all"))}
           className="border-input hover:bg-secondary h-8 rounded-md border px-3"
         >
-          Toutes les offres
+          {t("inbox.allOffers")}
         </button>
       </div>
     </div>

@@ -1,11 +1,13 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { getT } from "@/i18n/server";
 
-export default function Loading() {
+export default async function Loading() {
+  const t = await getT();
   return (
     <div
       className="mx-auto w-full max-w-[1120px] px-4 py-5 md:px-8 md:py-7"
       aria-busy
-      aria-label="Chargement"
+      aria-label={t("common.loading")}
     >
       <Skeleton className="mb-5 h-4 w-32" />
       <Skeleton className="h-6 w-2/3" />

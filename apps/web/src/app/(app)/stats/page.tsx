@@ -2,11 +2,17 @@ import { queryRows, sql } from "@jobradar/db";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageFrame, PageHeader, PageScroll } from "@/components/placeholder";
+import { intlTag } from "@/i18n/config";
+import type { Format } from "@/i18n/format";
+import type { T } from "@/i18n/messages";
+import { getFormat, getT } from "@/i18n/server";
 import { currentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Stats" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getT())("nav.stats") };
+}
 export const dynamic = "force-dynamic";
 
 const DAYS = 30;
@@ -95,10 +101,17 @@ function series(rows: DayCount[], days: string[]) {
     .sort((a, b) => b.total - a.total);
 }
 
-const dayLabel = (d: string) =>
-  new Intl.DateTimeFormat("fr-CA", { day: "numeric", month: "short", timeZone: "UTC" }).format(
-    new Date(`${d}T00:00:00Z`),
-  );
+interface I18n {
+  t: T;
+  format: Format;
+}
+
+const dayLabel = (d: string, { format }: I18n) =>
+  new Intl.DateTimeFormat(intlTag(format.locale), {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  }).format(new Date(`${d}T00:00:00Z`));
 
 /**
  * Thin single-hue bars on a shared baseline: 2px gaps, 2px rounded tops, a hover readout per bar
@@ -110,20 +123,27 @@ function Bars({
   height,
   label,
   max,
+  i18n,
 }: {
   values: number[];
   days: string[];
   height: number;
   label: string;
   max?: number;
+  i18n: I18n;
 }) {
+  const { t, format } = i18n;
   const top = Math.max(1, max ?? Math.max(...values));
   return (
     <div
       className="flex items-end gap-[2px]"
       style={{ height }}
       role="img"
-      aria-label={`${label} : ${values.reduce((a, b) => a + b, 0)} nouvelles offres sur ${days.length} jours`}
+      aria-label={t("stats.barsLabel", {
+        label,
+        total: values.reduce((a, b) => a + b, 0),
+        days: days.length,
+      })}
     >
       {values.map((v, i) => (
         <div key={days[i]} className="group relative flex h-full flex-1 items-end">
@@ -132,7 +152,7 @@ function Bars({
             style={{ height: v === 0 ? 0 : `${Math.max(3, (v / top) * 100)}%` }}
           />
           <span className="bg-surface text-foreground pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 rounded-sm border px-1.5 py-0.5 text-[11px] whitespace-nowrap tabular-nums border-input group-hover:block">
-            {dayLabel(days[i]!)} · {v.toLocaleString("fr-CA")}
+            {dayLabel(days[i]!, i18n)} · {format.number(v)}
           </span>
         </div>
       ))}
@@ -145,12 +165,15 @@ function SeriesTable({
   rows,
   days,
   hrefFor,
+  i18n,
 }: {
   title: string;
   rows: { key: string; values: number[]; total: number }[];
   days: string[];
   hrefFor: (key: string) => string;
+  i18n: I18n;
 }) {
+  const { t, format } = i18n;
   const max = Math.max(1, ...rows.flatMap((r) => r.values));
   return (
     <section>
@@ -158,9 +181,9 @@ function SeriesTable({
       <table className="w-full text-[13px]">
         <thead className="sr-only">
           <tr>
-            <th>Clé</th>
-            <th>30 jours</th>
-            <th>Par jour</th>
+            <th>{t("stats.key")}</th>
+            <th>{t("stats.days30")}</th>
+            <th>{t("stats.perDay")}</th>
           </tr>
         </thead>
         <tbody>
@@ -171,22 +194,28 @@ function SeriesTable({
                   {r.key}
                 </Link>
               </td>
-              <td className="py-1.5 pr-4 text-right tabular-nums">
-                {r.total.toLocaleString("fr-CA")}
-              </td>
+              <td className="py-1.5 pr-4 text-right tabular-nums">{format.number(r.total)}</td>
               <td className="w-1/2 py-1.5">
-                <Bars values={r.values} days={days} height={20} label={r.key} max={max} />
+                <Bars
+                  values={r.values}
+                  days={days}
+                  height={20}
+                  label={r.key}
+                  max={max}
+                  i18n={i18n}
+                />
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-      <p className="text-muted-foreground mt-1 text-[11px]">Même échelle sur toutes les lignes.</p>
+      <p className="text-muted-foreground mt-1 text-[11px]">{t("stats.sameScale")}</p>
     </section>
   );
 }
 
-const pct = (n: number, d: number) => (d === 0 ? "—" : `${Math.round((n / d) * 100)} %`);
+const pct = (n: number, d: number, format: Format) =>
+  d === 0 ? "—" : new Intl.NumberFormat(intlTag(format.locale), { style: "percent" }).format(n / d);
 
 function Fact({ n, label }: { n: string; label: string }) {
   return (
@@ -203,13 +232,15 @@ function Fact({ n, label }: { n: string; label: string }) {
 export default async function StatsPage() {
   const user = await currentUser();
   const { days, bySource, byCountry, share, companies } = await loadStats(user.id);
+  const [t, format] = await Promise.all([getT(), getFormat()]);
+  const i18n = { t, format };
   const sources = series(bySource, days);
   const countriesAll = series(byCountry, days);
   const countries = countriesAll.slice(0, TOP_COUNTRIES);
   const rest = countriesAll.slice(TOP_COUNTRIES);
   if (rest.length)
     countries.push({
-      key: `autres (${rest.length})`,
+      key: t("stats.others", { count: rest.length }),
       values: days.map((_, i) => rest.reduce((a, r) => a + r.values[i]!, 0)),
       total: rest.reduce((a, r) => a + r.total, 0),
     });
@@ -222,25 +253,19 @@ export default async function StatsPage() {
 
   return (
     <PageFrame>
-      <PageHeader
-        title="Stats"
-        description="Nouvelles offres (première vue), 30 jours calendaires de Toronto."
-      />
+      <PageHeader title={t("nav.stats")} description={t("stats.description")} />
       <PageScroll className="flex flex-col gap-9 px-4 py-5 md:px-6">
         <section>
           <dl className="mb-5 flex flex-wrap gap-x-8 gap-y-2 text-[13px]">
-            <Fact n={sum30.toLocaleString("fr-CA")} label="nouvelles en 30 j" />
+            <Fact n={format.number(sum30)} label={t("stats.new30")} />
+            <Fact n={format.number(today)} label={t("stats.todayYesterday", { n: yesterday })} />
             <Fact
-              n={today.toLocaleString("fr-CA")}
-              label={`aujourd’hui · hier ${yesterday.toLocaleString("fr-CA")}`}
+              n={pct(share.recent_yes, share.recent_total, format)}
+              label={t("stats.ngRecent", { n: unknownRecent })}
             />
             <Fact
-              n={pct(share.recent_yes, share.recent_total)}
-              label={`new grad parmi les nouvelles (${unknownRecent.toLocaleString("fr-CA")} inconnues)`}
-            />
-            <Fact
-              n={pct(share.open_yes, share.open_total)}
-              label={`new grad parmi les ${share.open_total.toLocaleString("fr-CA")} ouvertes`}
+              n={pct(share.open_yes, share.open_total, format)}
+              label={t("stats.ngOpen", { n: share.open_total })}
             />
           </dl>
           <div className="relative pt-3">
@@ -249,23 +274,29 @@ export default async function StatsPage() {
               aria-hidden
             />
             <span className="text-muted-foreground bg-background absolute top-0 right-0 pl-1.5 text-[11px] tabular-nums">
-              max {peak.toLocaleString("fr-CA")} / jour
+              {t("stats.peak", { n: peak })}
             </span>
-            <Bars values={total} days={days} height={140} label="Toutes sources" />
+            <Bars
+              values={total}
+              days={days}
+              height={140}
+              label={t("stats.allSources")}
+              i18n={i18n}
+            />
           </div>
           <div className="text-muted-foreground mt-1.5 flex justify-between border-t pt-1 text-[11px]">
-            <span>{dayLabel(days[0]!)}</span>
-            <span>{dayLabel(days[days.length - 1]!)}</span>
+            <span>{dayLabel(days[0]!, i18n)}</span>
+            <span>{dayLabel(days[days.length - 1]!, i18n)}</span>
           </div>
           <details className="mt-2 text-xs">
             <summary className="text-muted-foreground hover:text-foreground cursor-pointer">
-              Voir les données
+              {t("stats.seeData")}
             </summary>
             <table className="mt-1 w-full max-w-xs">
               <tbody>
                 {days.map((d, i) => (
                   <tr key={d} className="border-border-soft border-b">
-                    <td className="py-0.5">{dayLabel(d)}</td>
+                    <td className="py-0.5">{dayLabel(d, i18n)}</td>
                     <td className="py-0.5 text-right tabular-nums">{total[i]}</td>
                   </tr>
                 ))}
@@ -276,15 +307,17 @@ export default async function StatsPage() {
 
         <div className="grid gap-9 lg:grid-cols-2">
           <SeriesTable
-            title="Par source (source de première vue)"
+            title={t("stats.bySource")}
             rows={sources}
             days={days}
+            i18n={i18n}
             hrefFor={(k) => `/?source=${encodeURIComponent(k)}&since=7d&status=active`}
           />
           <SeriesTable
-            title="Par pays"
+            title={t("stats.byCountry")}
             rows={countries}
             days={days}
+            i18n={i18n}
             hrefFor={(k) =>
               /^[A-Z]{2}$/.test(k)
                 ? `/?country=${k}&since=7d&status=active`
@@ -294,16 +327,16 @@ export default async function StatsPage() {
         </div>
 
         <section>
-          <h2 className="label-caps mb-2">Top entreprises (offres ouvertes)</h2>
+          <h2 className="label-caps mb-2">{t("stats.topCompanies")}</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="label-caps border-b">
-                  <th className="h-8 text-left font-medium">Entreprise</th>
-                  <th className="h-8 text-right font-medium">Score ≥ 50</th>
-                  <th className="h-8 text-right font-medium">New grad</th>
-                  <th className="h-8 text-right font-medium">Ouvertes</th>
-                  <th className="h-8 text-right font-medium">Meilleur score</th>
+                  <th className="h-8 text-left font-medium">{t("stats.colCompany")}</th>
+                  <th className="h-8 text-right font-medium">{t("stats.colGood")}</th>
+                  <th className="h-8 text-right font-medium">{t("stats.colNewGrad")}</th>
+                  <th className="h-8 text-right font-medium">{t("stats.colOpen")}</th>
+                  <th className="h-8 text-right font-medium">{t("stats.colBest")}</th>
                 </tr>
               </thead>
               <tbody>

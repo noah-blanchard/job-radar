@@ -3,11 +3,14 @@ import { queryRows, sql } from "@jobradar/db";
 import { ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
 import { PageFrame, PageHeader, PageScroll } from "@/components/placeholder";
+import { getFormat, getT } from "@/i18n/server";
 import { getDb } from "@/lib/db";
-import { cn, formatAge, formatDateTime, formatDuration } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { RunButton } from "./run-button";
 
-export const metadata: Metadata = { title: "Sources" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getT())("nav.sources") };
+}
 export const dynamic = "force-dynamic";
 
 interface SourceHealthRow extends Record<string, unknown> {
@@ -71,18 +74,12 @@ async function loadSourceHealth() {
   };
 }
 
-const STATUS = {
-  ok: { label: "ok", cls: "text-success" },
-  error: { label: "en échec", cls: "text-destructive" },
-  running: { label: "en cours", cls: "text-info" },
-  skipped: { label: "ignoré", cls: "text-muted-foreground" },
+const STATUS_CLASS = {
+  ok: "text-success",
+  error: "text-destructive",
+  running: "text-info",
+  skipped: "text-muted-foreground",
 } as const;
-
-const SCHEDULE_LABEL: Record<SourceConfig["schedule"], string> = {
-  ats: "ATS · 6 h",
-  aggregators: "agrégateur · 1/j",
-  feeds: "flux · 6 h",
-};
 
 /** Daily cap of a source from its `quota_env` variable (same env as the worker). */
 function dailyMax(cfg: SourceConfig): number | null {
@@ -99,6 +96,7 @@ export default async function SourcesPage() {
   const { health, usage, requests } = await loadSourceHealth();
   const llmMax = Number(process.env.LLM_DAILY_MAX_CALLS ?? 200);
   const llmEnabled = process.env.LLM_ENABLED === "true";
+  const [t, format] = await Promise.all([getT(), getFormat()]);
 
   // Configured + seen-only sources; problems first, then enabled, then disabled.
   const ids = [...new Set([...config.map((c) => c.id), ...health.keys()])];
@@ -118,12 +116,8 @@ export default async function SourcesPage() {
   return (
     <PageFrame>
       <PageHeader
-        title="Sources"
-        description={
-          problems
-            ? `${problems} source${problems > 1 ? "s" : ""} à regarder, en tête de liste.`
-            : "Tout tourne. Heure de Toronto, quotas du jour."
-        }
+        title={t("nav.sources")}
+        description={problems ? t("sources.problems", { count: problems }) : t("sources.allGood")}
       />
       <PageScroll className="px-4 md:px-6">
         <div
@@ -132,16 +126,18 @@ export default async function SourcesPage() {
             "label-caps bg-background sticky top-0 z-10 hidden h-9 border-b md:grid",
           )}
         >
-          <span>Source</span>
-          <span>Statut</span>
-          <span>Dernier run</span>
-          <span className="text-right">Nouv.</span>
-          <span className="text-right">Erreurs 24 h</span>
-          <span>Quota du jour</span>
+          <span>{t("sources.colSource")}</span>
+          <span>{t("sources.colStatus")}</span>
+          <span>{t("sources.colLastRun")}</span>
+          <span className="text-right">{t("sources.colNew")}</span>
+          <span className="text-right">{t("sources.colErrors")}</span>
+          <span>{t("sources.colQuota")}</span>
           <span />
         </div>
         {rows.map(({ id, cfg, r, max, used, exhausted, problem }) => {
-          const st = r ? STATUS[r.last_status] : null;
+          const st = r
+            ? { cls: STATUS_CLASS[r.last_status], label: t(`sources.status.${r.last_status}`) }
+            : null;
           return (
             <details
               key={id}
@@ -165,11 +161,11 @@ export default async function SourcesPage() {
                   <span className="min-w-0">
                     <span className="block truncate font-medium">{id}</span>
                     <span className="text-muted-foreground block truncate text-xs">
-                      {cfg ? SCHEDULE_LABEL[cfg.schedule] : "hors sources.yaml"}
-                      {cfg && !cfg.enabled ? " · désactivée" : ""}
+                      {cfg ? t(`sources.schedule.${cfg.schedule}`) : t("sources.notInYaml")}
+                      {cfg && !cfg.enabled ? t("sources.disabled") : ""}
                       <span className="md:hidden">
                         {" · "}
-                        {st ? <span className={st.cls}>{st.label}</span> : "jamais lancée"}
+                        {st ? <span className={st.cls}>{st.label}</span> : t("sources.neverRun")}
                       </span>
                     </span>
                   </span>
@@ -181,13 +177,13 @@ export default async function SourcesPage() {
                   )}
                 >
                   {st ? <span className="size-1.5 rounded-full bg-current" aria-hidden /> : null}
-                  {st?.label ?? "jamais lancée"}
+                  {st?.label ?? t("sources.neverRun")}
                 </span>
                 <span
                   className="text-muted-foreground hidden text-[13px] md:block"
-                  title={r ? formatDateTime(new Date(r.last_started_at)) : undefined}
+                  title={r ? format.dateTime(new Date(r.last_started_at)) : undefined}
                 >
-                  {r ? `il y a ${formatAge(new Date(r.last_started_at))}` : "—"}
+                  {r ? t("sources.ago", { age: format.age(new Date(r.last_started_at)) }) : "—"}
                 </span>
                 <span className="hidden text-right tabular-nums md:block">
                   {r?.last_new ?? "—"}
@@ -204,7 +200,7 @@ export default async function SourcesPage() {
                   {max !== null ? (
                     <span
                       className="flex items-center gap-2"
-                      title={`${used} appels utilisés, ${Math.max(0, max - used)} restants`}
+                      title={t("sources.quotaTitle", { used, left: Math.max(0, max - used) })}
                     >
                       <span className="bg-ledger-track h-[5px] w-14 overflow-hidden rounded-[1px]">
                         <span
@@ -225,7 +221,7 @@ export default async function SourcesPage() {
                       </span>
                     </span>
                   ) : (
-                    <span className="text-muted-foreground text-xs">sans quota</span>
+                    <span className="text-muted-foreground text-xs">{t("sources.noQuota")}</span>
                   )}
                 </span>
                 <span className="flex justify-end">
@@ -236,21 +232,21 @@ export default async function SourcesPage() {
               </summary>
               <div className="text-muted-foreground grid gap-x-8 gap-y-1 pb-3 pl-6 text-xs sm:grid-cols-[repeat(4,auto)_1fr]">
                 <span>
-                  Durée :{" "}
-                  <span className="text-foreground">{formatDuration(r?.last_duration_ms)}</span>
+                  {t("sources.duration")}{" "}
+                  <span className="text-foreground">{format.duration(r?.last_duration_ms)}</span>
                 </span>
                 <span>
-                  Récupérées :{" "}
+                  {t("sources.fetched")}{" "}
                   <span className="text-foreground tabular-nums">{r?.last_fetched ?? "—"}</span>
                 </span>
                 <span>
-                  Runs 24 h :{" "}
+                  {t("sources.runs24h")}{" "}
                   <span className="text-foreground tabular-nums">{r?.runs_24h ?? 0}</span>
                 </span>
                 <span>
-                  Dernier run :{" "}
+                  {t("sources.lastRun")}{" "}
                   <span className="text-foreground">
-                    {r ? formatDateTime(new Date(r.last_started_at)) : "—"}
+                    {r ? format.dateTime(new Date(r.last_started_at)) : "—"}
                   </span>
                 </span>
                 {r?.last_error ? (
@@ -263,11 +259,11 @@ export default async function SourcesPage() {
           );
         })}
         <p className="text-muted-foreground py-4 text-xs">
-          LLM (classification des offres ambiguës) :{" "}
+          {t("sources.llm")}{" "}
           {llmEnabled
-            ? `activé, ${usage.get("llm") ?? 0} / ${llmMax} appels aujourd'hui.`
-            : "désactivé (LLM_ENABLED=false), classification par règles uniquement."}{" "}
-          « Lancer » enregistre une demande que le worker exécute dans la minute.
+            ? t("sources.llmOn", { used: usage.get("llm") ?? 0, max: llmMax })
+            : t("sources.llmOff")}{" "}
+          {t("sources.runHelp")}
         </p>
       </PageScroll>
     </PageFrame>

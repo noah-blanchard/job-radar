@@ -4,6 +4,7 @@ import { Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/i18n/client";
 import { requestAlertTest } from "./actions";
 
 /** Queues a test; while queued, refreshes the page every 10 s to show the worker's result. */
@@ -19,12 +20,13 @@ export function TestChannelsButton({
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
+  const t = useT();
   // The action revalidates /settings: the pending request comes back from the server.
   const queued = !!pendingSince;
   useEffect(() => {
     if (!queued) return;
-    const t = setInterval(() => router.refresh(), 10_000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => router.refresh(), 10_000);
+    return () => clearInterval(timer);
   }, [queued, router]);
 
   return (
@@ -37,9 +39,9 @@ export function TestChannelsButton({
       title={
         disabled
           ? ownerChannels
-            ? "Aucun canal configuré (variables NTFY_*, SMTP_*, DISCORD_*, TELEGRAM_* du .env)"
-            : "Aucun canal configuré : renseigne un e-mail ou un topic ntfy, puis enregistre"
-          : "Envoie un aperçu du digest [TEST] sur chaque canal configuré (via le worker, dans la minute)"
+            ? t("settings.alerts.testNoChannelOwner")
+            : t("settings.alerts.testNoChannel")
+          : t("settings.alerts.testTitle")
       }
       onClick={() =>
         start(async () => {
@@ -49,7 +51,7 @@ export function TestChannelsButton({
       }
     >
       <Send className="size-3.5" />
-      {queued ? "Test demandé (le worker l'envoie dans la minute)…" : "Tester les canaux"}
+      {queued ? t("settings.alerts.testQueued") : t("settings.alerts.test")}
     </Button>
   );
 }

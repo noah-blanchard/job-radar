@@ -3,6 +3,7 @@
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Segmented } from "@/components/ui/segmented";
+import { useT } from "@/i18n/client";
 import {
   MODE_COOKIE,
   MODES,
@@ -63,44 +64,48 @@ function useAppearance() {
   };
 }
 
-/** Réglages → Apparence: ink and mode. */
+/** Settings → Appearance: ink and mode. */
 export function AppearanceSettings() {
   const { palette, mode, choosePalette, chooseMode } = useAppearance();
+  const t = useT();
   return (
     <div className="flex flex-col gap-3 text-[13px]">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="text-muted-foreground">Couleur</span>
-        <div className="flex gap-2" role="group" aria-label="Couleur">
+        <span className="text-muted-foreground">{t("settings.appearance.color")}</span>
+        <div className="flex gap-2" role="group" aria-label={t("settings.appearance.color")}>
           {PALETTES.map((p) => (
             <button
-              key={p.value}
+              key={p}
               type="button"
-              aria-pressed={palette === p.value}
-              onClick={() => choosePalette(p.value)}
+              aria-pressed={palette === p}
+              onClick={() => choosePalette(p)}
               className={cn(
                 "flex h-8 items-center gap-2 rounded-md border px-3 transition-colors",
-                palette === p.value
+                palette === p
                   ? "border-primary text-foreground"
                   : "border-input text-muted-foreground hover:border-input-hover hover:text-foreground",
               )}
             >
               <span
                 className="size-3 rounded-full"
-                style={{ background: p.value === "violet" ? "#6f58d6" : "#4670c9" }}
+                style={{ background: p === "violet" ? "#6f58d6" : "#4670c9" }}
                 aria-hidden
               />
-              {p.label}
+              {t(`settings.appearance.palette.${p}`)}
             </button>
           ))}
         </div>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="text-muted-foreground">Mode</span>
-        <Segmented label="Mode" value={mode} options={MODES} onChange={chooseMode} />
+        <span className="text-muted-foreground">{t("settings.appearance.mode")}</span>
+        <Segmented
+          label={t("settings.appearance.mode")}
+          value={mode}
+          options={MODES.map((m) => ({ value: m, label: t(`settings.appearance.modes.${m}`) }))}
+          onChange={chooseMode}
+        />
       </div>
-      <p className="text-muted-foreground text-xs">
-        Auto suit le réglage de l&apos;appareil. Le choix est mémorisé dans ce navigateur.
-      </p>
+      <p className="text-muted-foreground text-xs">{t("settings.appearance.help")}</p>
     </div>
   );
 }
@@ -108,17 +113,18 @@ export function AppearanceSettings() {
 const ICON = { auto: Monitor, light: Sun, dark: Moon } as const;
 const NEXT: Record<Mode, Mode> = { auto: "light", light: "dark", dark: "auto" };
 
-/** Rail: one button cycling Auto → Clair → Sombre. */
+/** Rail: one button cycling Auto → Light → Dark. */
 export function ModeToggle({ className }: { className?: string }) {
   const { mode, chooseMode } = useAppearance();
+  const t = useT();
   const Icon = ICON[mode];
-  const label = MODES.find((m) => m.value === mode)!.label;
+  const label = t(`settings.appearance.modes.${mode}`);
   return (
     <button
       type="button"
       onClick={() => chooseMode(NEXT[mode])}
-      title={`Mode : ${label} (cliquer pour changer)`}
-      aria-label={`Mode d'affichage : ${label}`}
+      title={t("settings.appearance.toggleTitle", { mode: label })}
+      aria-label={t("settings.appearance.toggleLabel", { mode: label })}
       className={cn(
         "text-muted-foreground hover:text-foreground hover:bg-rail-hover flex h-8 items-center gap-2.5 rounded-md px-2.5 text-[13px]",
         className,

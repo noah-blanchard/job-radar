@@ -8,11 +8,12 @@ import { JobDetailView } from "@/components/job/job-detail";
 import { PageScroll } from "@/components/placeholder";
 import { Kbd } from "@/components/ui/kbd";
 import { dismissToast, toast } from "@/components/ui/toast";
-import { STATUS_LABEL, type JobStatus } from "@/lib/filters";
+import { useFormat, useT } from "@/i18n/client";
+import type { JobStatus } from "@/lib/filters";
 import type { JobDetail } from "@/lib/job-detail";
 import { popUndo, pushUndo, removeUndo, type UndoEntry } from "@/lib/undo";
 import { useSoftRefresh } from "@/lib/use-soft-refresh";
-import { formatDueDate, isTyping } from "@/lib/utils";
+import { isTyping } from "@/lib/utils";
 import { setJobStatus, setNextAction } from "../actions";
 
 const KEYS: Record<string, JobStatus> = { s: "saved", a: "applied", x: "ignored" };
@@ -21,6 +22,8 @@ const KEYS: Record<string, JobStatus> = { s: "saved", a: "applied", x: "ignored"
 export function JobPage({ job }: { job: JobDetail }) {
   const router = useRouter();
   const softRefresh = useSoftRefresh();
+  const t = useT();
+  const format = useFormat();
   const [status, setStatus] = useState<JobStatus>(job.status);
   const [next, setNext] = useState<string | null>(job.next_action_at);
   const [followOpen, setFollowOpen] = useState(false);
@@ -34,14 +37,14 @@ export function JobPage({ job }: { job: JobDetail }) {
     if (opts.undoable) {
       pushUndo(undo);
       toast({
-        message: value === "new" ? "Remise à trier" : `${STATUS_LABEL[value]}`,
-        action: { label: "Annuler", hint: "z", run: () => (removeUndo(undo), undo.run()) },
+        message: value === "new" ? t("status.backToTriage") : t(`status.${value}`),
+        action: { label: t("common.undo"), hint: "z", run: () => (removeUndo(undo), undo.run()) },
       });
     } else dismissToast();
     const rollback = () => {
       setStatus(prev);
       removeUndo(undo);
-      toast({ tone: "error", message: "Statut non enregistré. Réessaie." });
+      toast({ tone: "error", message: t("job.statusFailed") });
     };
     void setJobStatus(job.id, value).then((r) => {
       if (!r.ok) return rollback();
@@ -57,14 +60,16 @@ export function JobPage({ job }: { job: JobDetail }) {
     if (undoable) {
       pushUndo(undo);
       toast({
-        message: iso ? `Relance le ${formatDueDate(iso)}` : "Relance retirée",
-        action: { label: "Annuler", hint: "z", run: () => (removeUndo(undo), undo.run()) },
+        message: iso
+          ? t("job.followUpSet", { date: format.dueDate(iso) })
+          : t("job.followUpRemoved"),
+        action: { label: t("common.undo"), hint: "z", run: () => (removeUndo(undo), undo.run()) },
       });
     }
     const rollback = () => {
       setNext(prev);
       removeUndo(undo);
-      toast({ tone: "error", message: "Date de relance non enregistrée. Réessaie." });
+      toast({ tone: "error", message: t("inbox.followUpFailed") });
     };
     void setNextAction(job.id, iso).then((r) => (r.ok ? softRefresh() : rollback()), rollback);
   };
@@ -87,7 +92,7 @@ export function JobPage({ job }: { job: JobDetail }) {
       else if (e.key === "z") {
         const u = popUndo();
         if (u) u.run();
-        else toast({ message: "Rien à annuler." });
+        else toast({ message: t("inbox.nothingToUndo") });
       } else if (e.key === "o") window.open(job.apply_url ?? job.url, "_blank", "noopener");
       else if (e.key === "e") notesRef.current?.focus();
       else if (e.key === "f") setFollowOpen(true);
@@ -107,8 +112,8 @@ export function JobPage({ job }: { job: JobDetail }) {
           onClick={goBack}
           className="text-muted-foreground hover:text-foreground mb-5 inline-flex items-center gap-1.5 text-[13px]"
         >
-          <ArrowLeft className="size-4" aria-hidden /> Retour à la liste
-          <Kbd className="ml-1 hidden md:inline-flex">Échap</Kbd>
+          <ArrowLeft className="size-4" aria-hidden /> {t("job.back")}
+          <Kbd className="ml-1 hidden md:inline-flex">{t("palette.escape")}</Kbd>
         </button>
         <JobDetailView
           job={job}
@@ -123,8 +128,8 @@ export function JobPage({ job }: { job: JobDetail }) {
           onApplyClick={() =>
             status !== "applied" &&
             toast({
-              message: "Offre ouverte dans un onglet.",
-              action: { label: "Marquer postulé", hint: "a", run: () => change("applied") },
+              message: t("inbox.openedInTab"),
+              action: { label: t("inbox.markApplied"), hint: "a", run: () => change("applied") },
             })
           }
         />

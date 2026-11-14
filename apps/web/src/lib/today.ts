@@ -7,7 +7,7 @@ import { getDb } from "./db";
 import type { JobStatus } from "./filters";
 import { readProfile } from "./profile";
 
-/** Score threshold of the "à trier" count: the digest's own threshold, so both agree. */
+/** Score threshold of the "to triage" count: the digest's own threshold, so both agree. */
 export function triageMinScore(): number {
   const n = Number(process.env.DIGEST_MIN_SCORE);
   return Number.isFinite(n) && process.env.DIGEST_MIN_SCORE !== "" ? n : 40;
@@ -21,10 +21,14 @@ export interface DueItem {
   next_action_at: string;
 }
 
-export interface Problem {
-  kind: "source" | "quota" | "silent" | "profile" | "no-profile";
-  label: string;
-}
+/** A machine problem; the interface words it (`today.problem.*`). */
+export type Problem =
+  | { kind: "source"; count: number }
+  | { kind: "quota"; sources: string[] }
+  | { kind: "silent"; hours: number }
+  | { kind: "no-profile" }
+  | { kind: "invalid-profile" }
+  | { kind: "rescoring" };
 
 export interface Today {
   minScore: number;
@@ -95,11 +99,7 @@ export const loadToday = cache(async (): Promise<Today> => {
 
   const count = (s: JobStatus) => pipeline.find((p) => p.status === s);
   const problems: Problem[] = [];
-  if (failing.length)
-    problems.push({
-      kind: "source",
-      label: `${failing.length} source${failing.length > 1 ? "s" : ""} en échec`,
-    });
+  if (failing.length) problems.push({ kind: "source", count: failing.length });
   try {
     const config = loadSourcesConfig();
     const exhausted = config.filter((c) => {
@@ -108,23 +108,16 @@ export const loadToday = cache(async (): Promise<Today> => {
       const used = usage.find((u) => u.source === c.id)?.calls ?? 0;
       return process.env[c.quota_env] !== "" && Number.isFinite(max) && max > 0 && used >= max;
     });
-    if (exhausted.length)
-      problems.push({
-        kind: "quota",
-        label: `quota épuisé : ${exhausted.map((c) => c.id).join(", ")}`,
-      });
+    if (exhausted.length) problems.push({ kind: "quota", sources: exhausted.map((c) => c.id) });
   } catch {
     // sources.yaml unreadable: /sources shows it, the home page stays quiet.
   }
   const last = lastRun?.last ? new Date(lastRun.last) : null;
   if (last && Date.now() - last.getTime() > silenceHours * 3_600_000)
-    problems.push({ kind: "silent", label: `worker silencieux depuis ${silenceHours} h` });
-  if (profile.state === "empty")
-    problems.push({ kind: "no-profile", label: "aucun profil : à remplir dans les réglages" });
-  else if (profile.state === "invalid")
-    problems.push({ kind: "profile", label: "profil invalide : à corriger dans les réglages" });
-  else if (profile.state === "pending")
-    problems.push({ kind: "profile", label: "recalcul des scores en cours" });
+    problems.push({ kind: "silent", hours: silenceHours });
+  if (profile.state === "empty") problems.push({ kind: "no-profile" });
+  else if (profile.state === "invalid") problems.push({ kind: "invalid-profile" });
+  else if (profile.state === "pending") problems.push({ kind: "rescoring" });
 
   return {
     minScore,

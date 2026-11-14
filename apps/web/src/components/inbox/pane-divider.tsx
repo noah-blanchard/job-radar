@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useT } from "@/i18n/client";
 
 const KEY = "jobradar:pane-width";
 export const PANE_DEFAULT = 520;
@@ -36,6 +37,7 @@ function save(w: number) {
  */
 export function PaneDivider({ grid }: { grid: React.RefObject<HTMLDivElement | null> }) {
   const handle = useRef<HTMLDivElement>(null);
+  const t = useT();
 
   const apply = (w: number) => {
     const g = grid.current;
@@ -66,11 +68,11 @@ export function PaneDivider({ grid }: { grid: React.RefObject<HTMLDivElement | n
         ref={handle}
         role="separator"
         aria-orientation="vertical"
-        aria-label="Largeur de la prévisualisation"
+        aria-label={t("pane.width")}
         aria-valuemin={PANE_MIN}
         aria-valuenow={PANE_DEFAULT}
         tabIndex={0}
-        title="Glisser pour redimensionner · double-clic : largeur par défaut"
+        title={t("pane.resize")}
         onPointerDown={(e) => {
           const g = grid.current;
           if (!g || e.button !== 0) return;

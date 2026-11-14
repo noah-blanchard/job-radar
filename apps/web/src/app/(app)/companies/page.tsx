@@ -10,14 +10,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getFormat, getT } from "@/i18n/server";
 import { currentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { cn, formatAge, formatDateTime } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { AddCompanyForm } from "./add-company-form";
 import { CompanyFilters, type CompanyFilterValues } from "./company-filters";
 import { PrioritySelect } from "./priority-select";
 
-export const metadata: Metadata = { title: "Entreprises" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getT())("nav.companies") };
+}
 export const dynamic = "force-dynamic";
 
 const ORIGINS = ["seed", "discovered", "manual"] as const;
@@ -73,18 +76,12 @@ async function loadCompanies(userId: number, f: CompanyFilterValues) {
   };
 }
 
-const STATUS = {
-  ok: { label: "ok", cls: "text-success" },
-  unknown: { label: "à sonder", cls: "text-muted-foreground" },
-  broken: { label: "cassé", cls: "text-destructive" },
-  unsupported: { label: "non géré", cls: "text-muted-foreground" },
+const STATUS_CLASS = {
+  ok: "text-success",
+  unknown: "text-muted-foreground",
+  broken: "text-destructive",
+  unsupported: "text-muted-foreground",
 } as const;
-
-const ORIGIN_LABEL: Record<string, string> = {
-  seed: "seed",
-  discovered: "découverte",
-  manual: "manuelle",
-};
 
 export default async function CompaniesPage({
   searchParams,
@@ -103,6 +100,9 @@ export default async function CompaniesPage({
     ats: pick("ats"),
   };
   const user = await currentUser();
+  const [t, format] = await Promise.all([getT(), getFormat()]);
+  const originLabel = (o: string) =>
+    (ORIGINS as readonly string[]).includes(o) ? t(`companies.origin.${o as "seed"}`) : o;
   const { rows, summary, atsList } = await loadCompanies(user.id, filters);
   const total = summary.reduce((a, s) => a + s.n, 0);
   const withAts = summary.reduce((a, s) => a + s.with_ats, 0);
@@ -111,36 +111,34 @@ export default async function CompaniesPage({
   return (
     <PageFrame>
       <PageHeader
-        title="Entreprises"
-        description={`${total.toLocaleString("fr-CA")} suivies · ${withAts.toLocaleString("fr-CA")} avec ATS · ${discovered.toLocaleString("fr-CA")} découvertes automatiquement`}
+        title={t("nav.companies")}
+        description={t("companies.summary", { total, withAts, discovered })}
       />
       <div className="flex shrink-0 flex-col gap-3 border-b px-4 py-3 md:px-6 xl:flex-row xl:items-center xl:justify-between">
         <CompanyFilters
           filters={filters}
           atsList={atsList}
-          origins={ORIGINS.map((o) => ({ value: o, label: ORIGIN_LABEL[o]! }))}
-          statuses={STATUSES.map((s) => ({ value: s, label: STATUS[s].label }))}
+          origins={ORIGINS.map((o) => ({ value: o, label: originLabel(o) }))}
+          statuses={STATUSES.map((s) => ({ value: s, label: t(`companies.status.${s}`) }))}
         />
         <AddCompanyForm />
       </div>
 
       <PageScroll className="px-4 md:px-6">
         {rows.length === 0 ? (
-          <p className="text-muted-foreground py-10 text-[13px]">
-            Aucune entreprise pour ces filtres.
-          </p>
+          <p className="text-muted-foreground py-10 text-[13px]">{t("companies.empty")}</p>
         ) : (
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead>Entreprise</TableHead>
-                <TableHead>ATS</TableHead>
-                <TableHead className="hidden md:table-cell">Clé</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead className="hidden sm:table-cell">Origine</TableHead>
-                <TableHead>Priorité</TableHead>
-                <TableHead className="text-right">Offres</TableHead>
-                <TableHead className="hidden lg:table-cell">Dernier run OK</TableHead>
+                <TableHead>{t("companies.colCompany")}</TableHead>
+                <TableHead>{t("companies.colAts")}</TableHead>
+                <TableHead className="hidden md:table-cell">{t("companies.colKey")}</TableHead>
+                <TableHead>{t("companies.colStatus")}</TableHead>
+                <TableHead className="hidden sm:table-cell">{t("companies.colOrigin")}</TableHead>
+                <TableHead>{t("companies.colPriority")}</TableHead>
+                <TableHead className="text-right">{t("companies.colOffers")}</TableHead>
+                <TableHead className="hidden lg:table-cell">{t("companies.colLastOk")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -156,14 +154,14 @@ export default async function CompaniesPage({
                   </TableCell>
                   <TableCell>
                     <span
-                      className={cn("inline-flex items-center gap-1.5", STATUS[r.ats_status].cls)}
+                      className={cn("inline-flex items-center gap-1.5", STATUS_CLASS[r.ats_status])}
                     >
                       <span className="size-1.5 rounded-full bg-current" aria-hidden />
-                      {STATUS[r.ats_status].label}
+                      {t(`companies.status.${r.ats_status}`)}
                     </span>
                   </TableCell>
                   <TableCell className="text-muted-foreground hidden sm:table-cell">
-                    {ORIGIN_LABEL[r.origin] ?? r.origin}
+                    {originLabel(r.origin)}
                   </TableCell>
                   <TableCell>
                     <PrioritySelect companyId={r.id} priority={r.priority} />
@@ -173,7 +171,7 @@ export default async function CompaniesPage({
                       <Link
                         href={`/?company=${encodeURIComponent(r.name)}&status=active`}
                         className="hover:text-info hover:underline"
-                        title="Voir ses offres ouvertes"
+                        title={t("companies.seeOffers")}
                       >
                         {r.open_jobs}
                       </Link>
@@ -183,9 +181,9 @@ export default async function CompaniesPage({
                   </TableCell>
                   <TableCell
                     className="text-muted-foreground hidden lg:table-cell"
-                    title={formatDateTime(r.last_ok_at)}
+                    title={format.dateTime(r.last_ok_at)}
                   >
-                    {r.last_ok_at ? `il y a ${formatAge(r.last_ok_at)}` : "—"}
+                    {r.last_ok_at ? t("companies.ago", { age: format.age(r.last_ok_at) }) : "—"}
                   </TableCell>
                 </TableRow>
               ))}
@@ -194,7 +192,7 @@ export default async function CompaniesPage({
         )}
         {rows.length === LIMIT ? (
           <p className="text-muted-foreground py-3 text-xs">
-            {LIMIT} premières lignes affichées : affine avec les filtres.
+            {t("companies.limit", { limit: LIMIT })}
           </p>
         ) : null}
       </PageScroll>

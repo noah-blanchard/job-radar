@@ -5,12 +5,14 @@ import { useActionState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
+import { useT } from "@/i18n/client";
 import { addCompany, type AddCompanyState } from "./actions";
 
 /** One row: board URL, optional name, add. The result lands as a toast; the form clears on success. */
 export function AddCompanyForm() {
   const [state, action, pending] = useActionState<AddCompanyState, FormData>(addCompany, {});
   const form = useRef<HTMLFormElement>(null);
+  const t = useT();
   useEffect(() => {
     if (state.ok) {
       toast({ message: state.ok });
@@ -23,14 +25,19 @@ export function AddCompanyForm() {
         name="url"
         type="url"
         required
-        placeholder="URL du board carrières (jobs.lever.co/acme…)"
+        placeholder={t("companies.urlPlaceholder")}
         className="sm:w-80"
-        aria-label="URL carrières"
+        aria-label={t("companies.urlLabel")}
         aria-invalid={state.error ? true : undefined}
       />
-      <Input name="name" placeholder="Nom (optionnel)" className="sm:w-40" aria-label="Nom" />
+      <Input
+        name="name"
+        placeholder={t("companies.namePlaceholder")}
+        className="sm:w-40"
+        aria-label={t("companies.nameLabel")}
+      />
       <Button type="submit" disabled={pending} variant="outline">
-        <Plus aria-hidden /> {pending ? "Ajout…" : "Ajouter"}
+        <Plus aria-hidden /> {pending ? t("companies.adding") : t("companies.add")}
       </Button>
       {state.error ? (
         <p className="text-destructive text-xs sm:max-w-sm" role="alert">

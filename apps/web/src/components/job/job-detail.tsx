@@ -5,26 +5,32 @@ import { ArrowUpRight } from "lucide-react";
 import { FollowUpControl } from "@/components/job/follow-up";
 import { NotesField } from "@/components/job/notes-field";
 import { SafeNodes } from "@/components/safe-nodes";
-import { Ledger, NewGradMark, PART_LABEL } from "@/components/score-badge";
+import { Ledger, NewGradMark, partLabel } from "@/components/score-badge";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
-import { STATUS_LABEL, type JobStatus } from "@/lib/filters";
+import { useFormat, useT } from "@/i18n/client";
+import type { T } from "@/i18n/messages";
+import type { JobStatus } from "@/lib/filters";
 import type { JobDetail as Job } from "@/lib/job-detail";
-import { cn, formatAge, formatDate, formatDateTime, placeLabel } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
-const STATUS_OPTIONS = [
-  { value: "saved", label: STATUS_LABEL.saved, title: "Sauvegarder (s)" },
-  { value: "applied", label: STATUS_LABEL.applied, title: "Postulé (a)" },
-  { value: "interview", label: STATUS_LABEL.interview },
-  { value: "rejected", label: STATUS_LABEL.rejected },
-  { value: "ignored", label: STATUS_LABEL.ignored, title: "Ignorer (x)" },
-] as const satisfies readonly { value: JobStatus; label: string; title?: string }[];
+const statusOptions = (t: T) =>
+  [
+    { value: "saved", label: t("status.saved"), title: t("job.saveTitle") },
+    { value: "applied", label: t("status.applied"), title: t("job.appliedTitle") },
+    { value: "interview", label: t("status.interview") },
+    { value: "rejected", label: t("status.rejected") },
+    { value: "ignored", label: t("status.ignored"), title: t("job.ignoreTitle") },
+  ] as const satisfies readonly { value: JobStatus; label: string; title?: string }[];
 
-/** The itemized score: one line per part, then the total (the transcript's record). */
+/**
+ * The itemized score: one line per part, then the total (the transcript's record). The detail
+ * lines and the new-grad reason are stored in French by the worker and shown as they are.
+ */
 export function ScoreRecord({ b, score }: { b: ScoreBreakdown | null; score: number | null }) {
-  if (!b)
-    return <p className="text-muted-foreground text-[13px]">Pas encore scorée par le worker.</p>;
+  const t = useT();
+  if (!b) return <p className="text-muted-foreground text-[13px]">{t("job.notScored")}</p>;
   return (
     <div className="text-[13px]">
       <div className="mb-2 flex items-center gap-3">
@@ -44,7 +50,7 @@ export function ScoreRecord({ b, score }: { b: ScoreBreakdown | null; score: num
             key={p.key}
             className="border-border-soft grid grid-cols-[7.5rem_1fr_2.5rem] gap-3 border-b py-[5px] last:border-0"
           >
-            <dt className="text-muted-foreground">{PART_LABEL[p.key] ?? p.key}</dt>
+            <dt className="text-muted-foreground">{partLabel(p.key, t)}</dt>
             <dd className="min-w-0 break-words">{p.detail}</dd>
             <dd
               className={cn(
@@ -62,7 +68,7 @@ export function ScoreRecord({ b, score }: { b: ScoreBreakdown | null; score: num
         ))}
       </dl>
       <div className="mt-1 flex items-baseline justify-between border-t border-input pt-1.5 font-semibold">
-        <span>Total</span>
+        <span>{t("job.total")}</span>
         <span className="tabular-nums">
           {b.raw !== b.total ? (
             <span className="text-muted-foreground mr-2 font-normal line-through">{b.raw}</span>
@@ -73,14 +79,18 @@ export function ScoreRecord({ b, score }: { b: ScoreBreakdown | null; score: num
       {b.excluded ? <p className="text-destructive mt-1.5 text-xs">{b.excluded}</p> : null}
       {b.capped ? <p className="text-warning mt-1.5 text-xs">{b.capped}</p> : null}
       <p className="text-muted-foreground mt-2 text-xs">
-        New grad ({b.newGrad.source === "llm" ? "IA" : "règles"}) : {b.newGrad.reason}
-        {b.newGrad.visaNotes ? ` · Autorisation de travail : ${b.newGrad.visaNotes}` : ""}
+        {t("job.newGradReason", {
+          by: b.newGrad.source === "llm" ? t("job.byLlm") : t("job.byRules"),
+          reason: b.newGrad.reason,
+        })}
+        {b.newGrad.visaNotes ? t("job.workAuth", { notes: b.newGrad.visaNotes }) : ""}
       </p>
     </div>
   );
 }
 
 function Description({ job }: { job: Job }) {
+  const t = useT();
   if (job.description)
     return (
       <SafeNodes nodes={job.description} className="prose-job text-[13.5px] leading-relaxed" />
@@ -93,14 +103,14 @@ function Description({ job }: { job: Job }) {
     );
   return (
     <p className="text-muted-foreground text-[13px]">
-      La source ne fournit pas de description :{" "}
+      {t("job.noDescription")}{" "}
       <a
         href={job.apply_url ?? job.url}
         target="_blank"
         rel="noopener noreferrer"
         className="text-info underline"
       >
-        voir l&apos;offre
+        {t("job.seeOffer")}
       </a>
       .
     </p>
@@ -108,6 +118,8 @@ function Description({ job }: { job: Job }) {
 }
 
 function Sources({ job }: { job: Job }) {
+  const t = useT();
+  const format = useFormat();
   return (
     <div className="text-[13px]">
       <ul className="flex flex-col gap-1">
@@ -122,14 +134,17 @@ function Sources({ job }: { job: Job }) {
               {s.source}
             </a>
             <span className="text-muted-foreground text-xs">
-              vue il y a {formatAge(s.first_seen_at)} · revue {formatDateTime(s.last_seen_at)}
+              {t("job.seenAgo", {
+                age: format.age(s.first_seen_at),
+                date: format.dateTime(s.last_seen_at),
+              })}
             </span>
           </li>
         ))}
       </ul>
       <p className="text-muted-foreground mt-1.5 text-xs">
-        Première vue {formatDateTime(job.first_seen_at)}
-        {job.posted_at ? ` · publiée le ${formatDate(job.posted_at)}` : ""}
+        {t("job.firstSeen", { date: format.dateTime(job.first_seen_at) })}
+        {job.posted_at ? t("job.postedOn", { date: format.date(job.posted_at) }) : ""}
       </p>
     </div>
   );
@@ -161,6 +176,8 @@ export function JobDetailView({
   onFollowOpen,
   onApplyClick,
 }: { job: Job; variant: "pane" | "page" } & JobDetailControls) {
+  const t = useT();
+  const format = useFormat();
   const facts = (
     <div className="mt-2 flex flex-wrap items-center gap-1.5">
       <NewGradMark value={job.is_new_grad} />
@@ -173,7 +190,9 @@ export function JobDetailView({
       ))}
       {job.salary ? <Badge variant="success">{job.salary}</Badge> : null}
       {job.closed_at ? (
-        <Badge variant="destructive">fermée le {formatDate(job.closed_at)}</Badge>
+        <Badge variant="destructive">
+          {t("job.closedOn", { date: format.date(job.closed_at) })}
+        </Badge>
       ) : null}
     </div>
   );
@@ -186,10 +205,10 @@ export function JobDetailView({
           target="_blank"
           rel="noopener noreferrer"
           onClick={onApplyClick}
-          title="Ouvrir l'offre d'origine (o)"
+          title={t("job.openOrigin")}
           className={buttonVariants({ variant: "default" })}
         >
-          Postuler <ArrowUpRight className="size-4" aria-hidden />
+          {t("job.apply")} <ArrowUpRight className="size-4" aria-hidden />
         </a>
         <FollowUpControl
           at={nextActionAt}
@@ -197,13 +216,13 @@ export function JobDetailView({
           open={followOpen}
           onOpenChange={onFollowOpen}
         />
-        {/* Phase 2: the "Générer CV.tex" action joins this row. */}
+        {/* Phase 2: the "Generate CV.tex" action joins this row. */}
       </div>
       <Segmented
-        label="Statut"
+        label={t("job.status")}
         size="sm"
         value={status === "new" ? null : status}
-        options={STATUS_OPTIONS}
+        options={statusOptions(t)}
         onChange={(s) => onStatus(s === status ? "new" : s)}
       />
     </div>
@@ -221,9 +240,9 @@ export function JobDetailView({
       </h1>
       <p className="text-muted-foreground mt-1 text-[13px]">
         <span className="text-foreground">{job.company_name}</span>
-        {job.company_priority === "high" ? " · prioritaire" : ""} · {placeLabel(job)}
-        {job.location_raw && job.location_raw !== job.city ? ` (${job.location_raw})` : ""} · vue il
-        y a {formatAge(job.first_seen_at)}
+        {job.company_priority === "high" ? t("job.priority") : ""} · {format.place(job)}
+        {job.location_raw && job.location_raw !== job.city ? ` (${job.location_raw})` : ""}
+        {t("job.seenAgoShort", { age: format.age(job.first_seen_at) })}
       </p>
       {facts}
       {actions}
@@ -232,7 +251,7 @@ export function JobDetailView({
 
   const notes = (
     <section>
-      <h2 className="label-caps mb-1.5">Notes</h2>
+      <h2 className="label-caps mb-1.5">{t("job.notes")}</h2>
       <NotesField
         key={job.id}
         jobId={job.id}
@@ -244,13 +263,13 @@ export function JobDetailView({
   );
   const record = (
     <section>
-      <h2 className="label-caps mb-2">Relevé du score</h2>
+      <h2 className="label-caps mb-2">{t("job.scoreRecord")}</h2>
       <ScoreRecord b={job.score_breakdown} score={job.score} />
     </section>
   );
   const sources = (
     <section>
-      <h2 className="label-caps mb-1.5">Sources ({job.sources.length})</h2>
+      <h2 className="label-caps mb-1.5">{t("job.sources", { count: job.sources.length })}</h2>
       <Sources job={job} />
     </section>
   );
@@ -262,7 +281,7 @@ export function JobDetailView({
         {record}
         {notes}
         <section>
-          <h2 className="label-caps mb-2">Description</h2>
+          <h2 className="label-caps mb-2">{t("job.description")}</h2>
           <Description job={job} />
         </section>
         {sources}
@@ -274,7 +293,7 @@ export function JobDetailView({
       {header}
       <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px]">
         <section className="order-2 min-w-0 lg:order-1">
-          <h2 className="label-caps mb-2">Description</h2>
+          <h2 className="label-caps mb-2">{t("job.description")}</h2>
           <Description job={job} />
         </section>
         <aside className="order-1 flex flex-col gap-7 lg:order-2">

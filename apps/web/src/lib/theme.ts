@@ -3,18 +3,12 @@
  * attributes on <html> (no flash); "auto" follows the device and is resolved before paint by
  * a tiny inline script, then kept in sync on the client.
  */
-export const PALETTES = [
-  { value: "bleu", label: "Encre bleue" },
-  { value: "violet", label: "Encre violette" },
-] as const;
-export type Palette = (typeof PALETTES)[number]["value"];
+// Values are ids (cookies, data attributes); labels: settings.appearance.* in the dictionaries.
+export const PALETTES = ["bleu", "violet"] as const;
+export type Palette = (typeof PALETTES)[number];
 
-export const MODES = [
-  { value: "auto", label: "Auto" },
-  { value: "light", label: "Clair" },
-  { value: "dark", label: "Sombre" },
-] as const;
-export type Mode = (typeof MODES)[number]["value"];
+export const MODES = ["auto", "light", "dark"] as const;
+export type Mode = (typeof MODES)[number];
 
 export const PALETTE_COOKIE = "jr-palette";
 export const MODE_COOKIE = "jr-mode";

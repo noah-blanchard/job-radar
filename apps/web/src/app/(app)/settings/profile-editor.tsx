@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/input";
+import { useT } from "@/i18n/client";
 import { saveProfile, type ProfileFormState } from "./actions";
 
 export interface TemplateOption {
@@ -30,11 +31,12 @@ export function ProfileEditor({
   const [text, setText] = useState(initial);
   const [state, action, pending] = useActionState<ProfileFormState, FormData>(saveProfile, {});
   const dirty = text !== initial;
+  const t = useT();
 
   useEffect(() => {
     if (!rescoring) return;
-    const t = setInterval(() => router.refresh(), 15_000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => router.refresh(), 15_000);
+    return () => clearInterval(timer);
   }, [rescoring, router]);
 
   return (
@@ -42,24 +44,23 @@ export function ProfileEditor({
       {templates.length > 0 ? (
         <div className="flex flex-wrap items-center gap-2">
           <label htmlFor="profile-template" className="text-muted-foreground text-xs">
-            Partir d&apos;un modèle
+            {t("settings.profile.fromTemplate")}
           </label>
           <Select
             id="profile-template"
             value=""
             onChange={(e) => {
-              const t = templates.find((x) => x.id === e.target.value);
-              if (!t) return;
-              if (text.trim() && !window.confirm("Remplacer le profil affiché par ce modèle ?"))
-                return;
-              setText(t.text);
+              const tpl = templates.find((x) => x.id === e.target.value);
+              if (!tpl) return;
+              if (text.trim() && !window.confirm(t("settings.profile.replaceConfirm"))) return;
+              setText(tpl.text);
             }}
             className="h-7 text-xs"
           >
-            <option value="">choisir…</option>
-            {templates.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.title}
+            <option value="">{t("settings.profile.choose")}</option>
+            {templates.map((tpl) => (
+              <option key={tpl.id} value={tpl.id}>
+                {tpl.title}
               </option>
             ))}
           </Select>
@@ -73,10 +74,10 @@ export function ProfileEditor({
         autoCapitalize="off"
         autoCorrect="off"
         rows={22}
-        aria-label="Profil (YAML)"
+        aria-label={t("settings.profile.yamlLabel")}
         aria-invalid={state.errors?.length ? true : undefined}
         aria-describedby={state.errors?.length ? "profile-errors" : undefined}
-        placeholder="Choisis un modèle ci-dessus, puis adapte les lieux et les mots-clés."
+        placeholder={t("settings.profile.placeholder")}
         className="border-input placeholder:text-muted-foreground bg-code block w-full resize-y rounded-md border px-3 py-2 font-mono text-xs leading-relaxed outline-none hover:border-input-hover focus-visible:border-primary/70 focus-visible:outline-none aria-invalid:border-destructive"
       />
       {state.errors?.length ? (
@@ -90,11 +91,11 @@ export function ProfileEditor({
       ) : null}
       <div className="flex items-center gap-3">
         <Button type="submit" size="sm" disabled={pending || !dirty || !text.trim()}>
-          {pending ? "Vérification…" : "Enregistrer le profil"}
+          {pending ? t("settings.profile.checking") : t("settings.profile.save")}
         </Button>
         {dirty ? (
           <Button type="button" variant="ghost" size="sm" onClick={() => setText(initial)}>
-            Annuler les modifications
+            {t("settings.profile.discard")}
           </Button>
         ) : null}
       </div>

@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
+import { GuestLanguage } from "@/components/language-select";
 import { RadarMark } from "@/components/nav";
+import { getT } from "@/i18n/server";
 import { safeNextPath } from "@/lib/session";
 import { LoginForm } from "./login-form";
 
-export const metadata: Metadata = { title: "Connexion" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getT())("login.title") };
+}
 
 export default async function LoginPage({
   searchParams,
@@ -24,6 +28,7 @@ export default async function LoginPage({
             <RadarMark /> JobRadar
           </p>
           <LoginForm next={nextPath} />
+          <GuestLanguage />
         </div>
       </div>
     </main>

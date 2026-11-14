@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useT } from "@/i18n/client";
 import { saveAlertSettings, type FormState } from "./actions";
 
 export interface AlertValues {
@@ -71,18 +72,19 @@ export function AlertSettingsForm({
   ntfyUrl: string;
 }) {
   const [state, action, pending] = useActionState<FormState, FormData>(saveAlertSettings, {});
+  const t = useT();
   return (
     <form action={action} className="grid gap-3">
       <div className="grid gap-1.5">
         <Toggle
           name="digestEnabled"
-          label={`Digest quotidien (${defaults.digestTime}, heure de Toronto)`}
+          label={t("settings.alerts.digest", { time: defaults.digestTime })}
           checked={values.digestEnabled}
         />
         <div className="pl-6">
           <Score
             name="digestMinScore"
-            label="à partir du score"
+            label={t("settings.alerts.fromScore")}
             value={values.digestMinScore}
             fallback={defaults.digest}
           />
@@ -91,13 +93,13 @@ export function AlertSettingsForm({
       <div className="grid gap-1.5">
         <Toggle
           name="instantEnabled"
-          label="Alerte instantanée pour une nouvelle offre à fort score"
+          label={t("settings.alerts.instant")}
           checked={values.instantEnabled}
         />
         <div className="pl-6">
           <Score
             name="instantMinScore"
-            label="à partir du score"
+            label={t("settings.alerts.fromScore")}
             value={values.instantMinScore}
             fallback={defaults.instant}
           />
@@ -106,36 +108,37 @@ export function AlertSettingsForm({
       {ownChannels ? (
         <div className="grid max-w-md gap-2 pt-1">
           <label className="text-muted-foreground grid gap-1 text-xs">
-            E-mail
+            {t("settings.alerts.email")}
             <Input
               name="alertEmail"
               type="email"
               defaultValue={values.alertEmail ?? ""}
-              placeholder={smtp ? "prenom@exemple.com" : "indisponible : pas de serveur SMTP"}
+              placeholder={
+                smtp ? t("settings.accounts.emailPlaceholder") : t("settings.alerts.noSmtp")
+              }
               disabled={!smtp}
               className="h-8"
             />
           </label>
           <label className="text-muted-foreground grid gap-1 text-xs">
-            Topic ntfy (notifications sur le téléphone)
+            {t("settings.alerts.ntfy")}
             <Input
               name="ntfyTopic"
               defaultValue={values.ntfyTopic ?? ""}
               placeholder={suggestedTopic}
               pattern="[A-Za-z0-9_\-]{8,64}"
-              title="8 à 64 lettres, chiffres, - ou _"
+              title={t("settings.alerts.topicRule")}
               className="h-8 font-mono text-xs"
             />
           </label>
           <p className="text-muted-foreground text-xs leading-relaxed">
-            Installe l&apos;app ntfy, abonne-toi au topic sur {ntfyUrl}. Quiconque connaît le topic
-            peut lire les alertes : garde un nom long et aléatoire, comme celui proposé.
+            {t("settings.alerts.ntfyHelp", { url: ntfyUrl })}
           </p>
         </div>
       ) : null}
       <div className="flex items-center gap-3">
         <Button type="submit" variant="secondary" size="sm" disabled={pending}>
-          {pending ? "…" : "Enregistrer les alertes"}
+          {pending ? "…" : t("settings.alerts.save")}
         </Button>
         {state.error ? (
           <p role="alert" className="text-destructive text-[13px]">

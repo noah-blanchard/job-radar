@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getLocale } from "@/i18n/server";
 import { currentUser } from "@/lib/auth";
 import { loadJobDetail, parseJobId } from "@/lib/job-detail";
 
@@ -12,7 +13,7 @@ export const dynamic = "force-dynamic";
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const id = parseJobId((await params).id);
   const user = await currentUser();
-  const job = id ? await loadJobDetail(user.id, id) : null;
-  if (!job) return NextResponse.json({ error: "introuvable" }, { status: 404 });
+  const job = id ? await loadJobDetail(user.id, id, await getLocale()) : null;
+  if (!job) return NextResponse.json({ error: "not found" }, { status: 404 });
   return NextResponse.json(job, { headers: { "cache-control": "private, no-store" } });
 }

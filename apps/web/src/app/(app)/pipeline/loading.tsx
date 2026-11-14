@@ -1,10 +1,12 @@
 import { HeaderSkeleton } from "@/components/page-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getT } from "@/i18n/server";
 
-export default function Loading() {
+export default async function Loading() {
+  const t = await getT();
   return (
-    <div className="flex flex-1 flex-col" aria-busy aria-label="Chargement">
-      <HeaderSkeleton title="Pipeline" />
+    <div className="flex flex-1 flex-col" aria-busy aria-label={t("common.loading")}>
+      <HeaderSkeleton title="nav.pipeline" />
       <div className="grid flex-1 gap-px overflow-hidden bg-[var(--border-soft)] md:grid-cols-2 xl:grid-cols-4">
         {[0, 1, 2, 3].map((c) => (
           <div key={c} className="bg-background flex flex-col gap-2 p-3 md:p-4">

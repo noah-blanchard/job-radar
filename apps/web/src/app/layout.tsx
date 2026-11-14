@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Public_Sans } from "next/font/google";
 import { cookies } from "next/headers";
+import { I18nProvider } from "@/i18n/client";
+import { getLocale, getMessages, getT } from "@/i18n/server";
 import { MODE_COOKIE, PALETTE_COOKIE, parseMode, parsePalette, THEME_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
@@ -11,11 +13,14 @@ const publicSans = Public_Sans({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: { default: "JobRadar", template: "%s · JobRadar" },
-  description: "Agrégateur d'offres new grad",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return {
+    title: { default: "JobRadar", template: "%s · JobRadar" },
+    description: t("meta.description"),
+    robots: { index: false, follow: false },
+  };
+}
 
 const CHROME = {
   bleu: { light: "#f7f8fa", dark: "#0f141b" },
@@ -46,9 +51,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const mode = parseMode(jar.get(MODE_COOKIE)?.value);
   // "auto" renders dark; the inline script corrects it before paint when the device is light.
   const dark = mode !== "light";
+  const [locale, messages] = await Promise.all([getLocale(), getMessages()]);
   return (
     <html
-      lang="fr"
+      lang={locale}
       data-palette={palette}
       data-mode={mode}
       className={`${dark ? "dark " : ""}${publicSans.variable}`}
@@ -57,7 +63,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
-      <body className="min-h-dvh font-sans text-[13px] leading-[1.45]">{children}</body>
+      <body className="min-h-dvh font-sans text-[13px] leading-[1.45]">
+        <I18nProvider locale={locale} messages={messages}>
+          {children}
+        </I18nProvider>
+      </body>
     </html>
   );
 }

@@ -18,6 +18,8 @@ import { openCommandPalette } from "@/components/command-palette";
 import { ModeToggle } from "@/components/theme-controls";
 import { Kbd } from "@/components/ui/kbd";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useT } from "@/i18n/client";
+import type { MessageKey } from "@/i18n/messages";
 import { cn } from "@/lib/utils";
 
 export interface NavCounts {
@@ -26,22 +28,30 @@ export interface NavCounts {
   problems: number;
 }
 
-const WORK = [
-  { href: "/", label: "Trier", icon: Inbox, chord: "t" },
-  { href: "/pipeline", label: "Pipeline", icon: SquareKanban, chord: "p" },
-] as const;
+interface NavItem {
+  href: string;
+  label: MessageKey;
+  icon: typeof Inbox;
+  chord: string;
+}
 
-const MACHINE = [
-  { href: "/sources", label: "Sources", icon: RadioTower, chord: "s" },
-  { href: "/companies", label: "Entreprises", icon: Building, chord: "e" },
-  { href: "/stats", label: "Stats", icon: ChartColumn, chord: "x" },
-  { href: "/settings", label: "Réglages", icon: Settings, chord: "r" },
-] as const;
+const WORK: readonly [NavItem, NavItem] = [
+  { href: "/", label: "nav.triage", icon: Inbox, chord: "t" },
+  { href: "/pipeline", label: "nav.pipeline", icon: SquareKanban, chord: "p" },
+];
+
+const MACHINE: readonly NavItem[] = [
+  { href: "/sources", label: "nav.sources", icon: RadioTower, chord: "s" },
+  { href: "/companies", label: "nav.companies", icon: Building, chord: "e" },
+  { href: "/stats", label: "nav.stats", icon: ChartColumn, chord: "x" },
+  { href: "/settings", label: "nav.settings", icon: Settings, chord: "r" },
+];
 
 const isActive = (pathname: string, href: string) =>
   href === "/" ? pathname === "/" || pathname.startsWith("/jobs/") : pathname.startsWith(href);
 
 function Count({ n, tone }: { n: number | undefined; tone?: "due" }) {
+  const t = useT();
   if (!n) return null;
   return (
     <span
@@ -50,7 +60,7 @@ function Count({ n, tone }: { n: number | undefined; tone?: "due" }) {
         tone === "due" ? "text-warning" : "text-muted-foreground",
       )}
     >
-      {tone === "due" ? `${n} due${n > 1 ? "s" : ""}` : n.toLocaleString("fr-CA")}
+      {tone === "due" ? t("nav.due", { count: n }) : t("common.count", { count: n })}
     </span>
   );
 }
@@ -63,11 +73,12 @@ function RailLink({
   children,
 }: {
   href: string;
-  label: string;
+  label: MessageKey;
   icon: typeof Inbox;
   active: boolean;
   children?: React.ReactNode;
 }) {
+  const t = useT();
   return (
     <Link
       href={href}
@@ -80,7 +91,7 @@ function RailLink({
       )}
     >
       <Icon className={cn("size-4 shrink-0", active ? "text-primary" : "")} aria-hidden />
-      <span className={cn(active && "font-medium")}>{label}</span>
+      <span className={cn(active && "font-medium")}>{t(label)}</span>
       {children}
     </Link>
   );
@@ -95,6 +106,7 @@ export function Rail({
   logout: () => Promise<void>;
 }) {
   const pathname = usePathname();
+  const t = useT();
   return (
     <aside className="bg-rail hidden h-full w-[208px] shrink-0 flex-col border-r border-rail-border px-2.5 py-4 md:flex">
       <Link
@@ -110,23 +122,23 @@ export function Rail({
         className="text-muted-foreground hover:text-foreground mb-4 flex h-8 items-center gap-2 rounded-md border border-rail-border px-2.5 text-[13px] transition-colors hover:border-input-hover"
       >
         <Search className="size-3.5" aria-hidden />
-        Aller à…
+        {t("nav.goTo")}
         <Kbd className="ml-auto">Ctrl K</Kbd>
       </button>
-      <nav aria-label="Navigation principale" className="flex flex-col gap-0.5">
+      <nav aria-label={t("nav.main")} className="flex flex-col gap-0.5">
         <RailLink {...WORK[0]} active={isActive(pathname, "/")}>
           <Count n={counts?.triage} />
         </RailLink>
         <RailLink {...WORK[1]} active={isActive(pathname, "/pipeline")}>
           <Count n={counts?.due} tone="due" />
         </RailLink>
-        <p className="label-caps mt-5 mb-1 px-2.5">Machine</p>
+        <p className="label-caps mt-5 mb-1 px-2.5">{t("nav.machine")}</p>
         {MACHINE.map((m) => (
           <RailLink key={m.href} {...m} active={isActive(pathname, m.href)}>
             {m.href === "/sources" && counts?.problems ? (
               <span
                 className="bg-destructive ml-auto size-1.5 rounded-full"
-                title={`${counts.problems} problème${counts.problems > 1 ? "s" : ""}`}
+                title={t("nav.problems", { count: counts.problems })}
               />
             ) : null}
           </RailLink>
@@ -139,7 +151,7 @@ export function Rail({
           className="text-muted-foreground hover:text-foreground flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-[13px] hover:bg-rail-hover"
         >
           <LogOut className="size-4" aria-hidden />
-          Se déconnecter
+          {t("nav.logout")}
         </button>
       </form>
     </aside>
@@ -156,6 +168,7 @@ export function TopBar({
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const t = useT();
   return (
     <header className="bg-rail sticky top-0 z-30 flex h-12 items-center gap-1 border-b border-rail-border px-3 md:hidden">
       <Link href="/" aria-label="JobRadar" className="mr-1 px-1">
@@ -173,7 +186,7 @@ export function TopBar({
               active ? "bg-rail-active text-foreground font-medium" : "text-muted-foreground",
             )}
           >
-            {w.label}
+            {t(w.label)}
             {w.href === "/" && counts?.triage ? (
               <span className="text-muted-foreground text-xs tabular-nums">{counts.triage}</span>
             ) : null}
@@ -186,7 +199,7 @@ export function TopBar({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
           className="text-muted-foreground relative ml-auto flex size-8 items-center justify-center rounded-md"
-          aria-label="Machine et compte"
+          aria-label={t("nav.machineAndAccount")}
         >
           <Menu className="size-4" />
           {counts?.problems ? (
@@ -194,7 +207,7 @@ export function TopBar({
           ) : null}
         </PopoverTrigger>
         <PopoverContent className="w-52 p-1.5">
-          <p className="label-caps px-2 pt-1 pb-1">Machine</p>
+          <p className="label-caps px-2 pt-1 pb-1">{t("nav.machine")}</p>
           {MACHINE.map((m) => (
             <Link
               key={m.href}
@@ -203,7 +216,7 @@ export function TopBar({
               className="hover:bg-secondary flex h-9 items-center gap-2.5 rounded-md px-2 text-[13px]"
             >
               <m.icon className="text-muted-foreground size-4" />
-              {m.label}
+              {t(m.label)}
               {m.href === "/sources" && counts?.problems ? (
                 <span className="bg-destructive ml-auto size-1.5 rounded-full" />
               ) : null}
@@ -216,7 +229,7 @@ export function TopBar({
               className="text-muted-foreground hover:bg-secondary flex h-9 w-full items-center gap-2.5 rounded-md px-2 text-[13px]"
             >
               <LogOut className="size-4" />
-              Se déconnecter
+              {t("nav.logout")}
             </button>
           </form>
         </PopoverContent>

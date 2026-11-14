@@ -3,23 +3,25 @@
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useT } from "@/i18n/client";
 import { acceptInviteAction, type InviteState } from "../../login/actions";
 
 export function InviteForm({ token, reset }: { token: string; reset: boolean }) {
   const [state, action, pending] = useActionState<InviteState, FormData>(acceptInviteAction, {});
+  const t = useT();
   return (
     <form action={action} className="grid gap-3">
       <input type="hidden" name="token" value={token} />
       {reset ? null : (
         <>
           <label htmlFor="name" className="text-muted-foreground text-xs">
-            Prénom
+            {t("invite.firstName")}
           </label>
           <Input id="name" name="name" autoComplete="given-name" autoFocus className="h-9" />
         </>
       )}
       <label htmlFor="password" className="text-muted-foreground text-xs">
-        Mot de passe (8 caractères minimum)
+        {t("invite.password", { min: 8 })}
       </label>
       <Input
         id="password"
@@ -32,7 +34,7 @@ export function InviteForm({ token, reset }: { token: string; reset: boolean }) 
         className="h-9"
       />
       <label htmlFor="confirm" className="text-muted-foreground text-xs">
-        Confirmation
+        {t("invite.confirm")}
       </label>
       <Input
         id="confirm"
@@ -51,7 +53,7 @@ export function InviteForm({ token, reset }: { token: string; reset: boolean }) 
         </p>
       ) : null}
       <Button type="submit" disabled={pending} size="lg">
-        {pending ? "Un instant…" : reset ? "Enregistrer" : "Créer le compte"}
+        {pending ? t("invite.wait") : reset ? t("invite.save") : t("invite.create")}
       </Button>
     </form>
   );

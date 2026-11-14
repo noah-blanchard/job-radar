@@ -1,5 +1,6 @@
 "use client";
 
+import { useFormat } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 
 export interface SegmentedOption<T extends string> {
@@ -31,6 +32,7 @@ export function Segmented<T extends string>({
   className?: string;
   disabled?: boolean;
 }) {
+  const format = useFormat();
   return (
     <div
       role="group"
@@ -63,7 +65,7 @@ export function Segmented<T extends string>({
             {o.label}
             {o.count !== undefined ? (
               <span className={cn("tabular-nums", on ? "text-primary" : "text-muted-foreground")}>
-                {o.count.toLocaleString("fr-CA")}
+                {format.number(o.count)}
               </span>
             ) : null}
           </button>

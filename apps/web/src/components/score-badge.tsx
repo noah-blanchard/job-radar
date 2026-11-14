@@ -1,15 +1,16 @@
-import { STATUS_LABEL, type JobStatus } from "@/lib/filters";
+"use client";
+
+import { useT } from "@/i18n/client";
+import type { T } from "@/i18n/messages";
+import type { JobStatus } from "@/lib/filters";
 import { cn } from "@/lib/utils";
 
-export const PART_LABEL: Record<string, string> = {
-  location: "Lieu",
-  newGrad: "New grad",
-  domains: "Domaines",
-  language: "Langue",
-  priority: "Priorité entreprise",
-  freshness: "Fraîcheur",
-  salary: "Salaire",
-};
+const PARTS = ["location", "newGrad", "domains", "language", "priority", "freshness", "salary"];
+
+/** Name of a score part ("Location"); an unknown key shows as is. */
+export function partLabel(key: string, t: T): string {
+  return PARTS.includes(key) ? t(`job.part.${key as "location"}`) : key;
+}
 
 const RAMP = ["var(--ledger-1)", "var(--ledger-2)", "var(--ledger-3)", "var(--ledger-4)"];
 
@@ -27,6 +28,7 @@ export function Ledger({
   total: number | null;
   className?: string;
 }) {
+  const t = useT();
   const score = Math.max(0, Math.min(100, total ?? 0));
   const pos = parts.filter(([, p]) => p > 0);
   const posSum = pos.reduce((a, [, p]) => a + p, 0);
@@ -35,7 +37,7 @@ export function Ledger({
     parts.filter(([, p]) => p < 0).reduce((a, [, p]) => a - p, 0),
   );
   const title = parts.length
-    ? parts.map(([k, p]) => `${PART_LABEL[k] ?? k} ${p > 0 ? "+" : ""}${p}`).join(" · ")
+    ? parts.map(([k, p]) => `${partLabel(k, t)} ${p > 0 ? "+" : ""}${p}`).join(" · ")
     : undefined;
   return (
     <span
@@ -76,6 +78,7 @@ export function ScoreMark({
   dim?: boolean;
   className?: string;
 }) {
+  const t = useT();
   return (
     <span className={cn("inline-flex w-[72px] shrink-0 flex-col gap-[5px]", className)}>
       <span
@@ -84,9 +87,9 @@ export function ScoreMark({
           dim && "text-muted-foreground",
         )}
       >
-        <span className="sr-only">Score </span>
+        <span className="sr-only">{t("job.scoreSr")}</span>
         {score ?? "—"}
-        <span className="sr-only"> sur 100</span>
+        <span className="sr-only">{t("job.outOf100")}</span>
       </span>
       <Ledger parts={parts} total={score} />
     </span>
@@ -95,20 +98,21 @@ export function ScoreMark({
 
 /** New-grad verdict: NG yes, struck NG no, ? unknown. */
 export function NewGradMark({ value }: { value: boolean | null }) {
+  const t = useT();
   if (value === true)
     return (
-      <span className="text-success text-[11px] font-semibold" title="new grad">
+      <span className="text-success text-[11px] font-semibold" title={t("job.ngYes")}>
         NG
       </span>
     );
   if (value === false)
     return (
-      <span className="text-muted-foreground text-[11px] line-through" title="pas new grad">
+      <span className="text-muted-foreground text-[11px] line-through" title={t("job.ngNo")}>
         NG
       </span>
     );
   return (
-    <span className="text-muted-foreground text-[11px]" title="new grad : inconnu">
+    <span className="text-muted-foreground text-[11px]" title={t("job.ngUnknown")}>
       NG ?
     </span>
   );
@@ -125,6 +129,7 @@ const STATUS_COLOR: Record<JobStatus, string> = {
 
 /** Status label in its committed colour, with a matching dot. */
 export function StatusPill({ status, className }: { status: JobStatus; className?: string }) {
+  const t = useT();
   if (status === "new") return null;
   return (
     <span
@@ -135,7 +140,7 @@ export function StatusPill({ status, className }: { status: JobStatus; className
       )}
     >
       <span className="size-1.5 rounded-full bg-current" aria-hidden />
-      {STATUS_LABEL[status]}
+      {t(`status.${status}`)}
     </span>
   );
 }

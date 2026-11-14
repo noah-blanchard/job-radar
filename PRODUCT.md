@@ -38,7 +38,7 @@ Ce n'est pas un job board : c'est un radar personnel. Il interroge directement l
 - Sources : uniquement publiques et autorisées. Jamais de scraping HTML, de navigateur headless, ni de LinkedIn/Indeed/Glassdoor/Wellfound.
 - Classification new grad par règles ; `is_new_grad = null` pour les cas ambigus, raison affichée. LLM optionnel et désactivé par défaut : tout doit fonctionner sans.
 - Volume réel : de l'ordre de 100 000 offres en base ; l'interface doit rester rapide sur ce volume.
-- Langue : interface en français uniquement, sans i18n prévue. Le contenu des offres (souvent en anglais) s'affiche tel quel.
+- Langue : interface en français ou en anglais, au choix de chaque compte (Réglages → Langue ; par défaut la langue du navigateur, sinon le français). Le contenu des offres, les profils, le détail du score et les alertes ne sont pas traduits.
 - Phase 2 (hors scope, emplacement réservé) : bouton « Générer CV.tex » dans la zone « Actions » de `/jobs/[id]`.
 - Chine hors scope pour l'instant ; l'architecture des connecteurs doit permettre de l'ajouter.
 

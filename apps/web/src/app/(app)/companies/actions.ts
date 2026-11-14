@@ -3,6 +3,7 @@
 import { detectAts, registerCompany } from "@jobradar/core/discovery";
 import { and, companies, companyPrefs, eq, kvSet } from "@jobradar/db";
 import { revalidatePath } from "next/cache";
+import { getT } from "@/i18n/server";
 import { currentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 
@@ -18,14 +19,10 @@ export interface AddCompanyState {
 export async function addCompany(_prev: AddCompanyState, form: FormData): Promise<AddCompanyState> {
   const url = String(form.get("url") ?? "").trim();
   const name = String(form.get("name") ?? "").trim();
-  if (!url) return { error: "URL requise." };
+  const t = await getT();
+  if (!url) return { error: t("companies.urlRequired") };
   const d = detectAts(url);
-  if (!d) {
-    return {
-      error:
-        "ATS non reconnu dans cette URL. Colle l'URL du board (ex. jobs.lever.co/acme) ou lance `pnpm detect-ats <url>` pour sonder les API publiques.",
-    };
-  }
+  if (!d) return { error: t("companies.atsUnknown") };
   const companyName = name || d.atsKey.split(/[/:]/).pop()!;
   const r = await registerCompany(getDb(), {
     name: companyName,
@@ -35,9 +32,10 @@ export async function addCompany(_prev: AddCompanyState, form: FormData): Promis
     origin: "manual",
   });
   revalidatePath("/companies");
-  if (r.created) return { ok: `Ajoutée : ${companyName} (${d.ats} ${d.atsKey}).` };
-  if (r.updated) return { ok: `${companyName} utilise maintenant ${d.ats} ${d.atsKey}.` };
-  return { ok: `Déjà connue (${d.ats} ${d.atsKey}).` };
+  const params = { name: companyName, ats: d.ats, key: d.atsKey };
+  if (r.created) return { ok: t("companies.added", params) };
+  if (r.updated) return { ok: t("companies.updated", params) };
+  return { ok: t("companies.known", params) };
 }
 
 const PRIORITIES = ["low", "normal", "high"] as const;
@@ -45,7 +43,7 @@ type Priority = (typeof PRIORITIES)[number];
 
 /**
  * Edits the signed-in user's priority for a company (`company_prefs`: "normal" removes it). A
- * rescore request makes the worker update their "entreprise prioritaire" bonus within a minute.
+ * rescore request makes the worker update their priority bonus within a minute.
  * The sweep order (`companies.priority`) is not touched: a "high" from any user already puts
  * the company first in the ATS sweep.
  */
@@ -53,8 +51,9 @@ export async function setCompanyPriority(
   companyId: number,
   priority: Priority,
 ): Promise<{ ok: boolean; error?: string }> {
+  const t = await getT();
   if (!Number.isSafeInteger(companyId) || companyId <= 0 || !PRIORITIES.includes(priority))
-    return { ok: false, error: "requête invalide" };
+    return { ok: false, error: t("common.invalidRequest") };
   const db = getDb();
   const user = await currentUser();
   const [company] = await db
@@ -62,7 +61,7 @@ export async function setCompanyPriority(
     .from(companies)
     .where(eq(companies.id, companyId))
     .limit(1);
-  if (!company) return { ok: false, error: "entreprise introuvable" };
+  if (!company) return { ok: false, error: t("companies.notFound") };
   if (priority === "normal")
     await db
       .delete(companyPrefs)

@@ -7,11 +7,12 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FollowUpControl } from "@/components/job/follow-up";
 import { ScoreMark } from "@/components/score-badge";
 import { toast } from "@/components/ui/toast";
-import { PIPELINE_STATUSES, STATUS_LABEL, STATUSES, type JobStatus } from "@/lib/filters";
+import { useFormat, useT } from "@/i18n/client";
+import { PIPELINE_STATUSES, STATUSES, type JobStatus } from "@/lib/filters";
 import { isDue } from "@/lib/follow-up";
 import { popUndo, pushUndo, removeUndo, type UndoEntry } from "@/lib/undo";
 import { useSoftRefresh } from "@/lib/use-soft-refresh";
-import { cn, formatAge, formatDueDate, isTyping, placeLabel } from "@/lib/utils";
+import { cn, isTyping } from "@/lib/utils";
 import { setJobStatus, setNextAction } from "../jobs/actions";
 
 export interface PipelineCard {
@@ -69,6 +70,8 @@ const Card = memo(function Card({
   onFollow: (id: number, iso: string | null) => void;
 }) {
   const due = isDue(c.next_action_at);
+  const t = useT();
+  const format = useFormat();
   return (
     <article
       data-card={c.id}
@@ -98,7 +101,7 @@ const Card = memo(function Card({
             {c.title}
           </Link>
           <p className="text-muted-foreground mt-0.5 truncate text-xs">
-            {c.company_name} · {placeLabel(c)}
+            {c.company_name} · {format.place(c)}
           </p>
         </div>
         <ScoreMark score={c.score} parts={c.ledger} />
@@ -115,15 +118,15 @@ const Card = memo(function Card({
           />
         ) : null}
         <span className="text-muted-foreground ml-auto flex items-center gap-2 text-xs">
-          {c.closed ? <span className="text-destructive">fermée</span> : null}
-          <span title={`Dernier changement il y a ${formatAge(c.updated_at)}`}>
-            {formatAge(c.updated_at)}
+          {c.closed ? <span className="text-destructive">{t("pipeline.closed")}</span> : null}
+          <span title={t("pipeline.lastChange", { age: format.age(c.updated_at) })}>
+            {format.age(c.updated_at)}
           </span>
           <a
             href={c.apply_url ?? c.url}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Ouvrir l'offre d'origine"
+            aria-label={t("pipeline.openOrigin")}
             className="hover:text-foreground"
           >
             <ArrowUpRight className="size-3.5" />
@@ -133,17 +136,17 @@ const Card = memo(function Card({
         <select
           value={c.status}
           onChange={(e) => onMove(c.id, e.target.value as JobStatus)}
-          aria-label={`Statut de ${c.title}`}
+          aria-label={t("pipeline.statusOf", { title: c.title })}
           className="border-input bg-background h-7 rounded-md border px-1 text-xs md:hidden"
         >
           {STATUSES.map((s) => (
             <option key={s} value={s}>
-              {STATUS_LABEL[s]}
+              {t(`status.${s}`)}
             </option>
           ))}
         </select>
       </div>
-      {due ? <span className="sr-only">Relance due</span> : null}
+      {due ? <span className="sr-only">{t("pipeline.followUpDue")}</span> : null}
     </article>
   );
 });
@@ -152,6 +155,8 @@ const Card = memo(function Card({
 export function Kanban({ cards: initial }: { cards: PipelineCard[] }) {
   const router = useRouter();
   const softRefresh = useSoftRefresh();
+  const t = useT();
+  const format = useFormat();
   const [cards, setCards] = useState(initial);
   const [dragging, setDragging] = useState<number | null>(null);
   const [over, setOver] = useState<Col | null>(null);
@@ -187,13 +192,13 @@ export function Kanban({ cards: initial }: { cards: PipelineCard[] }) {
         const undo = { label: card.title, run: () => moveRef.current?.(id, before, false) };
         pushUndo(undo);
         toast({
-          message: `${STATUS_LABEL[status]} · ${card.title}`,
-          action: { label: "Annuler", hint: "z", run: () => (removeUndo(undo), undo.run()) },
+          message: `${t(`status.${status}`)} · ${card.title}`,
+          action: { label: t("common.undo"), hint: "z", run: () => (removeUndo(undo), undo.run()) },
         });
       }
       const rollback = () => {
         setCards((cs) => cs.map((c) => (c.id === id ? { ...c, status: before } : c)));
-        toast({ tone: "error", message: "Statut non enregistré. Réessaie." });
+        toast({ tone: "error", message: t("job.statusFailed") });
       };
       void setJobStatus(id, status).then((r) => {
         if (!r.ok) return rollback();
@@ -203,7 +208,7 @@ export function Kanban({ cards: initial }: { cards: PipelineCard[] }) {
         );
       }, rollback);
     },
-    [cards, softRefresh],
+    [cards, softRefresh, t],
   );
   useEffect(() => {
     moveRef.current = move;
@@ -227,18 +232,18 @@ export function Kanban({ cards: initial }: { cards: PipelineCard[] }) {
       pushUndo(undo);
       toast({
         message: iso
-          ? `Relance le ${formatDueDate(iso)} · ${card.title}`
-          : `Relance retirée · ${card.title}`,
-        action: { label: "Annuler", hint: "z", run: () => (removeUndo(undo), undo.run()) },
+          ? t("inbox.followUpOn", { date: format.dueDate(iso), title: card.title })
+          : t("inbox.followUpRemoved", { title: card.title }),
+        action: { label: t("common.undo"), hint: "z", run: () => (removeUndo(undo), undo.run()) },
       });
       const rollback = () => {
         put(prev);
         removeUndo(undo);
-        toast({ tone: "error", message: "Date de relance non enregistrée. Réessaie." });
+        toast({ tone: "error", message: t("inbox.followUpFailed") });
       };
       void setNextAction(id, iso).then((r) => (r.ok ? softRefresh() : rollback()), rollback);
     },
-    [cards, softRefresh],
+    [cards, softRefresh, t, format],
   );
 
   // Keyboard: j/k within a column, h/l across columns, 1–4 to move, Enter to open.
@@ -279,13 +284,13 @@ export function Kanban({ cards: initial }: { cards: PipelineCard[] }) {
       } else if (e.key === "z") {
         const u = popUndo();
         if (u) u.run();
-        else toast({ message: "Rien à annuler." });
+        else toast({ message: t("inbox.nothingToUndo") });
       } else return;
       e.preventDefault();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [cards, columns, selected, move, router, showRejected]);
+  }, [cards, columns, selected, move, router, showRejected, t]);
 
   useEffect(() => {
     document.querySelector(`[data-card="${selected}"]`)?.scrollIntoView({ block: "nearest" });
@@ -300,7 +305,7 @@ export function Kanban({ cards: initial }: { cards: PipelineCard[] }) {
         return (
           <section
             key={col}
-            aria-label={STATUS_LABEL[col]}
+            aria-label={t(`pipeline.column.${col}`)}
             onDragOver={(e) => {
               e.preventDefault();
               setOver(col);
@@ -321,11 +326,11 @@ export function Kanban({ cards: initial }: { cards: PipelineCard[] }) {
           >
             <h2 className="flex items-center gap-2 pb-1 text-[13px] font-medium">
               <span className={cn("h-3 w-[3px] rounded-full", COLUMN_RULE[col])} aria-hidden />
-              {STATUS_LABEL[col].replace(/^./, (c) => c.toUpperCase())}
+              {t(`pipeline.column.${col}`)}
               <span className="text-muted-foreground tabular-nums">{list.length}</span>
               {dueCount ? (
                 <span className="text-warning text-xs">
-                  {dueCount} due{dueCount > 1 ? "s" : ""}
+                  {t("pipeline.due", { count: dueCount })}
                 </span>
               ) : null}
               <kbd className="text-muted-foreground ml-auto hidden text-[11px] md:inline">
@@ -339,18 +344,19 @@ export function Kanban({ cards: initial }: { cards: PipelineCard[] }) {
                   onClick={() => setShowRejected(true)}
                   className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-left text-xs"
                 >
-                  <ChevronDown className="size-3.5" /> Afficher les {list.length} refusées
+                  <ChevronDown className="size-3.5" />{" "}
+                  {t("pipeline.showRejected", { count: list.length })}
                 </button>
               ) : (
-                <p className="text-muted-foreground text-xs">Aucune.</p>
+                <p className="text-muted-foreground text-xs">{t("pipeline.none")}</p>
               )
             ) : list.length === 0 ? (
               <p className="text-muted-foreground border-border-soft rounded-md border border-dashed px-3 py-6 text-center text-xs">
                 {col === "saved"
-                  ? "Sauvegarde des offres depuis Trier (s)."
+                  ? t("pipeline.emptySaved")
                   : col === "applied"
-                    ? "Les offres marquées « postulé » (a) arrivent ici."
-                    : "Glisse une carte ici."}
+                    ? t("pipeline.emptyApplied")
+                    : t("pipeline.emptyOther")}
               </p>
             ) : (
               list.map((c) => (

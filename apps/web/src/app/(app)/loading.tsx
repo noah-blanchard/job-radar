@@ -1,11 +1,13 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { getT } from "@/i18n/server";
 
-/** Home (Trier) while the first data arrives: strip, filter bar, ledger rows, pane. */
-export default function Loading() {
+/** Home (triage) while the first data arrives: strip, filter bar, ledger rows, pane. */
+export default async function Loading() {
+  const t = await getT();
   return (
-    <div className="flex min-h-0 flex-1 flex-col" aria-busy aria-label="Chargement">
+    <div className="flex min-h-0 flex-1 flex-col" aria-busy aria-label={t("common.loading")}>
       <div className="flex items-center gap-7 border-b px-4 pt-4 pb-3 md:px-6">
-        <h1 className="text-[15px] font-semibold">Aujourd&apos;hui</h1>
+        <h1 className="text-[15px] font-semibold">{t("today.title")}</h1>
         {[0, 1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-5 w-28" />
         ))}

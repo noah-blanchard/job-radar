@@ -1,6 +1,7 @@
 "use server";
 
 import { jobStatus, sql } from "@jobradar/db";
+import { getT } from "@/i18n/server";
 import { currentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { STATUSES, type JobStatus } from "@/lib/filters";
@@ -25,7 +26,8 @@ export interface StatusResult {
  */
 export async function setJobStatus(jobId: number, status: JobStatus): Promise<StatusResult> {
   const id = validId(jobId);
-  if (id === null || !STATUSES.includes(status)) return { ok: false, error: "requête invalide" };
+  if (id === null || !STATUSES.includes(status))
+    return { ok: false, error: (await getT())("common.invalidRequest") };
   const user = await currentUser();
   const rule = followUpRule(status);
   const fresh = typeof rule === "number" ? sql`now() + make_interval(days => ${rule})` : sql`null`;
@@ -58,7 +60,7 @@ export async function setNextAction(jobId: number, at: string | null): Promise<S
   const id = validId(jobId);
   const date = at === null ? null : new Date(at);
   if (id === null || (date && Number.isNaN(date.getTime())))
-    return { ok: false, error: "requête invalide" };
+    return { ok: false, error: (await getT())("common.invalidRequest") };
   const user = await currentUser();
   await getDb()
     .insert(jobStatus)
@@ -76,7 +78,7 @@ export async function saveNotes(
   notes: string,
 ): Promise<{ ok: boolean; error?: string }> {
   const id = validId(jobId);
-  if (id === null) return { ok: false, error: "requête invalide" };
+  if (id === null) return { ok: false, error: (await getT())("common.invalidRequest") };
   const text = String(notes ?? "").slice(0, 20_000);
   const user = await currentUser();
   await getDb()

@@ -5,9 +5,11 @@ import { useActionState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
+import { useT } from "@/i18n/client";
 import { changePassword, inviteUser, removeUser, type FormState } from "./actions";
 
 function Message({ state }: { state: FormState }) {
+  const t = useT();
   if (state.error)
     return (
       <p role="alert" className="text-destructive text-[13px]">
@@ -30,11 +32,11 @@ function Message({ state }: { state: FormState }) {
             onClick={() => {
               void navigator.clipboard
                 ?.writeText(state.link!)
-                .then(() => toast({ message: "Lien copié" }));
+                .then(() => toast({ message: t("settings.accounts.linkCopied") }));
             }}
           >
             <Copy className="size-3.5" />
-            Copier
+            {t("common.copy")}
           </Button>
         </div>
       ) : null}
@@ -45,22 +47,23 @@ function Message({ state }: { state: FormState }) {
 /** Admin: invitation (new e-mail) or password-reset link (existing e-mail). */
 export function InviteForm() {
   const [state, action, pending] = useActionState<FormState, FormData>(inviteUser, {});
+  const t = useT();
   return (
     <form action={action} className="mt-4 grid gap-2">
       <label htmlFor="invite-email" className="text-muted-foreground text-xs">
-        Inviter quelqu&apos;un (ou réinitialiser le mot de passe d&apos;un compte existant)
+        {t("settings.accounts.inviteLabel")}
       </label>
       <div className="flex gap-2">
         <Input
           id="invite-email"
           name="email"
           type="email"
-          placeholder="prenom@exemple.com"
+          placeholder={t("settings.accounts.emailPlaceholder")}
           required
           className="h-8 max-w-72"
         />
         <Button type="submit" size="default" variant="secondary" disabled={pending}>
-          {pending ? "…" : "Créer le lien"}
+          {pending ? "…" : t("settings.accounts.createLink")}
         </Button>
       </div>
       <Message state={state} />
@@ -70,20 +73,23 @@ export function InviteForm() {
 
 export function DeleteUserButton({ id, email }: { id: number; email: string }) {
   const [pending, start] = useTransition();
+  const t = useT();
   return (
     <Button
       type="button"
       variant="ghost"
       size="icon-sm"
       disabled={pending}
-      aria-label={`Supprimer ${email}`}
-      title="Supprimer le compte (ses scores, statuts et notes)"
+      aria-label={t("settings.accounts.deleteLabel", { email })}
+      title={t("settings.accounts.deleteTitle")}
       onClick={() => {
-        if (!window.confirm(`Supprimer le compte ${email} et toutes ses données ?`)) return;
+        if (!window.confirm(t("settings.accounts.deleteConfirm", { email }))) return;
         start(async () => {
           const r = await removeUser(id);
           toast(
-            r.ok ? { message: "Compte supprimé" } : { message: r.error ?? "échec", tone: "error" },
+            r.ok
+              ? { message: t("settings.accounts.deleted") }
+              : { message: r.error ?? t("common.failed"), tone: "error" },
           );
         });
       }}
@@ -95,14 +101,15 @@ export function DeleteUserButton({ id, email }: { id: number; email: string }) {
 
 export function PasswordForm() {
   const [state, action, pending] = useActionState<FormState, FormData>(changePassword, {});
+  const t = useT();
   return (
     <form action={action} className="grid max-w-72 gap-2">
       <Input
         name="current"
         type="password"
         autoComplete="current-password"
-        placeholder="Mot de passe actuel"
-        aria-label="Mot de passe actuel"
+        placeholder={t("settings.password.current")}
+        aria-label={t("settings.password.current")}
         required
         className="h-8"
       />
@@ -110,8 +117,8 @@ export function PasswordForm() {
         name="password"
         type="password"
         autoComplete="new-password"
-        placeholder="Nouveau (8 caractères min.)"
-        aria-label="Nouveau mot de passe"
+        placeholder={t("settings.password.newPlaceholder", { min: 8 })}
+        aria-label={t("settings.password.newLabel")}
         minLength={8}
         required
         className="h-8"
@@ -120,14 +127,14 @@ export function PasswordForm() {
         name="confirm"
         type="password"
         autoComplete="new-password"
-        placeholder="Confirmation"
-        aria-label="Confirmation"
+        placeholder={t("settings.password.confirm")}
+        aria-label={t("settings.password.confirm")}
         minLength={8}
         required
         className="h-8"
       />
       <Button type="submit" variant="secondary" size="sm" disabled={pending} className="w-fit">
-        {pending ? "…" : "Changer le mot de passe"}
+        {pending ? "…" : t("settings.password.submit")}
       </Button>
       <Message state={state} />
     </form>
