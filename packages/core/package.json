@@ -9,7 +9,8 @@
     "./logger": "./src/logger.ts",
     "./discovery": "./src/discovery/index.ts",
     "./score": "./src/score/index.ts",
-    "./config": "./src/config.ts"
+    "./config": "./src/config.ts",
+    "./alerts/keys": "./src/alerts/keys.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
@@ -18,6 +19,7 @@
     "@anthropic-ai/sdk": "1.3.0",
     "@jobradar/db": "workspace:*",
     "fast-xml-parser": "5.11.2",
+    "nodemailer": "10.3.1",
     "p-limit": "^7.3.3",
     "pino": "^10.4.0",
     "undici": "^8.12.4",
