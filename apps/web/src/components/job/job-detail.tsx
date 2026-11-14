@@ -2,7 +2,6 @@
 
 import type { ScoreBreakdown } from "@jobradar/core/score";
 import { ArrowUpRight } from "lucide-react";
-import Link from "next/link";
 import { FollowUpControl } from "@/components/job/follow-up";
 import { NotesField } from "@/components/job/notes-field";
 import { SafeNodes } from "@/components/safe-nodes";
@@ -198,15 +197,6 @@ export function JobDetailView({
           open={followOpen}
           onOpenChange={onFollowOpen}
         />
-        {variant === "pane" ? (
-          <Link
-            href={`/jobs/${job.id}`}
-            className={buttonVariants({ variant: "ghost", className: "ml-auto" })}
-            title="Ouvrir la fiche (↵)"
-          >
-            Fiche
-          </Link>
-        ) : null}
         {/* Phase 2: the "Générer CV.tex" action joins this row. */}
       </div>
       <Segmented
@@ -224,7 +214,7 @@ export function JobDetailView({
       <h1
         className={cn(
           "font-semibold tracking-[-0.015em] text-balance",
-          variant === "page" ? "text-[22px] leading-tight" : "text-[19px] leading-snug",
+          variant === "page" ? "text-[20px] leading-tight" : "text-[19px] leading-snug",
         )}
       >
         {job.title}

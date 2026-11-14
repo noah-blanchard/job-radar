@@ -95,7 +95,7 @@ export function Rail({
 }) {
   const pathname = usePathname();
   return (
-    <aside className="bg-rail sticky top-0 hidden h-dvh w-[208px] shrink-0 flex-col border-r border-[#1e3029] px-2.5 py-4 md:flex">
+    <aside className="bg-rail hidden h-full w-[208px] shrink-0 flex-col border-r border-[#1e3029] px-2.5 py-4 md:flex">
       <Link
         href="/"
         className="mb-5 flex items-center gap-2 px-2.5 text-sm font-semibold tracking-[-0.01em]"

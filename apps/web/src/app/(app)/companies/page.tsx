@@ -1,7 +1,7 @@
 import { sql } from "@jobradar/db";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PageHeader } from "@/components/placeholder";
+import { PageFrame, PageHeader, PageScroll } from "@/components/placeholder";
 import {
   Table,
   TableBody,
@@ -105,12 +105,12 @@ export default async function CompaniesPage({
   const discovered = summary.find((s) => s.origin === "discovered")?.n ?? 0;
 
   return (
-    <div>
+    <PageFrame>
       <PageHeader
         title="Entreprises"
         description={`${total.toLocaleString("fr-CA")} suivies · ${withAts.toLocaleString("fr-CA")} avec ATS · ${discovered.toLocaleString("fr-CA")} découvertes automatiquement`}
       />
-      <div className="flex flex-col gap-3 border-b px-4 py-3 md:px-6 xl:flex-row xl:items-center xl:justify-between">
+      <div className="flex shrink-0 flex-col gap-3 border-b px-4 py-3 md:px-6 xl:flex-row xl:items-center xl:justify-between">
         <CompanyFilters
           filters={filters}
           atsList={atsList}
@@ -120,7 +120,7 @@ export default async function CompaniesPage({
         <AddCompanyForm />
       </div>
 
-      <div className="px-4 md:px-6">
+      <PageScroll className="px-4 md:px-6">
         {rows.length === 0 ? (
           <p className="text-muted-foreground py-10 text-[13px]">
             Aucune entreprise pour ces filtres.
@@ -197,7 +197,7 @@ export default async function CompaniesPage({
             {LIMIT} premières lignes affichées : affine avec les filtres.
           </p>
         ) : null}
-      </div>
-    </div>
+      </PageScroll>
+    </PageFrame>
   );
 }

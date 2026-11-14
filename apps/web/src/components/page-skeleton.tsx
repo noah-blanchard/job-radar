@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 /** Route-level loading shapes: same header and row geometry as the pages they stand in for. */
 export function HeaderSkeleton({ title }: { title: string }) {
   return (
-    <header className="flex items-baseline gap-6 border-b px-4 pt-4 pb-3 md:px-6">
+    <header className="flex shrink-0 items-baseline gap-6 border-b px-4 pt-4 pb-3 md:px-6">
       <h1 className="text-[15px] font-semibold">{title}</h1>
       <Skeleton className="h-3.5 w-64" />
     </header>
@@ -30,7 +30,7 @@ export function RowsSkeleton({ rows = 10, height = 48 }: { rows?: number; height
 
 export function PageSkeleton({ title }: { title: string }) {
   return (
-    <div>
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <HeaderSkeleton title={title} />
       <RowsSkeleton />
     </div>

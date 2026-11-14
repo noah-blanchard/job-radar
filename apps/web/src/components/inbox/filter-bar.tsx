@@ -118,7 +118,7 @@ export function FilterBar({
     });
 
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b px-4 py-2.5 md:px-6">
+    <div className="flex shrink-0 flex-wrap items-center gap-2 border-b px-4 py-2.5 md:px-6">
       <Segmented
         label="Vue"
         value={view}

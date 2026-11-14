@@ -23,7 +23,7 @@ export default async function InboxPage({
     loadToday(),
   ]);
   return (
-    <div className="flex min-h-0 flex-1 flex-col lg:h-dvh">
+    <div className="flex min-h-0 flex-1 flex-col">
       <TodayStrip
         today={today}
         triageHref={inboxHref({ ...DEFAULT_FILTERS, minScore: today.minScore })}

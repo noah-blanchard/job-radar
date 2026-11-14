@@ -2,7 +2,7 @@ import { loadSourcesConfig, type SourceConfig } from "@jobradar/core/config";
 import { queryRows, sql } from "@jobradar/db";
 import { ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
-import { PageHeader } from "@/components/placeholder";
+import { PageFrame, PageHeader, PageScroll } from "@/components/placeholder";
 import { getDb } from "@/lib/db";
 import { cn, formatAge, formatDateTime, formatDuration } from "@/lib/utils";
 import { RunButton } from "./run-button";
@@ -116,7 +116,7 @@ export default async function SourcesPage() {
   const problems = rows.filter((r) => r.problem).length;
 
   return (
-    <div>
+    <PageFrame>
       <PageHeader
         title="Sources"
         description={
@@ -125,8 +125,13 @@ export default async function SourcesPage() {
             : "Tout tourne. Heure de Toronto, quotas du jour."
         }
       />
-      <div className="px-4 md:px-6">
-        <div className={cn(GRID, "label-caps hidden h-9 border-b md:grid")}>
+      <PageScroll className="px-4 md:px-6">
+        <div
+          className={cn(
+            GRID,
+            "label-caps bg-background sticky top-0 z-10 hidden h-9 border-b md:grid",
+          )}
+        >
           <span>Source</span>
           <span>Statut</span>
           <span>Dernier run</span>
@@ -264,7 +269,7 @@ export default async function SourcesPage() {
             : "désactivé (LLM_ENABLED=false), classification par règles uniquement."}{" "}
           « Lancer » enregistre une demande que le worker exécute dans la minute.
         </p>
-      </div>
-    </div>
+      </PageScroll>
+    </PageFrame>
   );
 }

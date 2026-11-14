@@ -1,7 +1,7 @@
 import { queryRows, sql } from "@jobradar/db";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PageHeader } from "@/components/placeholder";
+import { PageFrame, PageHeader, PageScroll } from "@/components/placeholder";
 import { getDb } from "@/lib/db";
 import { cn } from "@/lib/utils";
 
@@ -217,12 +217,12 @@ export default async function StatsPage() {
   const unknownRecent = share.recent_total - share.recent_yes - share.recent_no;
 
   return (
-    <div>
+    <PageFrame>
       <PageHeader
         title="Stats"
         description="Nouvelles offres (première vue), 30 jours calendaires de Toronto."
       />
-      <div className="flex flex-col gap-9 px-4 py-5 md:px-6">
+      <PageScroll className="flex flex-col gap-9 px-4 py-5 md:px-6">
         <section>
           <dl className="mb-5 flex flex-wrap gap-x-8 gap-y-2 text-[13px]">
             <Fact n={sum30.toLocaleString("fr-CA")} label="nouvelles en 30 j" />
@@ -335,7 +335,7 @@ export default async function StatsPage() {
             </table>
           </div>
         </section>
-      </div>
-    </div>
+      </PageScroll>
+    </PageFrame>
   );
 }

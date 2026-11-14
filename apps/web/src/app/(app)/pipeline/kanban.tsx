@@ -292,7 +292,7 @@ export function Kanban({ cards: initial }: { cards: PipelineCard[] }) {
   }, [selected]);
 
   return (
-    <div className="grid flex-1 gap-px bg-[var(--border-soft)] md:grid-cols-2 xl:grid-cols-[repeat(3,minmax(0,1fr))_auto]">
+    <div className="grid flex-1 gap-px bg-[var(--border-soft)] md:min-h-0 md:auto-rows-[minmax(0,1fr)] md:grid-cols-2 xl:grid-cols-[repeat(3,minmax(0,1fr))_auto]">
       {PIPELINE_STATUSES.map((col, ci) => {
         const list = columns[col];
         const dueCount = list.filter((c) => isDue(c.next_action_at)).length;
@@ -314,7 +314,7 @@ export function Kanban({ cards: initial }: { cards: PipelineCard[] }) {
               if (id) move(id, col);
             }}
             className={cn(
-              "bg-background flex min-h-40 flex-col gap-2 p-3 transition-colors duration-[var(--dur-fast)] md:p-4",
+              "bg-background flex min-h-40 flex-col gap-2 p-3 transition-colors duration-[var(--dur-fast)] md:min-h-0 md:overflow-y-auto md:p-4",
               over === col && "bg-[#131e27]",
               collapsed ? "xl:w-56" : col === "rejected" && "xl:w-80",
             )}

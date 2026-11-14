@@ -38,7 +38,7 @@ export default async function PipelinePage() {
   }));
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b px-4 pt-4 pb-3 md:px-6">
+      <header className="flex shrink-0 flex-wrap items-baseline gap-x-6 gap-y-1 border-b px-4 pt-4 pb-3 md:px-6">
         <h1 className="text-[15px] font-semibold">Pipeline</h1>
         <p className="text-muted-foreground text-[13px]">
           Glisse une carte vers une colonne, ou <kbd className="text-foreground">1</kbd>–

@@ -1,13 +1,15 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { setJobStatus, setNextAction } from "@/app/(app)/jobs/actions";
 import { FilterBar, type FilterOptions } from "@/components/inbox/filter-bar";
 import { JobRow, type InboxItem } from "@/components/inbox/job-row";
+import { PaneDivider } from "@/components/inbox/pane-divider";
 import { JobDetailView } from "@/components/job/job-detail";
+import { buttonVariants } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { Segmented } from "@/components/ui/segmented";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -188,6 +190,7 @@ export function Inbox({
 
   // Keep the selected row in view.
   const listRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
   const announce = selected
     ? `${selected.title}, ${selected.company_name}, score ${selected.score ?? "non calculé"}`
     : "";
@@ -422,36 +425,11 @@ export function Inbox({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <FilterBar filters={filters} options={options} counts={counts} navigate={navigate} />
-      <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(420px,520px)] xl:grid-cols-[minmax(0,1fr)_560px]">
-        <section
-          aria-label="Offres"
-          aria-busy={pending}
-          className="flex min-h-0 flex-col lg:border-r"
-        >
-          <div className="text-muted-foreground flex h-9 shrink-0 items-center gap-3 border-b px-4 text-xs md:px-6">
-            <span className="tabular-nums">
-              {shownTotal.toLocaleString("fr-CA")} offre{shownTotal > 1 ? "s" : ""}
-              {total > PAGE_SIZE ? ` · ${first}–${first + rows.length - 1}` : ""}
-            </span>
-            <span
-              className={cn(
-                "bg-primary h-px w-10 origin-left transition-opacity",
-                pending ? "animate-pulse opacity-100" : "opacity-0",
-              )}
-              aria-hidden
-            />
-            <Segmented
-              label="Tri"
-              size="sm"
-              className="ml-auto h-6"
-              value={filters.sort}
-              options={[
-                { value: "score", label: "Score" },
-                { value: "recent", label: "Récentes" },
-              ]}
-              onChange={(sort) => navigate({ ...filters, sort, page: 1 })}
-            />
-          </div>
+      <div
+        ref={gridRef}
+        className="grid min-h-0 flex-1 md:grid-rows-[minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_1px_var(--pane-w,520px)]"
+      >
+        <section aria-label="Offres" aria-busy={pending} className="flex min-h-0 flex-col">
           <p className="sr-only" aria-live="polite">
             {announce}
           </p>
@@ -480,41 +458,22 @@ export function Inbox({
                 ))}
               </ul>
             )}
-            {pageCount > 1 && visible.length > 0 ? (
-              <nav
-                className="text-muted-foreground flex h-12 items-center justify-between px-4 text-xs md:px-6"
-                aria-label="Pagination"
-              >
-                {filters.page > 1 ? (
-                  <Link
-                    href={inboxHref({ ...filters, page: filters.page - 1 })}
-                    scroll={false}
-                    className="hover:text-foreground flex items-center gap-1"
-                  >
-                    <ChevronLeft className="size-4" /> Précédentes
-                  </Link>
-                ) : (
-                  <span />
-                )}
-                <span className="tabular-nums">
-                  page {filters.page} / {pageCount}
-                </span>
-                {filters.page < pageCount ? (
-                  <Link
-                    href={inboxHref({ ...filters, page: filters.page + 1 })}
-                    scroll={false}
-                    className="hover:text-foreground flex items-center gap-1"
-                  >
-                    Suivantes <ChevronRight className="size-4" />
-                  </Link>
-                ) : (
-                  <span />
-                )}
-              </nav>
-            ) : null}
           </div>
+          <ListFooter
+            shown={shownTotal}
+            first={first}
+            last={first + rows.length - 1}
+            total={total}
+            page={filters.page}
+            pageCount={pageCount}
+            pending={pending}
+            sort={filters.sort}
+            onSort={(sort) => navigate({ ...filters, sort, page: 1 })}
+            pageHref={(page) => inboxHref({ ...filters, page })}
+          />
         </section>
 
+        <PaneDivider grid={gridRef} />
         <aside
           ref={paneScroll}
           aria-label="Lecture"
@@ -523,37 +482,42 @@ export function Inbox({
           {!selected ? (
             <PaneHint />
           ) : paneJob ? (
-            <div key={paneJob.id} className="animate-in fade-in-0 px-7 py-6 duration-150">
-              <JobDetailView
-                job={paneJob}
-                variant="pane"
-                status={statusOf(selected)}
-                nextActionAt={selected.id in follow ? follow[selected.id]! : paneJob.next_action_at}
-                onStatus={(s) => triage(selected.id, s === "new" ? statusOf(selected) : s)}
-                onNextAction={(iso) =>
-                  changeFollow(
-                    selected,
-                    iso,
-                    selected.id in follow ? follow[selected.id]! : paneJob.next_action_at,
-                  )
-                }
-                onNotesSaved={(notes) => detailCache.set(paneJob.id, { ...paneJob, notes })}
-                notesRef={notesRef}
-                followOpen={followOpen}
-                onFollowOpen={setFollowOpen}
-                onApplyClick={() =>
-                  statusOf(selected) !== "applied" &&
-                  toast({
-                    message: "Offre ouverte dans un onglet.",
-                    action: {
-                      label: "Marquer postulé",
-                      hint: "a",
-                      run: () => triage(selected.id, "applied"),
-                    },
-                  })
-                }
-              />
-            </div>
+            <>
+              <PaneBar id={paneJob.id} />
+              <div key={paneJob.id} className="animate-in fade-in-0 px-7 pt-5 pb-8 duration-150">
+                <JobDetailView
+                  job={paneJob}
+                  variant="pane"
+                  status={statusOf(selected)}
+                  nextActionAt={
+                    selected.id in follow ? follow[selected.id]! : paneJob.next_action_at
+                  }
+                  onStatus={(s) => triage(selected.id, s === "new" ? statusOf(selected) : s)}
+                  onNextAction={(iso) =>
+                    changeFollow(
+                      selected,
+                      iso,
+                      selected.id in follow ? follow[selected.id]! : paneJob.next_action_at,
+                    )
+                  }
+                  onNotesSaved={(notes) => detailCache.set(paneJob.id, { ...paneJob, notes })}
+                  notesRef={notesRef}
+                  followOpen={followOpen}
+                  onFollowOpen={setFollowOpen}
+                  onApplyClick={() =>
+                    statusOf(selected) !== "applied" &&
+                    toast({
+                      message: "Offre ouverte dans un onglet.",
+                      action: {
+                        label: "Marquer postulé",
+                        hint: "a",
+                        run: () => triage(selected.id, "applied"),
+                      },
+                    })
+                  }
+                />
+              </div>
+            </>
           ) : paneError ? (
             <p className="text-muted-foreground px-7 py-6 text-[13px]">
               Impossible de charger cette offre.{" "}
@@ -562,10 +526,122 @@ export function Inbox({
               </Link>
             </p>
           ) : (
-            <PaneSkeleton title={selected.title} company={selected.company_name} />
+            <>
+              <PaneBar id={selected.id} />
+              <PaneSkeleton title={selected.title} company={selected.company_name} />
+            </>
           )}
         </aside>
       </div>
+    </div>
+  );
+}
+
+/** Pinned on top of the reading pane: the way to the full page stays in reach while reading. */
+function PaneBar({ id }: { id: number }) {
+  return (
+    <div className="bg-surface/95 sticky top-0 z-10 flex h-11 items-center gap-3 border-b px-7 backdrop-blur-[2px]">
+      <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
+        <Kbd>j</Kbd>
+        <Kbd>k</Kbd> offre suivante / précédente
+      </span>
+      <Link
+        href={`/jobs/${id}`}
+        className={buttonVariants({ variant: "outline", size: "sm", className: "ml-auto" })}
+        title="Ouvrir la fiche en grand (↵)"
+      >
+        <Maximize2 className="size-3.5" aria-hidden />
+        Ouvrir en grand
+        <Kbd className="ml-0.5">↵</Kbd>
+      </Link>
+    </div>
+  );
+}
+
+/** Fixed under the list: count, sort and pagination always in reach. */
+function ListFooter({
+  shown,
+  first,
+  last,
+  total,
+  page,
+  pageCount,
+  pending,
+  sort,
+  onSort,
+  pageHref,
+}: {
+  shown: number;
+  first: number;
+  last: number;
+  total: number;
+  page: number;
+  pageCount: number;
+  pending: boolean;
+  sort: InboxFilters["sort"];
+  onSort: (s: InboxFilters["sort"]) => void;
+  pageHref: (p: number) => string;
+}) {
+  const pager =
+    "hover:bg-secondary hover:text-foreground flex h-7 items-center gap-1 rounded-md px-2";
+  return (
+    <div className="bg-background text-muted-foreground sticky bottom-0 flex h-11 shrink-0 items-center gap-3 border-t px-4 text-xs md:px-6">
+      <span className="tabular-nums">
+        {shown.toLocaleString("fr-CA")} offre{shown > 1 ? "s" : ""}
+        {total > PAGE_SIZE ? (
+          <span className="hidden sm:inline">
+            {" "}
+            · {first}–{last}
+          </span>
+        ) : null}
+      </span>
+      <span
+        className={cn(
+          "bg-primary h-px w-8 transition-opacity",
+          pending ? "animate-pulse opacity-100" : "opacity-0",
+        )}
+        aria-hidden
+      />
+      <Segmented
+        label="Tri"
+        size="sm"
+        className="h-7"
+        value={sort}
+        options={[
+          { value: "score", label: "Score" },
+          { value: "recent", label: "Récentes" },
+        ]}
+        onChange={onSort}
+      />
+      {pageCount > 1 ? (
+        <nav className="ml-auto flex items-center gap-1" aria-label="Pagination">
+          {page > 1 ? (
+            <Link href={pageHref(page - 1)} scroll={false} className={pager}>
+              <ChevronLeft className="size-4" aria-hidden />
+              <span className="hidden sm:inline">Précédentes</span>
+            </Link>
+          ) : (
+            <span className={cn(pager, "pointer-events-none opacity-40")} aria-hidden>
+              <ChevronLeft className="size-4" />
+              <span className="hidden sm:inline">Précédentes</span>
+            </span>
+          )}
+          <span className="px-1 tabular-nums">
+            {page} / {pageCount}
+          </span>
+          {page < pageCount ? (
+            <Link href={pageHref(page + 1)} scroll={false} className={pager}>
+              <span className="hidden sm:inline">Suivantes</span>
+              <ChevronRight className="size-4" aria-hidden />
+            </Link>
+          ) : (
+            <span className={cn(pager, "pointer-events-none opacity-40")} aria-hidden>
+              <span className="hidden sm:inline">Suivantes</span>
+              <ChevronRight className="size-4" />
+            </span>
+          )}
+        </nav>
+      ) : null}
     </div>
   );
 }

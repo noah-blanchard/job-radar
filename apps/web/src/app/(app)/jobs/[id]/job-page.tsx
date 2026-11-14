@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { LAST_INBOX_KEY } from "@/components/inbox/inbox";
 import { JobDetailView } from "@/components/job/job-detail";
+import { PageScroll } from "@/components/placeholder";
 import { Kbd } from "@/components/ui/kbd";
 import { dismissToast, toast } from "@/components/ui/toast";
 import { STATUS_LABEL, type JobStatus } from "@/lib/filters";
@@ -99,33 +100,35 @@ export function JobPage({ job }: { job: JobDetail }) {
   });
 
   return (
-    <div className="mx-auto w-full max-w-[1120px] px-4 py-5 md:px-8 md:py-7">
-      <button
-        type="button"
-        onClick={goBack}
-        className="text-muted-foreground hover:text-foreground mb-5 inline-flex items-center gap-1.5 text-[13px]"
-      >
-        <ArrowLeft className="size-4" aria-hidden /> Retour à la liste
-        <Kbd className="ml-1 hidden md:inline-flex">Échap</Kbd>
-      </button>
-      <JobDetailView
-        job={job}
-        variant="page"
-        status={status}
-        nextActionAt={next}
-        onStatus={(s) => change(s === "new" ? status : s)}
-        onNextAction={changeNext}
-        notesRef={notesRef}
-        followOpen={followOpen}
-        onFollowOpen={setFollowOpen}
-        onApplyClick={() =>
-          status !== "applied" &&
-          toast({
-            message: "Offre ouverte dans un onglet.",
-            action: { label: "Marquer postulé", hint: "a", run: () => change("applied") },
-          })
-        }
-      />
-    </div>
+    <PageScroll>
+      <div className="mx-auto w-full max-w-[1120px] px-4 py-5 md:px-8 md:py-7">
+        <button
+          type="button"
+          onClick={goBack}
+          className="text-muted-foreground hover:text-foreground mb-5 inline-flex items-center gap-1.5 text-[13px]"
+        >
+          <ArrowLeft className="size-4" aria-hidden /> Retour à la liste
+          <Kbd className="ml-1 hidden md:inline-flex">Échap</Kbd>
+        </button>
+        <JobDetailView
+          job={job}
+          variant="page"
+          status={status}
+          nextActionAt={next}
+          onStatus={(s) => change(s === "new" ? status : s)}
+          onNextAction={changeNext}
+          notesRef={notesRef}
+          followOpen={followOpen}
+          onFollowOpen={setFollowOpen}
+          onApplyClick={() =>
+            status !== "applied" &&
+            toast({
+              message: "Offre ouverte dans un onglet.",
+              action: { label: "Marquer postulé", hint: "a", run: () => change("applied") },
+            })
+          }
+        />
+      </div>
+    </PageScroll>
   );
 }

@@ -121,7 +121,7 @@ export function TodayStrip({ today, triageHref }: { today: Today; triageHref: st
   const dueCount = today.dueCount - (today.due.length - due.length);
 
   return (
-    <section aria-label="Aujourd'hui" className="border-b">
+    <section aria-label="Aujourd'hui" className="shrink-0 border-b">
       <div className="flex flex-wrap items-center gap-x-7 gap-y-1 px-4 pt-4 pb-3 text-[13px] md:px-6">
         <h1 className="text-[15px] font-semibold">Aujourd&apos;hui</h1>
         <Fact
@@ -157,7 +157,7 @@ export function TodayStrip({ today, triageHref }: { today: Today; triageHref: st
       </div>
 
       {open && due.length > 0 ? (
-        <ul className="animate-in fade-in-0 border-t px-4 pb-1 duration-150 md:px-6">
+        <ul className="animate-in fade-in-0 max-h-[40vh] overflow-y-auto border-t px-4 pb-1 duration-150 md:px-6">
           {due.map((d) => (
             <li
               key={d.id}

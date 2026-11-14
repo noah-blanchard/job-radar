@@ -22,15 +22,19 @@ async function TopBarWithCounts() {
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-dvh">
+    // From md up the shell is the viewport: rail fixed, each page scrolls inside its own areas.
+    // Phones keep the natural page scroll (sticky top bar).
+    <div className="flex min-h-dvh md:h-dvh md:overflow-hidden">
       <Suspense fallback={<Rail counts={null} logout={logout} />}>
         <RailWithCounts />
       </Suspense>
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col md:min-h-0">
         <Suspense fallback={<TopBar counts={null} logout={logout} />}>
           <TopBarWithCounts />
         </Suspense>
-        <main className="flex min-w-0 flex-1 flex-col">{children}</main>
+        <main className="flex min-w-0 flex-1 flex-col md:min-h-0 md:overflow-hidden">
+          {children}
+        </main>
       </div>
       <ShellKeys />
     </div>
