@@ -1,0 +1,158 @@
+{
+  "id": "744000161565892",
+  "name": "Conseiller.ère en Ressources Humaines",
+  "uuid": "1f4a1d90-048e-41d4-af50-92b32f98fd53",
+  "jobId": "29d4cae4-ca8b-48da-aa76-3b1b701d1eca",
+  "jobAdId": "2cc419c9-268c-4f06-85cf-30fb538f5926",
+  "defaultJobAd": true,
+  "refNumber": "REF32072W",
+  "company": {
+    "name": "Ubisoft",
+    "identifier": "Ubisoft2"
+  },
+  "location": {
+    "city": "Montreal",
+    "region": "QC",
+    "country": "ca",
+    "remote": false,
+    "hybrid": false,
+    "latitude": "45.5018869",
+    "longitude": "-73.56739189999999",
+    "fullLocation": "Montreal, QC, Canada"
+  },
+  "customField": [
+    {
+      "fieldId": "56c253c2e4b0cabf01d19d37",
+      "fieldLabel": "Organizational Unit",
+      "valueId": "21cb51c2-24e9-4088-8f65-52ce10f74bcf",
+      "valueLabel": "Montréal studio"
+    },
+    {
+      "fieldId": "56c2539de4b0cabf01d19d36",
+      "fieldLabel": "Recruitment Programs",
+      "valueId": "cb9660da-dde8-48ec-ba09-d33d9bb77edc",
+      "valueLabel": "N/A"
+    },
+    {
+      "fieldId": "5bb3995c6d8bc56bc081b87d",
+      "fieldLabel": "Contract",
+      "valueId": "b5a86fc0-2681-4b3c-98b6-b73a4be23ef1",
+      "valueLabel": "Permanent"
+    },
+    {
+      "fieldId": "6ada082b6ae170d3b7d5b0cc",
+      "fieldLabel": "MU/zone work location",
+      "valueId": "08889926-b1db-4491-a364-c178e54f2253",
+      "valueLabel": "Not applicable"
+    },
+    {
+      "fieldId": "68e4ce369c52964c7125078a",
+      "fieldLabel": "Job Family",
+      "valueId": "0fef8861-6d3d-47c5-bedc-f738a1ecb89f",
+      "valueLabel": "Human Resources"
+    },
+    {
+      "fieldId": "56d1aa7ae4b0a07f777a4ef4",
+      "fieldLabel": "Brands",
+      "valueId": "default",
+      "valueLabel": "Ubisoft"
+    },
+    {
+      "fieldId": "6904811aa8fa2db78e2ee2ed",
+      "fieldLabel": "Job  Function",
+      "valueId": "5a411052-4847-4926-83e5-5a41fe790439",
+      "valueLabel": "HR Business Partnering"
+    },
+    {
+      "fieldId": "691ca2ee342dfb96e5364508",
+      "fieldLabel": "Reference Job",
+      "valueId": "e6b7b862-ff37-4a9a-a6df-be2148fa5654",
+      "valueLabel": "Human Resources Generalist"
+    },
+    {
+      "fieldId": "6a158e3c77b1f5657b57af9d",
+      "fieldLabel": "Management Unit L0&1 (New)",
+      "valueId": "62637202-e40e-4b9b-b287-b354affa8ddc",
+      "valueLabel": "CORPORATE"
+    },
+    {
+      "fieldId": "58b7e4d0e4b09a6d37a0cd8b",
+      "fieldLabel": "Department",
+      "valueId": "13847731",
+      "valueLabel": "Ubisoft"
+    },
+    {
+      "fieldId": "COUNTRY",
+      "fieldLabel": "Country/Region",
+      "valueId": "ca",
+      "valueLabel": "Canada"
+    },
+    {
+      "fieldId": "6904797c56f594d5ed50988d",
+      "fieldLabel": "Work flexibility",
+      "valueId": "ccb10278-8410-4710-b0e7-698fc2195139",
+      "valueLabel": "Office-based"
+    },
+    {
+      "fieldId": "5def94650389ad3cc4be9d17",
+      "fieldLabel": "OU sub location (select when applicable)",
+      "valueId": "8282aec3-a755-4c6d-b27f-88e4344879af",
+      "valueLabel": "Canada"
+    }
+  ],
+  "releasedDate": "2026-11-13T19:51:33.734Z",
+  "creator": {
+    "name": "",
+    "avatarUrl": ""
+  },
+  "postingUrl": "https://jobs.smartrecruiters.com/Ubisoft2/744000161565892-conseiller-ere-en-ressources-humaines",
+  "applyUrl": "https://jobs.smartrecruiters.com/Ubisoft2/744000161565892-conseiller-ere-en-ressources-humaines?oga=true",
+  "referralUrl": "https://jobs.smartrecruiters.com/external-referrals/company/Ubisoft2/publication/1f4a1d90-048e-41d4-af50-92b32f98fd53?dcr_ci=Ubisoft2",
+  "jobAd": {
+    "sections": {
+      "companyDescription": {
+        "title": "Description de l'entreprise",
+        "text": "<p>Ubisoft est une référence mondiale du jeu vidéo, avec des équipes réparties aux quatre coins du monde qui créent des expériences de jeu originales et mémorables, de Assassin’s Creed à Rainbow Six en passant par Just Dance et bien d’autres encore. Nous croyons que la diversité des points de vue fait progresser à la fois les joueurs et les équipes. Si vous êtes passionné·e par l’innovation et que vous souhaitez repousser les limites du divertissement, rejoignez notre aventure et aidez-nous à créer l’inconnu!</p>"
+      },
+      "jobDescription": {
+        "title": "Description du poste",
+        "text": "<p><strong>Description du poste</strong></p><p>En tant que conseiller·ère en ressources humaines à Ubisoft Montréal, vous serez le point de contact principal des employé·es et des gestionnaires au sein d’un modèle de services partagés. Dans un environnement dynamique où les demandes sont nombreuses, vous offrirez un accompagnement de première ligne, des conseils pratiques et des solutions adaptées à un vaste éventail de questions et de processus RH. Vous contribuerez à offrir une expérience employé cohérente, efficace et axée sur l’excellence du service, tout en soutenant les gestionnaires dans leurs responsabilités liées à la gestion des talents et des équipes.</p><p><strong>Ce que vous ferez:</strong></p><ul><li><p>Répondre aux questions des employé·es et des gestionnaires sur les politiques, programmes et processus RH;</p></li><li><p>Conseiller les gestionnaires sur les lois du travail, les normes d’emploi et la gestion de leurs équipes;</p></li><li><p>Assurer le suivi des dossiers des employé·es et vérifier l’exactitude et la conformité des documents;</p></li><li><p>Soutenir le traitement des dossiers d’absence, d’invalidité et d’accommodement avec les partenaires concernés;</p></li><li><p>Présenter les services et programmes RH aux nouveaux employé·es et aux gestionnaires, en français et en anglais;</p></li><li><p>Collaborer avec les équipes pour améliorer les outils, processus et initiatives RH;</p></li><li><p>Contribuer au respect des obligations légales et des bonnes pratiques en ressources humaines.</p></li></ul>"
+      },
+      "qualifications": {
+        "title": "Qualifications",
+        "text": "<p><strong>Ce que vous apportez à l'équipe:</strong></p><ul><li><p>Mettre à profit votre expérience en ressources humaines et en conseil auprès des gestionnaires et des employé·es;</p></li><li><p>Collaborer avec les autres en adoptant une approche axée sur le service;</p></li><li><p>Communiquer clairement et établir des relations de confiance, de préférence en français et en anglais pour soutenir les talents de nos studios canadiens;</p></li><li><p>Faire preuve de souci du détail, de jugement et d’un sens des responsabilités;</p></li><li><p>Organiser votre travail avec souplesse et établir vos priorités.</p></li></ul>"
+      },
+      "additionalInformation": {
+        "title": "Informations supplémentaires",
+        "text": ""
+      }
+    }
+  },
+  "active": true,
+  "visibility": "PUBLIC",
+  "industry": {
+    "id": "entertainment",
+    "label": "Entertainment"
+  },
+  "function": {
+    "id": "human_resources",
+    "label": "Human Resources"
+  },
+  "department": {
+    "id": 13847731,
+    "label": "Ubisoft"
+  },
+  "experienceLevel": {
+    "id": "mid_senior_level",
+    "label": "Mid-Senior Level"
+  },
+  "typeOfEmployment": {
+    "id": "permanent",
+    "label": "Full-time"
+  },
+  "language": {
+    "code": "fr",
+    "label": "French",
+    "labelNative": "français"
+  }
+}

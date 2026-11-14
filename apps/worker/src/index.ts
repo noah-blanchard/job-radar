@@ -1,14 +1,16 @@
 import { createServer } from "node:http";
-import { createLogger, getEnv, requireEnv } from "@jobradar/core";
-import { createDb, kvSet, sql } from "@jobradar/db";
+import { loadCompanySeed, syncCompanySeed } from "@jobradar/core";
+import { kvSet, sql } from "@jobradar/db";
 import { Cron } from "croner";
+import { runAtsSweep } from "./ats";
 import { createHealthHandler } from "./health";
+import { createRuntime } from "./runtime";
 
-const log = createLogger("worker");
-const env = requireEnv(getEnv(), ["DATABASE_URL"]);
+const rt = createRuntime("worker");
+const { env, log, db } = rt;
 const TZ = env.TZ;
+const ATS_JITTER_MS = 10 * 60_000;
 
-const { db, close } = createDb(env.DATABASE_URL, { max: 5 });
 const startedAt = new Date();
 let lastTick: Date | undefined;
 
@@ -19,10 +21,31 @@ async function heartbeat(): Promise<void> {
   log.debug({ at: now.toISOString() }, "heartbeat");
 }
 
+async function atsSweep(): Promise<void> {
+  const t0 = Date.now();
+  const results = await runAtsSweep(rt, { maxJitterMs: ATS_JITTER_MS });
+  log.info(
+    {
+      runs: results.length,
+      errors: results.filter((r) => r.status === "error").length,
+      fetched: results.reduce((a, r) => a + r.fetched, 0),
+      nbNew: results.reduce((a, r) => a + r.nbNew, 0),
+      ms: Date.now() - t0,
+    },
+    "ats sweep done",
+  );
+}
+
+const guard = (name: string, fn: () => Promise<void>) => () =>
+  fn().catch((err: unknown) => log.error({ err, job: name }, "scheduled job failed"));
+
 const jobs: Cron[] = [
-  new Cron("* * * * *", { name: "heartbeat", timezone: TZ, protect: true }, () =>
-    heartbeat().catch((err: unknown) => log.error({ err }, "heartbeat failed")),
+  new Cron(
+    "* * * * *",
+    { name: "heartbeat", timezone: TZ, protect: true },
+    guard("heartbeat", heartbeat),
   ),
+  new Cron(env.ATS_CRON, { name: "ats", timezone: TZ, protect: true }, guard("ats", atsSweep)),
 ];
 
 const server = createServer(
@@ -46,15 +69,27 @@ const server = createServer(
   }),
 );
 
-server.listen(env.WORKER_HEALTH_PORT, () => {
-  log.info(
-    { port: env.WORKER_HEALTH_PORT, tz: TZ, jobs: jobs.map((j) => j.name) },
-    "worker started",
-  );
-});
+async function start(): Promise<void> {
+  const seeded = await syncCompanySeed(db, loadCompanySeed());
+  log.info(seeded, "company seed synced");
+  await heartbeat();
+  server.listen(env.WORKER_HEALTH_PORT, () => {
+    log.info(
+      {
+        port: env.WORKER_HEALTH_PORT,
+        tz: TZ,
+        jobs: jobs.map((j) => ({ name: j.name, next: j.nextRun()?.toISOString() })),
+        enabled: rt.sources.filter((s) => s.enabled).map((s) => s.id),
+      },
+      "worker started",
+    );
+  });
+}
 
-// First tick right away so /healthz reports a real timestamp quickly.
-heartbeat().catch((err: unknown) => log.error({ err }, "initial heartbeat failed"));
+start().catch((err: unknown) => {
+  log.fatal({ err }, "worker failed to start");
+  process.exit(1);
+});
 
 let shuttingDown = false;
 async function shutdown(signal: string): Promise<void> {
@@ -63,7 +98,7 @@ async function shutdown(signal: string): Promise<void> {
   log.info({ signal }, "shutting down");
   for (const j of jobs) j.stop();
   server.close();
-  await close();
+  await rt.close();
   process.exit(0);
 }
 

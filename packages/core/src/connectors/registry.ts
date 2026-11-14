@@ -1,17 +1,25 @@
+import { ashby } from "./ashby";
+import { greenhouse } from "./greenhouse";
+import { lever } from "./lever";
+import { smartrecruiters } from "./smartrecruiters";
 import type { Connector } from "./types";
+import { workday } from "./workday";
 
-/** All known connectors, keyed by id. Populated from M1 on. */
-const connectors = new Map<string, Connector>();
+/** Every implemented connector. Enabled/disabled state lives in config/sources.yaml. */
+export const CONNECTORS: readonly Connector[] = [
+  greenhouse,
+  lever,
+  ashby,
+  smartrecruiters,
+  workday,
+];
 
-export function registerConnector(c: Connector): void {
-  if (connectors.has(c.id)) throw new Error(`Connector already registered: ${c.id}`);
-  connectors.set(c.id, c);
-}
+const byId = new Map(CONNECTORS.map((c) => [c.id, c]));
 
 export function getConnector(id: string): Connector | undefined {
-  return connectors.get(id);
+  return byId.get(id);
 }
 
 export function listConnectors(): Connector[] {
-  return [...connectors.values()];
+  return [...CONNECTORS];
 }
