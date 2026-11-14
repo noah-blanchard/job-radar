@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-14T00:00:00Z",
+  "title": "Design System: JobRadar",
+  "extensions": {
+    "colorMeta": {
+      "registrar-ink": { "role": "neutral", "displayName": "Registrar Ink", "canonical": "#10161d", "tonalRamp": ["#050709", "#080b0f", "#0b0f14", "#0e131a", "#2d3238", "#64686c", "#9fa2a5", "#dbdcdd"] },
+      "reading-surface": { "role": "neutral", "displayName": "Reading Surface", "canonical": "#141c24", "tonalRamp": ["#06080b", "#0a0e12", "#0e1419", "#121920", "#30373e", "#666b71", "#a1a4a7", "#dcddde"] },
+      "raised-ground": { "role": "neutral", "displayName": "Raised Ground", "canonical": "#182630", "tonalRamp": ["#070b0e", "#0c1318", "#111b22", "#15212a", "#344049", "#697278", "#a3a8ac", "#dcdee0"] },
+      "raised-hover": { "role": "neutral", "displayName": "Raised Hover", "canonical": "#131d26" },
+      "field-ground": { "role": "neutral", "displayName": "Field Ground", "canonical": "#121a22" },
+      "card-ground": { "role": "neutral", "displayName": "Card Ground", "canonical": "#131b23" },
+      "security-paper-rail": { "role": "neutral", "displayName": "Security-Paper Rail", "canonical": "#13201c", "tonalRamp": ["#060a08", "#0a100e", "#0d1614", "#111c19", "#2f3b37", "#666e6b", "#a1a6a4", "#dcdedd"] },
+      "rail-active": { "role": "neutral", "displayName": "Rail Active", "canonical": "#1c2f28" },
+      "rail-hover": { "role": "neutral", "displayName": "Rail Hover", "canonical": "#182a23" },
+      "rail-border": { "role": "neutral", "displayName": "Rail Border", "canonical": "#1e3029" },
+      "hairline": { "role": "neutral", "displayName": "Hairline", "canonical": "#24303a", "tonalRamp": ["#0b0e11", "#12181d", "#192229", "#202a33", "#3e4952", "#71787f", "#a7acb0", "#dee0e1"] },
+      "hairline-soft": { "role": "neutral", "displayName": "Hairline Soft", "canonical": "#1a242d" },
+      "control-stroke": { "role": "neutral", "displayName": "Control Stroke", "canonical": "#2a3742" },
+      "control-stroke-hover": { "role": "neutral", "displayName": "Control Stroke Hover", "canonical": "#384754" },
+      "control-ground": { "role": "neutral", "displayName": "Control Ground", "canonical": "#1b2730" },
+      "control-ground-hover": { "role": "neutral", "displayName": "Control Ground Hover", "canonical": "#223039" },
+      "paper-white": { "role": "neutral", "displayName": "Paper White", "canonical": "#e8e3d4", "tonalRamp": ["#464440", "#74726a", "#a29f94", "#ccc8bb", "#ebe6d9", "#f0ede3", "#f6f4ee", "#fcfbf9"] },
+      "metadata-grey": { "role": "neutral", "displayName": "Metadata Grey", "canonical": "#a0aaa2", "tonalRamp": ["#303331", "#505551", "#707771", "#8d968f", "#abb4ad", "#c1c8c3", "#d9ddda", "#f1f2f1"] },
+      "ledger-green": { "role": "primary", "displayName": "Ledger Green", "canonical": "#8fc7a0", "tonalRamp": ["#2b3c30", "#486450", "#648b70", "#7eaf8d", "#9cceab", "#b6dbc1", "#d2e9d9", "#eef7f1"] },
+      "ledger-green-ink": { "role": "primary", "displayName": "Ledger Green Ink", "canonical": "#0d1912" },
+      "ledger-green-2": { "role": "primary", "displayName": "Ledger Ramp 2", "canonical": "#6ead84" },
+      "ledger-green-3": { "role": "primary", "displayName": "Ledger Ramp 3", "canonical": "#4f8d66" },
+      "ledger-green-4": { "role": "primary", "displayName": "Ledger Ramp 4", "canonical": "#3b6e4f" },
+      "ledger-track": { "role": "neutral", "displayName": "Ledger Track", "canonical": "#1e2a33" },
+      "chart-green-hover": { "role": "primary", "displayName": "Chart Green Hover", "canonical": "#a9dbb7" },
+      "due-amber": { "role": "secondary", "displayName": "Due Amber", "canonical": "#e3b45c", "tonalRamp": ["#44361c", "#725a2e", "#9f7e40", "#c89e51", "#e6bd70", "#edce95", "#f4e1be", "#fbf4e7"] },
+      "penalty-red": { "role": "secondary", "displayName": "Penalty Red", "canonical": "#e8735f", "tonalRamp": ["#46231d", "#743a30", "#a25143", "#cc6554", "#eb8472", "#f0a497", "#f6c7bf", "#fceae7"] },
+      "saved-blue": { "role": "secondary", "displayName": "Saved Blue", "canonical": "#7aa5e0", "tonalRamp": ["#253243", "#3d5370", "#55739d", "#6b91c5", "#8ab0e4", "#a9c5eb", "#cadbf3", "#ebf2fa"] },
+      "ignored-grey": { "role": "secondary", "displayName": "Ignored Grey", "canonical": "#808b83", "tonalRamp": ["#262a27", "#404642", "#5a615c", "#717a73", "#8f9992", "#acb4ae", "#ccd1cd", "#eceeec"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Large figures in the Aujourd'hui record and stats facts; numbers, not prose." },
+      "headline": { "displayName": "Headline", "purpose": "Job title in the reading pane (19px) or on the full page (22px)." },
+      "title": { "displayName": "Title", "purpose": "Page titles and the ScoreMark figure." },
+      "row-title": { "displayName": "Row Title", "purpose": "Offer title in list rows and pipeline cards." },
+      "body": { "displayName": "Body", "purpose": "Default text; description prose at 13.5px, max 72ch." },
+      "meta": { "displayName": "Meta", "purpose": "Company, place, age, counts, secondary actions." },
+      "label": { "displayName": "Label", "purpose": "Uppercase column heads for real sections only." }
+    },
+    "shadows": [],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "The only easing; every state change." },
+      { "name": "dur-fast", "value": "120ms", "purpose": "Colour and border transitions on controls, rows, rail links; row fade on triage." },
+      { "name": "dur", "value": "180ms", "purpose": "Triaged row height collapse (grid-template-rows 1fr to 0fr), disclosure chevron, notes save hint." },
+      { "name": "layer-in", "value": "150ms fade (+ zoom 0.98 popover, slide 1 step dialog/toast)", "purpose": "Floating layers and the reading-pane crossfade." },
+      { "name": "reduced-motion", "value": "all durations 0.01ms", "purpose": "prefers-reduced-motion: reduce." }
+    ],
+    "breakpoints": [
+      { "name": "md", "value": "768px", "purpose": "Rail replaces top bar; 24px gutters; pipeline 2 columns." },
+      { "name": "lg", "value": "1024px", "purpose": "Reading pane appears (420-520px); place and age columns." },
+      { "name": "xl", "value": "1280px", "purpose": "Pane 560px; pipeline 3 + narrow fourth column." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one primary action per view (Postuler).",
+      "html": "<button class=\"ds-btn-primary\">Postuler <svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7 7h10v10\"/><path d=\"M7 17 17 7\"/></svg></button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 0; border-radius: 7px; background: #8fc7a0; color: #0d1912; font: 500 13px/1 'Public Sans', system-ui, sans-serif; transition: background-color 120ms cubic-bezier(0.22,1,0.36,1); cursor: pointer; } .ds-btn-primary:hover { background: color-mix(in oklab, #8fc7a0 88%, white); } .ds-btn-primary:active { background: color-mix(in oklab, #8fc7a0 85%, black); } .ds-btn-primary:focus-visible { outline: 2px solid color-mix(in oklab, #8fc7a0 75%, transparent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary actions beside the primary; hairline stroke, no fill.",
+      "html": "<button class=\"ds-btn-outline\">Fait · +7 j</button>",
+      "css": ".ds-btn-outline { height: 32px; padding: 0 12px; border: 1px solid #2a3742; border-radius: 7px; background: transparent; color: #e8e3d4; font: 500 13px/1 'Public Sans', system-ui, sans-serif; transition: background-color 120ms cubic-bezier(0.22,1,0.36,1), border-color 120ms cubic-bezier(0.22,1,0.36,1); cursor: pointer; } .ds-btn-outline:hover { background: #1b2730; border-color: #384754; } .ds-btn-outline:active { background: #182630; } .ds-btn-outline:focus-visible { outline: 2px solid color-mix(in oklab, #8fc7a0 75%, transparent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Quiet tertiary actions (Reporter, Retirer); grey until hovered.",
+      "html": "<button class=\"ds-btn-ghost\">Reporter 2 j</button>",
+      "css": ".ds-btn-ghost { height: 32px; padding: 0 12px; border: 0; border-radius: 7px; background: transparent; color: #a0aaa2; font: 500 13px/1 'Public Sans', system-ui, sans-serif; transition: background-color 120ms cubic-bezier(0.22,1,0.36,1), color 120ms cubic-bezier(0.22,1,0.36,1); cursor: pointer; } .ds-btn-ghost:hover { background: #1b2730; color: #e8e3d4; } .ds-btn-ghost:focus-visible { outline: 2px solid color-mix(in oklab, #8fc7a0 75%, transparent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Search, filters, dates; native select shares the class.",
+      "html": "<input class=\"ds-input\" placeholder=\"Rechercher un titre, une entreprise\" />",
+      "css": ".ds-input { height: 32px; width: 280px; padding: 0 10px; border: 1px solid #2a3742; border-radius: 7px; background: #121a22; color: #e8e3d4; font: 400 13px/1 'Public Sans', system-ui, sans-serif; outline: none; transition: border-color 120ms, background-color 120ms; } .ds-input::placeholder { color: #a0aaa2; opacity: 0.85; } .ds-input:hover { border-color: #384754; } .ds-input:focus-visible { border-color: color-mix(in oklab, #8fc7a0 70%, transparent); background: #10161d; }"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "chip",
+      "refersTo": "segmented-on",
+      "description": "Mutually exclusive views with counts; pressed segment on raised ground, count in green.",
+      "html": "<div class=\"ds-seg\" role=\"group\"><button aria-pressed=\"true\">À trier <span>128</span></button><button aria-pressed=\"false\">Sauvegardées <span>14</span></button><button aria-pressed=\"false\">Toutes</button></div>",
+      "css": ".ds-seg { display: inline-flex; height: 32px; border: 1px solid #2a3742; border-radius: 7px; overflow: hidden; font: 400 13px/1 'Public Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums; } .ds-seg button { display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 0; background: transparent; color: #a0aaa2; cursor: pointer; transition: background-color 120ms, color 120ms; } .ds-seg button + button { border-left: 1px solid #2a3742; } .ds-seg button span { color: #a0aaa2; } .ds-seg button:hover { background: #1b2730; color: #e8e3d4; } .ds-seg button[aria-pressed=true] { background: #182630; color: #e8e3d4; } .ds-seg button[aria-pressed=true] span { color: #8fc7a0; } .ds-seg button:focus-visible { outline: 2px solid color-mix(in oklab, #8fc7a0 75%, transparent); outline-offset: -2px; }"
+    },
+    {
+      "name": "Rail Navigation",
+      "kind": "nav",
+      "refersTo": "rail-link-active",
+      "description": "208px security-paper green rail: work first, Machine group second.",
+      "html": "<nav class=\"ds-rail\"><a class=\"on\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M22 12h-6l-2 3h-4l-2-3H2\"/><path d=\"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z\"/></svg>Trier<em>128</em></a><a href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M8 7v7M12 7v4M16 7v9\"/></svg>Pipeline<em class=\"due\">2 dues</em></a><p>Machine</p><a href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"2\"/><path d=\"M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4\"/></svg>Sources<i></i></a></nav>",
+      "css": ".ds-rail { width: 208px; padding: 16px 10px; background: #13201c; border-right: 1px solid #1e3029; display: flex; flex-direction: column; gap: 2px; font: 400 13px/1 'Public Sans', system-ui, sans-serif; } .ds-rail a { display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 10px; border-radius: 7px; color: #a0aaa2; text-decoration: none; transition: background-color 120ms, color 120ms; } .ds-rail a:hover { background: #182a23; color: #e8e3d4; } .ds-rail a.on { background: #1c2f28; color: #e8e3d4; font-weight: 500; } .ds-rail a.on svg { color: #8fc7a0; } .ds-rail em { margin-left: auto; font-style: normal; font-size: 12px; color: #a0aaa2; font-variant-numeric: tabular-nums; } .ds-rail em.due { color: #e3b45c; } .ds-rail i { margin-left: auto; width: 6px; height: 6px; border-radius: 999px; background: #e8735f; } .ds-rail p { margin: 20px 0 4px; padding: 0 10px; font-size: 11px; line-height: 16px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: #a0aaa2; } .ds-rail a:focus-visible { outline: 2px solid color-mix(in oklab, #8fc7a0 75%, transparent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Job Row with Score Ledger",
+      "kind": "custom",
+      "refersTo": "job-row-selected",
+      "description": "Signature record line: ScoreMark (figure over 72px ledger bar), title, company and status; selected row shown.",
+      "html": "<div class=\"ds-row\" aria-current=\"true\"><span class=\"ds-score\"><b>84</b><span class=\"ds-ledger\"><i style=\"width:38%;background:#8fc7a0\"></i><i style=\"width:26%;background:#6ead84\"></i><i style=\"width:20%;background:#4f8d66\"></i><i style=\"width:6%;background:#e8735f;opacity:.8\"></i></span></span><span class=\"ds-main\"><strong>Développeur logiciel junior</strong><small>Acme Inc. <span class=\"ds-pill\">Sauvegardée</span></small></span><span class=\"ds-meta\">Montréal</span><span class=\"ds-meta\">2 h</span></div><div class=\"ds-row\"><span class=\"ds-score\"><b>61</b><span class=\"ds-ledger\"><i style=\"width:35%;background:#8fc7a0\"></i><i style=\"width:26%;background:#6ead84\"></i></span></span><span class=\"ds-main\"><strong>New grad software engineer</strong><small>Globex</small></span><span class=\"ds-meta\">Remote</span><span class=\"ds-meta\">1 j</span></div>",
+      "css": ".ds-row { position: relative; display: grid; grid-template-columns: 72px minmax(0,1fr) 9.5rem 2.5rem; align-items: center; column-gap: 16px; height: 58px; padding: 0 24px; background: #10161d; border-bottom: 1px solid #1a242d; color: #e8e3d4; font: 400 13px/1.45 'Public Sans', system-ui, sans-serif; font-feature-settings: 'tnum', 'cv11'; transition: background-color 120ms cubic-bezier(0.22,1,0.36,1); } .ds-row:hover { background: #131d26; } .ds-row[aria-current=true] { background: #182630; } .ds-row[aria-current=true]::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 1px; background: #8fc7a0; } .ds-score { display: inline-flex; flex-direction: column; gap: 5px; width: 72px; } .ds-score b { font-size: 15px; line-height: 1; font-weight: 600; letter-spacing: -0.01em; } .ds-ledger { display: flex; width: 72px; height: 5px; border-radius: 1px; overflow: hidden; background: #1e2a33; } .ds-ledger i { height: 100%; } .ds-main { min-width: 0; display: flex; flex-direction: column; } .ds-main strong { font-size: 13.5px; line-height: 20px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ds-main small { display: flex; gap: 8px; align-items: center; font-size: 12px; line-height: 16px; color: #a0aaa2; } .ds-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; color: #7aa5e0; } .ds-pill::before { content: ''; width: 6px; height: 6px; border-radius: 999px; background: currentColor; } .ds-meta { font-size: 12px; color: #a0aaa2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ds-meta:last-child { text-align: right; }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Flat tinted tag, same-hue text; one shape for every status-like label.",
+      "html": "<span class=\"ds-badge ds-badge-warning\">Entretien</span> <span class=\"ds-badge ds-badge-destructive\">Refusée</span> <span class=\"ds-badge\">Junior</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px; border-radius: 4px; background: #1b2730; color: #e8e3d4; font: 500 11px/16px 'Public Sans', system-ui, sans-serif; white-space: nowrap; } .ds-badge-warning { background: color-mix(in oklab, #e3b45c 16%, transparent); color: #e3b45c; } .ds-badge-destructive { background: color-mix(in oklab, #e8735f 16%, transparent); color: #e8735f; }"
+    },
+    {
+      "name": "Undo Toast",
+      "kind": "custom",
+      "refersTo": "toast",
+      "description": "One quiet toast, bottom-right, hairline only; carries the undo with its z key cap.",
+      "html": "<div class=\"ds-toast\"><span>Ignorée · Développeur logiciel junior</span><button>Annuler <kbd>z</kbd></button></div>",
+      "css": ".ds-toast { display: inline-flex; align-items: center; gap: 12px; max-width: 420px; padding: 8px 8px 8px 12px; background: #141c24; border: 1px solid #2a3742; border-radius: 7px; color: #e8e3d4; font: 400 13px/1.45 'Public Sans', system-ui, sans-serif; } .ds-toast span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ds-toast button { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border: 0; border-radius: 4px; background: transparent; color: #8fc7a0; font: inherit; font-weight: 500; cursor: pointer; } .ds-toast button:hover { background: #1b2730; } .ds-toast kbd { padding: 0 4px; border: 1px solid #2a3742; border-radius: 4px; color: #a0aaa2; font: 500 11px/16px 'Public Sans', system-ui, sans-serif; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Relevé",
+    "overview": "JobRadar reads like a university transcript or a registrar's ledger. Every offer is a record line, and its score is itemized rather than given as a bare figure: a fixed-scale ledger bar in the list that expands into the \"Relevé du score\" in the reading pane. The ground is registrar ink, the navigation sits on a security-paper green rail, and text is paper-white with a single metadata grey below it.\n\nThe density is that of a working instrument for one person at a desktop keyboard, phone second. Body copy is 13px, rows are 58px, and controls are 32px. Depth comes from tone and hairlines, never shadows or elevation. Status colours are flat and committed: each status has one colour that it carries everywhere it appears. Motion exists only to confirm a change of state, and every write is instant, optimistic and undoable.\n\nThe direction refuses the category default: a grey table with a coloured score pill beside a separate stats dashboard.",
+    "keyCharacteristics": [
+      "Dark only (`color-scheme: dark`), ink ground with a green rail.",
+      "Two text tones, nothing in between.",
+      "The score ledger bar: one 100-point scale, same size and baseline everywhere.",
+      "Hairline borders for all separation, including floating layers.",
+      "Tabular figures throughout (`tnum`, `cv11` on body).",
+      "Keyboard-first, optimistic, undoable."
+    ],
+    "rules": [
+      { "name": "The Two-Tone Rule", "body": "Text is paper-white or metadata grey. There is no third grey, and opacity tints of text are not allowed. Job description prose is the one documented exception, mixed at 88% foreground.", "section": "colors" },
+      { "name": "The Committed Status Rule", "body": "Each status has one colour, used for its pill, dot, column rule and due-list label. A status colour never decorates anything that is not that status.", "section": "colors" },
+      { "name": "The One Accent Rule", "body": "Ledger green is the only accent. Selection, the primary action and positive points share it, which is why it stays scarce.", "section": "colors" },
+      { "name": "The Tabular Rule", "body": "Every figure is set tabular (`tnum` on body, plus `tabular-nums` on counts, scores and dates). Columns of numbers have to align like a ledger.", "section": "typography" },
+      { "name": "The Column-Head Rule", "body": "Uppercase labels head a real section or column whose content follows directly below. They are never placed above a headline as decoration.", "section": "typography" },
+      { "name": "The Hairline Rule", "body": "Separation is always a 1px border or a 1px gap, never a shadow, glow or blur.", "section": "elevation" },
+      { "name": "The Selection Rule", "body": "A selected row gets the raised ground plus a 1px ledger-green rule on its left edge. Nothing else marks selection.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do show every score as ScoreMark or Ledger, on the fixed 72px, 100-point scale, wherever a score appears.",
+      "Do keep text to paper-white and metadata grey, with tabular figures.",
+      "Do separate with 1px hairlines (`hairline`, `hairline-soft`) and depth through tone (ink, raised hover, surface, raised).",
+      "Do mark selection with the raised ground plus a 1px ledger-green rule.",
+      "Do use one status colour per status, everywhere that status appears.",
+      "Do make every write optimistic, undoable with `z`, and rolled back with an error toast on failure.",
+      "Do give every new action a key and list it in the `?` sheet.",
+      "Do limit motion to 120 or 180ms ease-out on state changes, and respect reduced motion.",
+      "Do head sections with 11px uppercase labels only when real content follows."
+    ],
+    "donts": [
+      "Don't use box shadows, glows or blur, on floating layers or anywhere else.",
+      "Don't show a bare score number or a coloured score pill without its ledger.",
+      "Don't wrap list rows or pane sections in cards. The pipeline card is the only bordered tile.",
+      "Don't add a third text grey or use opacity-tinted text.",
+      "Don't use a status hue for decoration, or ledger green for anything other than selection, the primary action and positive points.",
+      "Don't animate on load, loop, shimmer, or move layout outside a state change.",
+      "Don't add a second typeface or a system display face."
+    ]
+  }
+}
