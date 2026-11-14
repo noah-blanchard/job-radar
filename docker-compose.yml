@@ -1,0 +1,74 @@
+# JobRadar: production compose (used as-is by Dokploy).
+# Local dev: docker-compose.override.yml is loaded automatically and publishes ports.
+# Variables come from .env (Dokploy writes its "Environment" tab to .env next to this file).
+
+name: jobradar
+
+x-app: &app
+  env_file:
+    - path: .env
+      required: true
+  environment:
+    # Credentials go through PGUSER/PGPASSWORD (read by postgres-js) so the password
+    # never has to be URL-encoded. Overrides any DATABASE_URL from .env.
+    DATABASE_URL: postgres://db:5432/${POSTGRES_DB:-jobradar}
+    PGUSER: ${POSTGRES_USER:-jobradar}
+    PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    TZ: America/Toronto
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "5" }
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jobradar}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-jobradar}
+      TZ: America/Toronto
+      PGTZ: America/Toronto
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  migrate:
+    <<: *app
+    build: { context: ., target: migrate }
+    image: jobradar-migrate
+    restart: "no"
+    depends_on:
+      db: { condition: service_healthy }
+    mem_limit: 256m
+
+  worker:
+    <<: *app
+    build: { context: ., target: worker }
+    image: jobradar-worker
+    restart: unless-stopped
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    expose: ["8081"]
+    mem_limit: 384m
+
+  web:
+    <<: *app
+    build: { context: ., target: web }
+    image: jobradar-web
+    restart: unless-stopped
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    expose: ["3000"]
+    mem_limit: 512m
+
+volumes:
+  pgdata:
