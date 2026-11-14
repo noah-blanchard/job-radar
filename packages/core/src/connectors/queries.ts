@@ -1,10 +1,56 @@
-import type { Profile } from "../config";
+import { parseProfile, type Profile } from "../config";
 import { countryCode } from "../normalize/location";
 
 /**
  * Search plans for the keyword aggregators, generated from config/profile.yaml
  * (domains x locations). Each connector maps them to its own API parameters.
  */
+
+/** Search of a profile that sets no `search_titles` (the original single-user search). */
+export const DEFAULT_SEARCH_TITLE = "new grad software engineer";
+
+/** Free-text aggregator searches of a profile. */
+export function searchTitles(profile: Profile): string[] {
+  return profile.search_titles.length > 0 ? profile.search_titles : [DEFAULT_SEARCH_TITLE];
+}
+
+/** [a1, a2], [b1] -> [a1, b1, a2]: each list gets its turn before any gets a second one. */
+function interleave<T>(lists: T[][]): T[] {
+  const out: T[] = [];
+  for (let i = 0; lists.some((l) => i < l.length); i++)
+    for (const l of lists) if (i < l.length) out.push(l[i]!);
+  return out;
+}
+
+/**
+ * One search profile for the aggregators from every user's profile: locations, domains and
+ * search titles of all of them, interleaved (first domain of each user, then the second...) so a
+ * daily quota spent in order is shared fairly. A single profile comes back unchanged (same
+ * queries as before accounts existed).
+ */
+export function mergeSearchProfiles(profiles: readonly Profile[]): Profile {
+  if (profiles.length === 0) return parseProfile({});
+  if (profiles.length === 1) return profiles[0]!;
+  const seenLoc = new Set<string>();
+  const locations = interleave(profiles.map((p) => p.locations)).filter((l) => {
+    const k = JSON.stringify([l.match ?? "", l.country ?? "", l.remote ?? null]);
+    if (seenLoc.has(k)) return false;
+    seenLoc.add(k);
+    return true;
+  });
+  const domains: Profile["domains"] = {};
+  for (const [name, kws] of interleave(profiles.map((p) => Object.entries(p.domains)))) {
+    let key = name;
+    for (let n = 2; key in domains; n++) key = `${name}#${n}`;
+    domains[key] = kws;
+  }
+  return parseProfile({
+    locations,
+    domains,
+    languages: [...new Set(profiles.flatMap((p) => p.languages))],
+    search_titles: [...new Set(interleave(profiles.map(searchTitles)))],
+  });
+}
 
 /** Seniority words searched in titles, by language. */
 export const SENIORITY_TERMS = {

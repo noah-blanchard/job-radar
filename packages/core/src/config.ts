@@ -124,6 +124,8 @@ const ProfileFile = z.object({
    * fewer than 2 in the description; "title": no domain keyword in the title.
    */
   require_domain: z.union([z.boolean(), z.literal("title")]).default(false),
+  /** Free-text searches for the aggregators (Jooble, JSearch); default: a new-grad SWE search. */
+  search_titles: z.array(z.string().min(2)).default([]),
   locations: z.array(ProfileLocation).default([]),
   domains: z.record(z.string(), z.array(z.string())).default({}),
   languages: z.array(z.string()).default([]),

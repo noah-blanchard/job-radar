@@ -8,6 +8,7 @@ import {
   kvValidatorStore,
   loadSourcesConfig,
   loadUserProfiles,
+  mergeSearchProfiles,
   ownerUser,
   parseProfile,
   requireEnv,
@@ -125,9 +126,17 @@ export function createRuntime(service: string) {
     get ownerId(): number {
       return ownerId;
     },
-    /** Profile driving the aggregator search queries: the owner's for now. */
+    /**
+     * Profile driving the aggregator search queries: every user's, merged and interleaved (the
+     * owner first) so the shared daily quotas serve everyone.
+     */
     get searchProfile(): Profile {
-      return profiles.find((p) => p.userId === ownerId)?.profile ?? emptyProfile;
+      if (profiles.length === 0) return emptyProfile;
+      const ordered = [...profiles].sort(
+        (a, b) =>
+          Number(b.userId === ownerId) - Number(a.userId === ownerId) || a.userId - b.userId,
+      );
+      return mergeSearchProfiles(ordered.map((p) => p.profile));
     },
     reloadProfiles,
     llm,

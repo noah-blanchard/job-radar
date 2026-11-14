@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { parseItems } from "./parse";
-import { COUNTRY_NAMES, profilePlaces } from "./queries";
+import { COUNTRY_NAMES, profilePlaces, searchTitles } from "./queries";
 import { ConnectorError, requireKeys, takeQuota, type Connector, type FetchCtx } from "./types";
 
 // Verified 2026-11-13: GET jsearch.p.rapidapi.com/search-v2?query=...&page=1&num_pages=1
@@ -33,9 +33,15 @@ const Response = z.object({
   data: z.object({ jobs: z.array(z.unknown()) }),
 });
 
-/** High-yield queries, best place first: the daily quota (1-3 calls) takes them in order. */
+/**
+ * High-yield queries, best place first, every search title at each place before the next place:
+ * the daily quota (1-3 calls) takes them in order.
+ */
 export function jsearchQueries(ctx: Pick<FetchCtx, "profile">): string[] {
-  return profilePlaces(ctx.profile, COUNTRY_NAMES).map((p) => `new grad software engineer in ${p}`);
+  const titles = searchTitles(ctx.profile);
+  return profilePlaces(ctx.profile, COUNTRY_NAMES).flatMap((p) =>
+    titles.map((t) => `${t} in ${p}`),
+  );
 }
 
 export const jsearch: Connector = {

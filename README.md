@@ -84,7 +84,7 @@ Hors Docker : `pnpm --filter @jobradar/worker cli run all`, et `pnpm detect-ats 
 Planification (heure de Toronto) :
 
 - `ATS_CRON` (toutes les 6 h) : balayage des ATS, jitter de 0 à 10 min par connecteur, budget `ATS_SWEEP_MAX_MINUTES`. Les entreprises sont prises par priorité puis de la moins récemment à jour à la plus récente : celles non atteintes passent en tête au balayage suivant.
-- `AGGREGATORS_CRON` (05:30) : Adzuna, Jooble, JSearch, Findwork, avec leurs quotas journaliers (`*_DAILY_MAX_CALLS`, table `api_usage`).
+- `AGGREGATORS_CRON` (05:30) : Adzuna, Jooble, JSearch, Findwork, avec leurs quotas journaliers (`*_DAILY_MAX_CALLS`, table `api_usage`). Les recherches viennent des profils de tous les comptes, alternés pour partager les quotas (champ `search_titles` du profil pour les recherches libres).
 - `FEEDS_CRON` (toutes les 6 h) : listes GitHub new grad, flux remote, HN « Who is hiring? ».
 
 Chaque run passe toutes les URLs vues dans `detectAts` : les boards inconnus deviennent des entreprises « découvertes », visibles dans `/companies` et balayées au run ATS suivant.

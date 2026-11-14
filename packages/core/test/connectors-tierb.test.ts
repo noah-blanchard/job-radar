@@ -13,9 +13,11 @@ import { githubSimplifyNewgrad, githubVanshNewgrad } from "../src/connectors/git
 import { hnWhoIsHiring, parseHnHeader } from "../src/connectors/hn";
 import { jooble, joobleId, joobleQueries } from "../src/connectors/jooble";
 import { jsearch, jsearchQueries } from "../src/connectors/jsearch";
+import { mergeSearchProfiles, profileCountries } from "../src/connectors/queries";
+import { parseProfile } from "../src/config";
 import type { QuotaCounter } from "../src/connectors/types";
 import { detectAts } from "../src/discovery/detectAts";
-import { collect, fakeHttp, fixture, makeCtx, testEnv, textFixture } from "./helpers";
+import { collect, fakeHttp, fixture, makeCtx, profile, testEnv, textFixture } from "./helpers";
 
 /** In-memory quota allowing `max` calls. */
 function memQuota(max: number): QuotaCounter & { used: number } {
@@ -182,6 +184,39 @@ describe("jsearch", () => {
       "new grad software engineer in Toronto",
       "new grad software engineer in Canada",
     ]);
+  });
+
+  it("shares the queries between every user's profile, in turn", () => {
+    const marketing = parseProfile({
+      locations: [
+        { country: "CA", weight: 30 },
+        { country: "FR", weight: 20 },
+      ],
+      domains: { digital: ["seo", "social media"], fullstack: ["crm"] },
+      search_titles: ["marketing coordinator"],
+    });
+    const merged = mergeSearchProfiles([profile, marketing]);
+    // Single profile: unchanged.
+    expect(mergeSearchProfiles([profile])).toBe(profile);
+    // Domains alternate between users; a name collision gets a suffix.
+    const own = Object.keys(profile.domains);
+    expect(Object.keys(merged.domains).slice(0, 4)).toEqual([
+      own[0],
+      "digital",
+      own[1],
+      own.includes("fullstack") ? "fullstack#2" : "fullstack",
+    ]);
+    expect(merged.search_titles).toEqual(["new grad software engineer", "marketing coordinator"]);
+    expect(profileCountries(merged)).toContain("FR");
+    // JSearch: both searches at the best place before the next place.
+    const qs = jsearchQueries({ profile: merged });
+    expect(qs.slice(0, 2)).toEqual([
+      "new grad software engineer in Montreal",
+      "marketing coordinator in Montreal",
+    ]);
+    expect(joobleQueries({ profile: merged }).map((q) => q.keywords)).toContain(
+      "marketing coordinator",
+    );
   });
 
   it("maps the real payload and sends RapidAPI headers", async () => {

@@ -53,6 +53,12 @@ target_seniority: [entry]
 # (true : plus souple, un mot-clé dans le titre ou deux dans la description suffisent.)
 require_domain: title
 
+# Recherches envoyées aux agrégateurs (Jooble, JSearch), en plus de la collecte des entreprises.
+search_titles:
+  - junior financial analyst
+  - banking analyst
+  - junior accountant
+
 # Langues que tu parles (fr, en, de, es...) : +5, une autre langue exigée : -10.
 languages: [fr, en]
 
