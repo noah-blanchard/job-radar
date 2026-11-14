@@ -1,29 +1,144 @@
-# Profil de matching : pilote entièrement le score (0-100). Modifier ce fichier
-# déclenche un recalcul complet des scores (hash du fichier stocké en base).
+# job-radar : profil de scoring de Noah Blanchard
+# Score = localisation (0-30) + new grad (0-25) + domaines (0-25) + langue (+5/-10) + bonus
 
-grad_date: 2027-05
-seniority: new_grad
+grad_date: 2027-05            # B.Eng. génie logiciel, Polytechnique Montréal (référence)
+seniority: new_grad           # référence, non scoré
 
-# Poids par lieu. Le premier critère qui matche donne son poids.
+# --- Localisation : la PREMIÈRE règle qui matche gagne ---
 locations:
-  - { match: "Montréal|Montreal", weight: 30 }
-  - { match: "Toronto", weight: 25 }
-  - { country: CA, weight: 22 }
-  - { remote: true, country: CA, weight: 22 }
-  - { country: FR, weight: 12 }
-  - { country: US, weight: 10 }
-  - { remote: true, weight: 10 }
+  # Canada : pas de préférence entre villes
+  - { remote: true, country: CA, weight: 30 }
+  - { country: CA, weight: 30 }
+  - { match: "Canada|Montreal|Toronto|Vancouver|Ottawa|Quebec|Calgary|Waterloo", weight: 30 }  # filet si le pays n'est pas parsé
 
-# Mots-clés (regex insensibles à la casse) : titre x2, description x1.
+  # UE en remote (droit de travail via nationalité française), France exclue
+  - { remote: true, match: "Europe|EMEA|European Union", weight: 26 }
+  - { remote: true, country: IE, weight: 26 }
+  - { remote: true, country: NL, weight: 26 }
+  - { remote: true, country: DE, weight: 26 }
+  - { remote: true, country: BE, weight: 26 }
+  - { remote: true, country: LU, weight: 26 }
+  - { remote: true, country: ES, weight: 26 }
+  - { remote: true, country: PT, weight: 26 }
+  - { remote: true, country: IT, weight: 26 }
+  - { remote: true, country: AT, weight: 26 }
+  - { remote: true, country: DK, weight: 26 }
+  - { remote: true, country: SE, weight: 26 }
+  - { remote: true, country: FI, weight: 26 }
+  - { remote: true, country: PL, weight: 26 }
+
+  # UE sur site (déménagement)
+  - { country: IE, weight: 24 }
+  - { country: NL, weight: 24 }
+  - { country: DE, weight: 24 }
+  - { country: BE, weight: 24 }
+  - { country: LU, weight: 24 }
+  - { country: ES, weight: 24 }
+  - { country: PT, weight: 24 }
+  - { country: IT, weight: 24 }
+  - { country: AT, weight: 24 }
+  - { country: DK, weight: 24 }
+  - { country: SE, weight: 24 }
+  - { country: FI, weight: 24 }
+  - { country: PL, weight: 24 }
+
+  # Remote ailleurs : souvent "US only" sans permis, donc sous le Canada sur site
+  - { remote: true, weight: 15 }
+
+  # Acceptables mais bas
+  - { country: FR, weight: 10 }
+  - { country: GB, weight: 10 }   # hors UE, visa requis
+  - { country: CN, weight: 8 }
+  # US et reste du monde : 0 (pas de permis)
+
+# --- Domaines : +3 par mot-clé (x2 dans le titre), plafond 25 ---
+# Classement : audio > data > ML > fullstack > .NET > gamedev > infra
 domains:
-  audio_dsp: [audio, dsp, "digital signal processing", juce, vst, "audio plugin", music]
-  fullstack: ['full[- ]?stack', react, 'next\.js', typescript, node, frontend, backend]
-  ai_ml: [machine learning, ml engineer, ai engineer, llm, pytorch, data scientist]
-  data_eng: [data engineer, spark, airflow, dbt, lakehouse, iceberg, kafka]
-  gamedev: [game, gameplay, unity, unreal, engine programmer]
-  systems: ['c\+\+', embedded, 'low[- ]latency', gpu, cuda]
+  audio_dsp:
+    - juce
+    - dsp
+    - "signal processing"
+    - 'audio (software|plugins?|engine|processing|programming|developer|engineer)'
+    - 'vst3?'
+    - daw
+    - 'real[- ]time audio'
+    - 'synthesi[sz]ers?|sound synthesis'
+    - midi
+    - "music technology"
+
+  data_engineering:
+    - 'data engineer(ing)?'
+    - dbt
+    - iceberg
+    - duckdb
+    - '(py)?spark'
+    - lakehouse
+    - 'data pipelines?'
+    - 'etl|elt'
+    - 'data warehous(e|ing)'
+    - parquet
+    - hadoop
+
+  ml_recsys:
+    - 'machine learning'
+    - 'ml engineer'
+    - 'recommend(er|ation) (systems?|engines?)'
+    - 'collaborative filtering'
+    - mlflow
+    - lightgbm
+    - 'scikit[- ]learn'
+    - mlops
+    - 'r (programming|language)|rstudio|tidyverse'   # "R" seul matcherait "R&D"
+
+  fullstack_web:
+    - 'full[- ]?stack'
+    - 'next\.js'
+    - typescript
+    - react
+    - 'node\.js'
+    - express
+    - nestjs
+    - fastapi
+    - graphql
+    - 'postgres(ql)?'
+    - 'socket\.io|websockets?'
+
+  backend_dotnet:               # accepté : peu de mots-clés, très spécifiques
+    - 'c#'
+    - '\.net'
+    - 'asp\.net'
+    - 'entity framework'
+
+  gamedev:                      # accepté
+    - unity
+    - gameplay
+    - 'game (developer|programmer|engine)'
+    - 'netcode|multiplayer networking'
+
+  infra_cloud:                  # bas : vu en cours (Kubernetes, INF8480)
+    - kubernetes
+    - k8s
+    - 'github actions'
+    - 'docker compose'
 
 languages: [fr, en]
-work_auth_note: "" # à remplir
+
+work_auth_note: "Autorisé à travailler au Canada et dans l'UE (nationalité française). Pas d'autorisation US."
+
 exclude_companies: []
-exclude_title: [sales, recruiter, marketing, "account executive"]
+
+# Mots rédhibitoires dans N'IMPORTE quel titre -> score 0
+# Pas de "lead", "senior", "manager" : le plafond new grad s'en charge
+exclude_title:
+  - sales
+  - 'ventes?'
+  - 'recruit(er|ing)|recruteur|recruteuse'
+  - 'talent acquisition'
+  - 'account (executive|manager)'
+  - 'business development'
+  - marketing
+  - 'customer support|support (specialist|analyst|technician|agent)'
+  - 'help ?desk'
+  - technician
+  - 'manual (qa|tester)|qa tester'
+  - 'intern(ship)?|stagiaire|co-?op'   # diplômé en mai 2027 : stages hors cible
