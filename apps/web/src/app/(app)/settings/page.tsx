@@ -17,11 +17,13 @@ import { TestChannelsButton } from "./test-button";
 export const metadata: Metadata = { title: "Réglages" };
 export const dynamic = "force-dynamic";
 
+/** Unset, empty, or only a comment (compose reads `KEY=   # comment` as "# comment"). */
+const blank = (v: string | undefined) => !v || v.trim() === "" || /^#(\s|$)/.test(v.trim());
 const env = (k: string, def = "—") => {
   const v = process.env[k];
-  return v === undefined || v === "" ? def : v;
+  return blank(v) ? def : (v as string);
 };
-const isSet = (...keys: string[]) => keys.every((k) => !!process.env[k]);
+const isSet = (...keys: string[]) => keys.every((k) => !blank(process.env[k]));
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (

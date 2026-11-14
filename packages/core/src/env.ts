@@ -1,18 +1,18 @@
 import { z } from "zod";
 
-/** Empty strings in .env files mean "not set". */
+/**
+ * Empty strings in .env files mean "not set". So does a value that is only a comment: Docker
+ * Compose reads `KEY=   # comment` as the value "# comment" (seen with NTFY_TOPIC).
+ */
+const isUnset = (v: unknown) =>
+  typeof v === "string" && (v.trim() === "" || /^#(\s|$)/.test(v.trim()));
+
 const opt = <T extends z.ZodType>(schema: T) =>
-  z.preprocess(
-    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
-    schema.optional(),
-  );
+  z.preprocess((v) => (isUnset(v) ? undefined : v), schema.optional());
 
 /** `prefault` runs the default through the schema (so "false" becomes false, "ca,us" a list). */
 const withDefault = <T extends z.ZodType>(schema: T, def: z.input<T>) =>
-  z.preprocess(
-    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
-    schema.prefault(def as never),
-  );
+  z.preprocess((v) => (isUnset(v) ? undefined : v), schema.prefault(def as never));
 
 const int = z.coerce.number().int().nonnegative();
 const bool = z.stringbool();
