@@ -1,19 +1,35 @@
 import { getConnector, runSource, type Company, type RunSummary } from "@jobradar/core";
-import { and, asc, companies, eq, isNotNull, ne } from "@jobradar/db";
+import { and, asc, companies, eq, isNotNull, ne, sql } from "@jobradar/db";
 import { withAdvisoryLock } from "./lock";
 import type { Runtime } from "./runtime";
 
+export type Schedule = "ats" | "aggregators" | "feeds";
+
 export interface SweepOptions {
-  /** Only these connector ids (default: every enabled ATS in sources.yaml). */
+  /** Which schedules of sources.yaml to run. */
+  schedules: Schedule[];
+  /** Only these source ids (default: every enabled source of the schedules). */
   only?: string[];
-  /** Only companies whose name contains this (case-insensitive). */
+  /** ATS only: companies whose name contains this (case-insensitive). */
   company?: string;
-  /** Random delay before each connector starts, to spread load (0 for manual runs). */
+  /** Random delay before each source starts, to spread load (0 for manual runs). */
   maxJitterMs?: number;
-  /** Ignore `enabled: false` in sources.yaml (manual runs). */
+  /** Ignore `enabled: false` in sources.yaml (manual runs of one source). */
   includeDisabled?: boolean;
+  /** ATS: stop starting new companies after this instant (epoch ms). */
+  deadline?: number;
 }
 
+export interface SweepResult {
+  runs: RunSummary[];
+  /** ATS companies not reached before the deadline (they run first next time). */
+  deferred: number;
+}
+
+/**
+ * Companies of one ATS, best first: high priority, then never/least recently OK, broken last.
+ * With the time budget this rotates through hundreds of discovered boards across sweeps.
+ */
 async function companiesFor(rt: Runtime, ats: string): Promise<Company[]> {
   const rows = await rt.db
     .select()
@@ -25,7 +41,12 @@ async function companiesFor(rt: Runtime, ats: string): Promise<Company[]> {
         ne(companies.atsStatus, "unsupported"),
       ),
     )
-    .orderBy(asc(companies.id));
+    .orderBy(
+      sql`case when ${companies.atsStatus} = 'broken' then 1 else 0 end`,
+      sql`case ${companies.priority} when 'high' then 0 when 'normal' then 1 else 2 end`,
+      sql`${companies.lastOkAt} asc nulls first`,
+      asc(companies.id),
+    );
   return rows.map((r) => ({
     id: r.id,
     name: r.name,
@@ -36,32 +57,55 @@ async function companiesFor(rt: Runtime, ats: string): Promise<Company[]> {
   }));
 }
 
+function depsFor(rt: Runtime, sourceId: string) {
+  return {
+    db: rt.db,
+    http: rt.http,
+    log: rt.log,
+    env: rt.env,
+    profile: rt.profile,
+    quota: rt.quotaFor(sourceId),
+  };
+}
+
 /**
- * One ATS sweep: connectors run in parallel (different hosts), companies of one connector run
- * sequentially, each connector under its own advisory lock.
+ * Runs the sources of the given schedules. Sources run in parallel (different hosts), each under
+ * its own advisory lock; the companies of one ATS run sequentially.
  */
-export async function runAtsSweep(rt: Runtime, opts: SweepOptions = {}): Promise<RunSummary[]> {
+export async function runSweep(rt: Runtime, opts: SweepOptions): Promise<SweepResult> {
   const ids = rt.sources
-    .filter((s) => s.schedule === "ats" && (opts.includeDisabled || s.enabled))
+    .filter((s) => opts.schedules.includes(s.schedule) && (opts.includeDisabled || s.enabled))
     .map((s) => s.id)
     .filter((id) => !opts.only || opts.only.includes(id));
+  let deferred = 0;
 
   const results = await Promise.all(
     ids.map(async (id) => {
       const connector = getConnector(id);
       if (!connector) {
-        rt.log.warn({ source: id }, "source enabled in sources.yaml but no connector implemented");
+        if (opts.only || rt.sources.find((s) => s.id === id)?.enabled)
+          rt.log.warn({ source: id }, "source listed in sources.yaml but no connector implemented");
         return [];
       }
       const jitter = Math.floor(Math.random() * (opts.maxJitterMs ?? 0));
       if (jitter > 0) await new Promise((r) => setTimeout(r, jitter));
 
       const out = await withAdvisoryLock(rt.lockSql, `source:${id}`, async () => {
+        const deps = depsFor(rt, id);
+        if (!connector.needsCompany) return [await runSource(deps, connector)];
         const list = (await companiesFor(rt, id)).filter(
           (c) => !opts.company || c.name.toLowerCase().includes(opts.company.toLowerCase()),
         );
         const summaries: RunSummary[] = [];
-        for (const c of list) summaries.push(await runSource(rt, connector, c));
+        for (const [i, c] of list.entries()) {
+          if (opts.deadline && Date.now() > opts.deadline) {
+            const left = list.length - i;
+            deferred += left;
+            rt.log.warn({ source: id, deferred: left }, "sweep time budget reached");
+            break;
+          }
+          summaries.push(await runSource(deps, connector, c));
+        }
         return summaries;
       });
       if (out === undefined)
@@ -69,5 +113,5 @@ export async function runAtsSweep(rt: Runtime, opts: SweepOptions = {}): Promise
       return out ?? [];
     }),
   );
-  return results.flat();
+  return { runs: results.flat(), deferred };
 }

@@ -11,6 +11,7 @@
     "dev:worker": "pnpm --filter @jobradar/worker dev",
     "db:generate": "pnpm --filter @jobradar/db generate",
     "db:migrate": "pnpm --filter @jobradar/db migrate",
+    "detect-ats": "pnpm --filter @jobradar/worker cli detect-ats",
     "lint": "eslint . && prettier --check .",
     "typecheck": "pnpm -r --parallel typecheck",
     "test": "vitest run",

@@ -2,14 +2,20 @@ import { createServer } from "node:http";
 import { loadCompanySeed, syncCompanySeed } from "@jobradar/core";
 import { kvSet, sql } from "@jobradar/db";
 import { Cron } from "croner";
-import { runAtsSweep } from "./ats";
+
 import { createHealthHandler } from "./health";
 import { createRuntime } from "./runtime";
+import { runSweep, type Schedule } from "./sweep";
 
 const rt = createRuntime("worker");
 const { env, log, db } = rt;
 const TZ = env.TZ;
-const ATS_JITTER_MS = 10 * 60_000;
+/** Random start delay per source, to spread load. */
+const JITTER_MS: Record<Schedule, number> = {
+  ats: 10 * 60_000,
+  aggregators: 2 * 60_000,
+  feeds: 5 * 60_000,
+};
 
 const startedAt = new Date();
 let lastTick: Date | undefined;
@@ -21,19 +27,28 @@ async function heartbeat(): Promise<void> {
   log.debug({ at: now.toISOString() }, "heartbeat");
 }
 
-async function atsSweep(): Promise<void> {
-  const t0 = Date.now();
-  const results = await runAtsSweep(rt, { maxJitterMs: ATS_JITTER_MS });
-  log.info(
-    {
-      runs: results.length,
-      errors: results.filter((r) => r.status === "error").length,
-      fetched: results.reduce((a, r) => a + r.fetched, 0),
-      nbNew: results.reduce((a, r) => a + r.nbNew, 0),
-      ms: Date.now() - t0,
-    },
-    "ats sweep done",
-  );
+function sweep(schedule: Schedule) {
+  return async (): Promise<void> => {
+    const t0 = Date.now();
+    const { runs, deferred } = await runSweep(rt, {
+      schedules: [schedule],
+      maxJitterMs: JITTER_MS[schedule],
+      deadline: schedule === "ats" ? t0 + env.ATS_SWEEP_MAX_MINUTES * 60_000 : undefined,
+    });
+    log.info(
+      {
+        schedule,
+        runs: runs.length,
+        errors: runs.filter((r) => r.status === "error").length,
+        fetched: runs.reduce((a, r) => a + r.fetched, 0),
+        nbNew: runs.reduce((a, r) => a + r.nbNew, 0),
+        discovered: runs.reduce((a, r) => a + r.discovered, 0),
+        deferred,
+        ms: Date.now() - t0,
+      },
+      "sweep done",
+    );
+  };
 }
 
 const guard = (name: string, fn: () => Promise<void>) => () =>
@@ -45,7 +60,17 @@ const jobs: Cron[] = [
     { name: "heartbeat", timezone: TZ, protect: true },
     guard("heartbeat", heartbeat),
   ),
-  new Cron(env.ATS_CRON, { name: "ats", timezone: TZ, protect: true }, guard("ats", atsSweep)),
+  new Cron(env.ATS_CRON, { name: "ats", timezone: TZ, protect: true }, guard("ats", sweep("ats"))),
+  new Cron(
+    env.AGGREGATORS_CRON,
+    { name: "aggregators", timezone: TZ, protect: true },
+    guard("aggregators", sweep("aggregators")),
+  ),
+  new Cron(
+    env.FEEDS_CRON,
+    { name: "feeds", timezone: TZ, protect: true },
+    guard("feeds", sweep("feeds")),
+  ),
 ];
 
 const server = createServer(
