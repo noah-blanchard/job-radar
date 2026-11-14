@@ -1,0 +1,12 @@
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  dialect: "postgresql",
+  schema: "./src/schema.ts",
+  out: "./migrations",
+  dbCredentials: {
+    url: process.env.DATABASE_URL ?? "postgres://jobradar:jobradar@localhost:5432/jobradar",
+  },
+  strict: true,
+  verbose: true,
+});

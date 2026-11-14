@@ -3,3 +3,6 @@ packages/db/migrations/
 packages/core/test/fixtures/
 .next/
 dist/
+docs/
+config/
+*.md
