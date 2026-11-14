@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
+import { Maximize2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
@@ -16,7 +16,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { dismissToast, toast } from "@/components/ui/toast";
 import {
   applyView,
+  filtersToParams,
   inboxHref,
+  matchesStatus,
   PAGE_SIZE,
   STATUS_LABEL,
   type InboxFilters,
@@ -36,8 +38,6 @@ const LEAVE_MS = 180;
 
 /** Pane cache survives client navigations (back from a job page, next page of results). */
 const detailCache = new Map<number, JobDetail>();
-/** Set before paging so the new rows open on their first / last row. */
-let pendingEdge: "first" | "last" | null = null;
 
 function usePaneVisible() {
   const [visible, setVisible] = useState(false);
@@ -84,48 +84,39 @@ export function Inbox({
   const paneVisible = usePaneVisible();
   const softRefresh = useSoftRefresh();
   const queue = filters.status === "todo"; // triaged rows leave the list
-  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const [statuses, setStatuses] = useState<Record<number, JobStatus>>({});
   const [follow, setFollow] = useState<Record<number, string | null>>({});
   const [removed, setRemoved] = useState<ReadonlySet<number>>(new Set());
   const [leaving, setLeaving] = useState<ReadonlySet<number>>(new Set());
-  const pick = (list: InboxItem[]) => {
-    if (pendingEdge === "last" && list.length) return list[list.length - 1]!.id;
-    if (pendingEdge === "first") return list[0]?.id ?? null;
-    if (initialJob && list.some((r) => r.id === initialJob)) return initialJob;
-    return list[0]?.id ?? null;
-  };
+  const pick = (list: InboxItem[]) =>
+    initialJob && list.some((r) => r.id === initialJob) ? initialJob : (list[0]?.id ?? null);
   const [selectedId, setSelectedId] = useState<number | null>(() => pick(rows));
 
-  // New server data. Another list (filters, page): start again from it. The same list
-  // refreshed: keep the selection where it was, and the rows still collapsing.
-  const listKey = inboxHref(filters);
-  const [shown, setShown] = useState({ rows, key: listKey });
-  if (shown.rows !== rows) {
-    const same = shown.key === listKey && pendingEdge === null;
-    setShown({ rows, key: listKey });
+  // The list is the first server slice plus the slices loaded while scrolling. It only starts
+  // over when the filters change: a background refresh (counts after a write) keeps it as is,
+  // so rows never jump under the cursor.
+  const listKey = inboxHref({ ...filters, page: 1 });
+  const [base, setBase] = useState({ rows, total, key: listKey });
+  const [extra, setExtra] = useState<InboxItem[]>([]);
+  const [exhausted, setExhausted] = useState(rows.length < PAGE_SIZE);
+  const [loadingMore, setLoadingMore] = useState(false);
+  if (base.key !== listKey) {
+    setBase({ rows, total, key: listKey });
     setStatuses({});
     setFollow({});
     setRemoved(new Set());
-    if (same) {
-      const prev = shown.rows.filter((r) => !removed.has(r.id) && !leaving.has(r.id));
-      const at = Math.max(
-        0,
-        prev.findIndex((r) => r.id === selectedId),
-      );
-      if (!rows.some((r) => r.id === selectedId))
-        setSelectedId(rows[Math.min(at, rows.length - 1)]?.id ?? null);
-    } else {
-      setLeaving(new Set());
-      setSelectedId(pick(rows));
-    }
+    setLeaving(new Set());
+    setExtra([]);
+    setExhausted(rows.length < PAGE_SIZE);
+    setSelectedId(pick(rows));
   }
-  useEffect(() => {
-    pendingEdge = null;
-  }, [rows]);
 
-  const visible = useMemo(() => rows.filter((r) => !removed.has(r.id)), [rows, removed]);
+  const all = useMemo(() => {
+    const seen = new Set<number>();
+    return [...base.rows, ...extra].filter((r) => !seen.has(r.id) && !!seen.add(r.id));
+  }, [base.rows, extra]);
+  const visible = useMemo(() => all.filter((r) => !removed.has(r.id)), [all, removed]);
   // j/k move over rows that stay: a row collapsing out of the queue is not a stop.
   const nav = useMemo(() => visible.filter((r) => !leaving.has(r.id)), [visible, leaving]);
   const index = Math.max(
@@ -298,12 +289,12 @@ export function Inbox({
 
   const triage = useCallback(
     (id: number, status: JobStatus) => {
-      const r = rows.find((x) => x.id === id);
+      const r = all.find((x) => x.id === id);
       if (!r) return;
       const prev = statuses[r.id] ?? r.status;
       applyStatus(r, prev === status ? "new" : status, prev, { undoable: true });
     },
-    [rows, statuses, applyStatus],
+    [all, statuses, applyStatus],
   );
 
   type ChangeFollow = (
@@ -355,26 +346,61 @@ export function Inbox({
     [paneVisible, router],
   );
 
-  const edge = useCallback(
-    (dir: 1 | -1) => {
-      if (dir === 1) {
-        if (queue && removed.size > 0) {
-          pendingEdge = "first";
-          startNav(() => router.refresh());
-        } else if (filters.page < pageCount) navigate({ ...filters, page: filters.page + 1 });
-      } else if (filters.page > 1) {
-        pendingEdge = "last";
-        navigate({ ...filters, page: filters.page - 1 });
-      }
-    },
-    [queue, removed.size, filters, pageCount, navigate, router],
-  );
-
-  // The page's own queue emptied: fetch what's next.
+  // ---------- infinite scroll ----------
+  const loading = useRef(false);
+  const keyRef = useRef(listKey);
   useEffect(() => {
-    if (queue && visible.length === 0 && removed.size > 0 && leaving.size === 0)
-      startNav(() => router.refresh());
-  }, [queue, visible.length, removed.size, leaving.size, router]);
+    keyRef.current = listKey;
+  }, [listKey]);
+  const sentinel = useRef<HTMLDivElement>(null);
+
+  /** Loads the next slice; resolves with the rows it added (empty when nothing new). */
+  const loadMore = useCallback(async (): Promise<InboxItem[]> => {
+    if (loading.current || exhausted) return [];
+    loading.current = true;
+    setLoadingMore(true);
+    const key = listKey;
+    try {
+      // Rows that no longer match the filter (triaged, ignored…) left the server's list:
+      // the next slice starts that many rows earlier. Duplicates are dropped by id.
+      const left = all.filter((r) => !matchesStatus(statusOf(r), filters.status)).length;
+      const qs = filtersToParams({ ...filters, page: 1 });
+      qs.set("offset", String(all.length - left));
+      const res = await fetch(`/api/inbox?${qs}`);
+      if (!res.ok) throw new Error(String(res.status));
+      const more = (await res.json()) as InboxItem[];
+      if (keyRef.current !== key) return [];
+      if (more.length < PAGE_SIZE) setExhausted(true);
+      const known = new Set(all.map((r) => r.id));
+      const fresh = more.filter((r) => !known.has(r.id));
+      setExtra((e) => [...e, ...fresh]);
+      return fresh;
+    } catch {
+      toast({
+        tone: "error",
+        message: "Impossible de charger la suite. Fais défiler pour réessayer.",
+      });
+      return [];
+    } finally {
+      loading.current = false;
+      setLoadingMore(false);
+    }
+  }, [exhausted, listKey, all, filters, statusOf]);
+
+  // Approaching the end of the list loads the next slice (600 px ahead).
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el || exhausted) return;
+    const contained = window.matchMedia("(min-width: 768px)").matches;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e?.isIntersecting) void loadMore();
+      },
+      { root: contained ? listRef.current : null, rootMargin: "0px 0px 600px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [loadMore, exhausted, visible.length]);
 
   // ---------- keyboard ----------
   useEffect(() => {
@@ -384,10 +410,12 @@ export function Inbox({
       const r = selected;
       if (e.key === "j" || e.key === "ArrowDown") {
         if (index < nav.length - 1) setSelectedId(nav[index + 1]!.id);
-        else edge(1);
+        else
+          void loadMore().then((more) => {
+            if (more[0]) setSelectedId(more[0].id);
+          });
       } else if (e.key === "k" || e.key === "ArrowUp") {
         if (index > 0) setSelectedId(nav[index - 1]!.id);
-        else edge(-1);
       } else if (e.key === "z") {
         const u = popUndo();
         if (!u) toast({ message: "Rien à annuler." });
@@ -413,11 +441,10 @@ export function Inbox({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selected, index, nav, edge, triage, statusOf, router, paneVisible]);
+  }, [selected, index, nav, loadMore, triage, statusOf, router, paneVisible]);
 
   // ---------- render ----------
-  const first = total === 0 ? 0 : (filters.page - 1) * PAGE_SIZE + 1;
-  const shownTotal = Math.max(0, total - removed.size);
+  const shownTotal = Math.max(0, base.total - removed.size);
   const paneJob = selected
     ? (detailCache.get(selected.id) ?? (detail?.id === selected.id ? detail : null))
     : null;
@@ -441,7 +468,7 @@ export function Inbox({
             )}
           >
             {visible.length === 0 ? (
-              <EmptyQueue filters={filters} navigate={navigate} loading={removed.size > 0} />
+              <EmptyQueue filters={filters} navigate={navigate} loading={!exhausted} />
             ) : (
               <ul aria-label="Offres">
                 {visible.map((r) => (
@@ -458,18 +485,23 @@ export function Inbox({
                 ))}
               </ul>
             )}
+            <div ref={sentinel} aria-hidden className="h-px" />
+            {visible.length > 0 && (loadingMore || !exhausted) ? (
+              <p className="text-muted-foreground px-4 py-4 text-center text-xs md:px-6">
+                {loadingMore ? "Chargement de la suite…" : "La suite se charge en descendant."}
+              </p>
+            ) : visible.length > 0 ? (
+              <p className="text-muted-foreground px-4 py-4 text-center text-xs md:px-6">
+                Fin de la liste.
+              </p>
+            ) : null}
           </div>
           <ListFooter
             shown={shownTotal}
-            first={first}
-            last={first + rows.length - 1}
-            total={total}
-            page={filters.page}
-            pageCount={pageCount}
-            pending={pending}
+            loaded={visible.length}
+            pending={pending || loadingMore}
             sort={filters.sort}
             onSort={(sort) => navigate({ ...filters, sort, page: 1 })}
-            pageHref={(page) => inboxHref({ ...filters, page })}
           />
         </section>
 
@@ -558,41 +590,26 @@ function PaneBar({ id }: { id: number }) {
   );
 }
 
-/** Fixed under the list: count, sort and pagination always in reach. */
+/** Fixed under the list: count and sort always in reach. */
 function ListFooter({
   shown,
-  first,
-  last,
-  total,
-  page,
-  pageCount,
+  loaded,
   pending,
   sort,
   onSort,
-  pageHref,
 }: {
   shown: number;
-  first: number;
-  last: number;
-  total: number;
-  page: number;
-  pageCount: number;
+  loaded: number;
   pending: boolean;
   sort: InboxFilters["sort"];
   onSort: (s: InboxFilters["sort"]) => void;
-  pageHref: (p: number) => string;
 }) {
-  const pager =
-    "hover:bg-secondary hover:text-foreground flex h-7 items-center gap-1 rounded-md px-2";
   return (
     <div className="bg-background text-muted-foreground sticky bottom-0 flex h-11 shrink-0 items-center gap-3 border-t px-4 text-xs md:px-6">
       <span className="tabular-nums">
         {shown.toLocaleString("fr-CA")} offre{shown > 1 ? "s" : ""}
-        {total > PAGE_SIZE ? (
-          <span className="hidden sm:inline">
-            {" "}
-            · {first}–{last}
-          </span>
+        {loaded < shown ? (
+          <span className="hidden sm:inline"> · {loaded.toLocaleString("fr-CA")} affichées</span>
         ) : null}
       </span>
       <span
@@ -605,7 +622,7 @@ function ListFooter({
       <Segmented
         label="Tri"
         size="sm"
-        className="h-7"
+        className="ml-auto h-7"
         value={sort}
         options={[
           { value: "score", label: "Score" },
@@ -613,35 +630,6 @@ function ListFooter({
         ]}
         onChange={onSort}
       />
-      {pageCount > 1 ? (
-        <nav className="ml-auto flex items-center gap-1" aria-label="Pagination">
-          {page > 1 ? (
-            <Link href={pageHref(page - 1)} scroll={false} className={pager}>
-              <ChevronLeft className="size-4" aria-hidden />
-              <span className="hidden sm:inline">Précédentes</span>
-            </Link>
-          ) : (
-            <span className={cn(pager, "pointer-events-none opacity-40")} aria-hidden>
-              <ChevronLeft className="size-4" />
-              <span className="hidden sm:inline">Précédentes</span>
-            </span>
-          )}
-          <span className="px-1 tabular-nums">
-            {page} / {pageCount}
-          </span>
-          {page < pageCount ? (
-            <Link href={pageHref(page + 1)} scroll={false} className={pager}>
-              <span className="hidden sm:inline">Suivantes</span>
-              <ChevronRight className="size-4" aria-hidden />
-            </Link>
-          ) : (
-            <span className={cn(pager, "pointer-events-none opacity-40")} aria-hidden>
-              <span className="hidden sm:inline">Suivantes</span>
-              <ChevronRight className="size-4" />
-            </span>
-          )}
-        </nav>
-      ) : null}
     </div>
   );
 }

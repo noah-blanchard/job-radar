@@ -50,7 +50,7 @@ export function ScoreRecord({ b, score }: { b: ScoreBreakdown | null; score: num
               className={cn(
                 "text-right font-medium tabular-nums",
                 p.points > 0
-                  ? "text-success"
+                  ? "text-positive"
                   : p.points < 0
                     ? "text-destructive"
                     : "text-muted-foreground",
@@ -61,7 +61,7 @@ export function ScoreRecord({ b, score }: { b: ScoreBreakdown | null; score: num
           </div>
         ))}
       </dl>
-      <div className="mt-1 flex items-baseline justify-between border-t border-[#33414c] pt-1.5 font-semibold">
+      <div className="mt-1 flex items-baseline justify-between border-t border-input pt-1.5 font-semibold">
         <span>Total</span>
         <span className="tabular-nums">
           {b.raw !== b.total ? (

@@ -4,61 +4,17 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Relevé: registrar ink ground, security-paper green rail, paper-white text.
+ * Relevé, in two inks (data-palette: bleu | violet), each light and dark (.dark on <html>).
  * Two text tones only (foreground / muted-foreground). Status colours are flat and committed:
- * one colour per status, used everywhere that status appears.
+ * one colour per status, used everywhere that status appears, never the accent's hue.
  */
 :root {
   --radius: 0.4375rem;
 
-  /* Grounds */
-  --background: #10161d; /* ink */
-  --surface: #141c24; /* reading pane, popovers */
-  --raised: #182630; /* selected row */
-  --raised-hover: #131d26; /* hovered row: solid, so overlays can match it */
-  --rail: #13201c; /* security-paper green */
-  --rail-active: #1c2f28;
-  --border: #24303a;
-  --border-soft: #1a242d;
-
-  /* Text: two tones, nothing in between */
-  --foreground: #e8e3d4;
-  --muted-foreground: #a0aaa2;
-
-  /* Accent: positive points, selection, primary action */
-  --primary: #8fc7a0;
-  --primary-foreground: #0d1912;
-
-  /* Controls */
-  --secondary: #1b2730;
-  --secondary-foreground: #e8e3d4;
-  --input: #2a3742;
-  --ring: #8fc7a0;
-
-  /* State */
-  --success: #8fc7a0;
-  --warning: #e3b45c;
-  --destructive: #e8735f;
-  --info: #7aa5e0;
-
-  /* Status roles (flat, committed) */
-  --st-new: #a0aaa2;
-  --st-saved: #7aa5e0;
-  --st-applied: #8fc7a0;
-  --st-interview: #e3b45c;
-  --st-rejected: #e8735f;
-  --st-ignored: #808b83;
-
-  /* Score ledger: positive parts on a green ramp, penalties in red */
-  --ledger-1: #8fc7a0;
-  --ledger-2: #6ead84;
-  --ledger-3: #4f8d66;
-  --ledger-4: #3b6e4f;
-  --ledger-track: #1e2a33;
-
-  /* Charts (/stats) */
-  --chart-1: #6ead84;
-  --chart-1-hover: #a9dbb7;
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 120ms;
+  --dur: 180ms;
 
   /* shadcn aliases kept for the remaining primitives */
   --card: var(--surface);
@@ -68,11 +24,177 @@
   --muted: var(--secondary);
   --accent: var(--secondary);
   --accent-foreground: var(--foreground);
+  --secondary-foreground: var(--foreground);
+  --ring: var(--primary);
+  --positive: var(--primary);
+  --info: var(--primary);
+  --success: var(--st-applied);
+  --warning: var(--st-interview);
+  --destructive: var(--st-rejected);
+  --st-new: var(--muted-foreground);
+  --chart-1: var(--ledger-2);
+}
 
-  /* Motion */
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --dur-fast: 120ms;
-  --dur: 180ms;
+/* ---------- Encre bleue (default) ---------- */
+:root,
+:root[data-palette="bleu"] {
+  color-scheme: light;
+  --background: #f7f8fa;
+  --surface: #ffffff;
+  --raised: #e8eef9;
+  --raised-hover: #f0f3f8;
+  --rail: #eef1f6;
+  --rail-active: #dfe6f2;
+  --rail-hover: #e6ebf3;
+  --rail-border: #dfe4ec;
+  --border: #dde2ea;
+  --border-soft: #e9ecf1;
+  --foreground: #161b23;
+  --muted-foreground: #5b6574;
+  --primary: #2f5fd0;
+  --primary-foreground: #ffffff;
+  --secondary: #eef1f5;
+  --secondary-hover: #e4e8ee;
+  --input: #cfd6e0;
+  --input-hover: #b9c2cf;
+  --field: #ffffff;
+  --card-ground: #ffffff;
+  --drop: #e9eff9;
+  --overlay: rgb(15 20 30 / 0.35);
+  --code: #f1f3f6;
+  --mark: #8c98aa;
+  --scrollbar: #c9d0da;
+  --st-saved: #6d4fd6;
+  --st-applied: #1d8a5c;
+  --st-interview: #a8670f;
+  --st-rejected: #c23b2a;
+  --st-ignored: #6b7380;
+  --ledger-1: #2f5fd0;
+  --ledger-2: #4f7be0;
+  --ledger-3: #7598ea;
+  --ledger-4: #9fb7f1;
+  --ledger-track: #e2e7ef;
+  --chart-1-hover: #2f5fd0;
+}
+:root.dark,
+:root.dark[data-palette="bleu"] {
+  color-scheme: dark;
+  --background: #0f141b;
+  --surface: #131a23;
+  --raised: #18222e;
+  --raised-hover: #141b25;
+  --rail: #121a24;
+  --rail-active: #1a2636;
+  --rail-hover: #16202c;
+  --rail-border: #1c2633;
+  --border: #232d3a;
+  --border-soft: #19222d;
+  --foreground: #e6e9ee;
+  --muted-foreground: #9aa4b2;
+  --primary: #7ea6ff;
+  --primary-foreground: #0b1220;
+  --secondary: #1a2330;
+  --secondary-hover: #212c3a;
+  --input: #2b3645;
+  --input-hover: #3a4657;
+  --field: #121922;
+  --card-ground: #131a24;
+  --drop: #152030;
+  --overlay: rgb(4 7 12 / 0.6);
+  --code: #0b1016;
+  --mark: #6d7f99;
+  --scrollbar: #2b3645;
+  --st-saved: #b29cff;
+  --st-applied: #5fc59a;
+  --st-interview: #e6b45a;
+  --st-rejected: #ef7a68;
+  --st-ignored: #7d8796;
+  --ledger-1: #7ea6ff;
+  --ledger-2: #5f8be8;
+  --ledger-3: #4670c9;
+  --ledger-4: #3459a6;
+  --ledger-track: #1e2733;
+  --chart-1-hover: #a9c3ff;
+}
+
+/* ---------- Encre violette ---------- */
+:root[data-palette="violet"] {
+  color-scheme: light;
+  --background: #f8f7fb;
+  --surface: #ffffff;
+  --raised: #ece8fa;
+  --raised-hover: #f2f0f8;
+  --rail: #f0eef8;
+  --rail-active: #e4dff7;
+  --rail-hover: #e9e5f6;
+  --rail-border: #e3dff0;
+  --border: #e0dcea;
+  --border-soft: #ebe8f2;
+  --foreground: #1a1724;
+  --muted-foreground: #615b74;
+  --primary: #5b3fd0;
+  --primary-foreground: #ffffff;
+  --secondary: #f0eef6;
+  --secondary-hover: #e7e3f0;
+  --input: #d2cde2;
+  --input-hover: #bdb6d3;
+  --field: #ffffff;
+  --card-ground: #ffffff;
+  --drop: #eeeafb;
+  --overlay: rgb(20 15 35 / 0.35);
+  --code: #f3f1f8;
+  --mark: #9a93b3;
+  --scrollbar: #cfc9de;
+  --st-saved: #2a72c4;
+  --st-applied: #1d8a5c;
+  --st-interview: #a8670f;
+  --st-rejected: #c23b3b;
+  --st-ignored: #6f6a80;
+  --ledger-1: #5b3fd0;
+  --ledger-2: #7a61e0;
+  --ledger-3: #9a86ea;
+  --ledger-4: #bbaef2;
+  --ledger-track: #e6e2f2;
+  --chart-1-hover: #5b3fd0;
+}
+:root.dark[data-palette="violet"] {
+  color-scheme: dark;
+  --background: #121219;
+  --surface: #16151f;
+  --raised: #1d1b2b;
+  --raised-hover: #17161f;
+  --rail: #17162a;
+  --rail-active: #221f3d;
+  --rail-hover: #1c1a33;
+  --rail-border: #211f36;
+  --border: #29273a;
+  --border-soft: #1e1d2a;
+  --foreground: #e9e7f1;
+  --muted-foreground: #a19db4;
+  --primary: #a693ff;
+  --primary-foreground: #120e24;
+  --secondary: #1c1a28;
+  --secondary-hover: #242233;
+  --input: #332f48;
+  --input-hover: #423d5b;
+  --field: #15141d;
+  --card-ground: #17161f;
+  --drop: #1e1b30;
+  --overlay: rgb(6 5 12 / 0.6);
+  --code: #0e0d14;
+  --mark: #8a84a8;
+  --scrollbar: #332f48;
+  --st-saved: #6fb4f0;
+  --st-applied: #5fc59a;
+  --st-interview: #e6b45a;
+  --st-rejected: #f07a7a;
+  --st-ignored: #827d96;
+  --ledger-1: #a693ff;
+  --ledger-2: #8a74f0;
+  --ledger-3: #6f58d6;
+  --ledger-4: #5844b3;
+  --ledger-track: #221f30;
+  --chart-1-hover: #c4b8ff;
 }
 
 @theme inline {
@@ -80,6 +202,17 @@
   --color-surface: var(--surface);
   --color-raised: var(--raised);
   --color-raised-hover: var(--raised-hover);
+  --color-rail-hover: var(--rail-hover);
+  --color-rail-border: var(--rail-border);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-input-hover: var(--input-hover);
+  --color-field: var(--field);
+  --color-card-ground: var(--card-ground);
+  --color-drop: var(--drop);
+  --color-overlay: var(--overlay);
+  --color-code: var(--code);
+  --color-mark: var(--mark);
+  --color-positive: var(--positive);
   --color-rail: var(--rail);
   --color-rail-active: var(--rail-active);
   --color-foreground: var(--foreground);
@@ -125,8 +258,7 @@
     @apply border-border;
   }
   html {
-    color-scheme: dark;
-    scrollbar-color: #2e3c47 transparent;
+    scrollbar-color: var(--scrollbar) transparent;
   }
   body {
     @apply bg-background text-foreground antialiased;
@@ -154,7 +286,7 @@
     height: 10px;
   }
   ::-webkit-scrollbar-thumb {
-    background: #2a3742;
+    background: var(--scrollbar);
     border-radius: 999px;
     border: 3px solid var(--background);
   }

@@ -57,37 +57,39 @@ function orderBy(f: InboxFilters): SQL {
     : sql`j.score desc nulls last, j.first_seen_at desc, j.id desc`;
 }
 
+/** One slice of the Inbox (infinite scroll): `offset` rows in, at most PAGE_SIZE rows. */
+export async function loadInboxRows(f: InboxFilters, offset: number): Promise<InboxRow[]> {
+  const rows = await queryRows<InboxRow>(
+    getDb(),
+    sql`
+    select j.id, j.title, j.company_name, j.city, j.region, j.country, j.remote, j.score,
+      j.is_new_grad, j.first_seen_at, j.url, j.apply_url, j.source, j.domains, j.closed_at,
+      coalesce(s.status, 'new') as status,
+      coalesce((select jsonb_agg(jsonb_build_array(p->>'key', (p->>'points')::int))
+        from jsonb_array_elements(j.score_breakdown->'parts') p), '[]'::jsonb) as ledger
+    from jobs j left join job_status s on s.job_id = j.id
+    where ${where(f)}
+    order by ${orderBy(f)}
+    limit ${PAGE_SIZE} offset ${Math.max(0, Math.floor(offset))}`,
+  );
+  return rows.map((r) => ({
+    ...r,
+    id: Number(r.id),
+    first_seen_at: new Date(r.first_seen_at).toISOString(),
+    closed_at: r.closed_at ? new Date(r.closed_at).toISOString() : null,
+  }));
+}
+
+/** First slice and the total count (the page's server render). */
 export async function loadInbox(f: InboxFilters): Promise<{ rows: InboxRow[]; total: number }> {
-  const db = getDb();
-  const w = where(f);
   const [rows, count] = await Promise.all([
-    queryRows<InboxRow>(
-      db,
-      sql`
-      select j.id, j.title, j.company_name, j.city, j.region, j.country, j.remote, j.score,
-        j.is_new_grad, j.first_seen_at, j.url, j.apply_url, j.source, j.domains, j.closed_at,
-        coalesce(s.status, 'new') as status,
-        coalesce((select jsonb_agg(jsonb_build_array(p->>'key', (p->>'points')::int))
-          from jsonb_array_elements(j.score_breakdown->'parts') p), '[]'::jsonb) as ledger
-      from jobs j left join job_status s on s.job_id = j.id
-      where ${w}
-      order by ${orderBy(f)}
-      limit ${PAGE_SIZE} offset ${(f.page - 1) * PAGE_SIZE}`,
-    ),
+    loadInboxRows(f, 0),
     queryRows<{ n: number }>(
-      db,
-      sql`select count(*)::int as n from jobs j left join job_status s on s.job_id = j.id where ${w}`,
+      getDb(),
+      sql`select count(*)::int as n from jobs j left join job_status s on s.job_id = j.id where ${where(f)}`,
     ),
   ]);
-  return {
-    rows: rows.map((r) => ({
-      ...r,
-      id: Number(r.id),
-      first_seen_at: new Date(r.first_seen_at).toISOString(),
-      closed_at: r.closed_at ? new Date(r.closed_at).toISOString() : null,
-    })),
-    total: count[0]?.n ?? 0,
-  };
+  return { rows, total: count[0]?.n ?? 0 };
 }
 
 export interface FilterOptions {

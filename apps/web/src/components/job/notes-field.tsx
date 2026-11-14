@@ -72,7 +72,7 @@ export function NotesField({
         }}
         placeholder="Notes : contact, date de candidature, suites…"
         aria-label="Notes"
-        className="border-input placeholder:text-muted-foreground block w-full resize-y rounded-md border bg-[#121a22] px-2.5 py-2 text-[13px] leading-relaxed outline-none hover:border-[#384754] focus-visible:border-primary/70 focus-visible:bg-background focus-visible:outline-none [field-sizing:content] min-h-[4.5rem]"
+        className="border-input placeholder:text-muted-foreground block w-full resize-y rounded-md border bg-field px-2.5 py-2 text-[13px] leading-relaxed outline-none hover:border-input-hover focus-visible:border-primary/70 focus-visible:bg-background focus-visible:outline-none [field-sizing:content] min-h-[4.5rem]"
       />
       <span
         aria-live="polite"

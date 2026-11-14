@@ -8,6 +8,7 @@ import { kvGet } from "@jobradar/db";
 import type { Metadata } from "next";
 import { PageFrame, PageHeader, PageScroll } from "@/components/placeholder";
 import { Badge } from "@/components/ui/badge";
+import { AppearanceSettings } from "@/components/theme-controls";
 import { getDb } from "@/lib/db";
 import { readProfile } from "@/lib/profile";
 import { formatDateTime, formatDuration } from "@/lib/utils";
@@ -67,6 +68,10 @@ export default async function SettingsPage() {
       />
       <PageScroll>
         <div className="max-w-4xl px-4 md:px-6">
+          <Section title="Apparence">
+            <AppearanceSettings />
+          </Section>
+
           <Section title="Profil de matching">
             <div className="flex flex-wrap items-center gap-2 text-[13px]">
               <code className="text-xs">config/profile.yaml</code>
@@ -98,7 +103,7 @@ export default async function SettingsPage() {
               <summary className="text-muted-foreground hover:text-foreground cursor-pointer text-xs">
                 Voir le profil effectif
               </summary>
-              <pre className="mt-2 max-h-[32rem] overflow-auto rounded-md border bg-[#0c1117] p-3 text-xs leading-relaxed">
+              <pre className="mt-2 max-h-[32rem] overflow-auto rounded-md border bg-code p-3 text-xs leading-relaxed">
                 {"text" in file ? file.text : (applied?.text ?? "")}
               </pre>
             </details>

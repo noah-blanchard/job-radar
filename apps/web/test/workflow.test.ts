@@ -74,3 +74,16 @@ describe("sanitizeHtml", () => {
     ]);
   });
 });
+
+describe("matchesStatus (infinite scroll offsets)", () => {
+  it("follows each status filter", async () => {
+    const { matchesStatus } = await import("../src/lib/filters");
+    expect(matchesStatus("new", "todo")).toBe(true);
+    expect(matchesStatus("saved", "todo")).toBe(false);
+    expect(matchesStatus("ignored", "active")).toBe(false);
+    expect(matchesStatus("applied", "active")).toBe(true);
+    expect(matchesStatus("ignored", "all")).toBe(true);
+    expect(matchesStatus("saved", "saved")).toBe(true);
+    expect(matchesStatus("applied", "saved")).toBe(false);
+  });
+});

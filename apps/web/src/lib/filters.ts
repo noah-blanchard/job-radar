@@ -158,3 +158,11 @@ export function activeFilterCount(f: InboxFilters): number {
     f.closed !== d.closed,
   ].filter(Boolean).length;
 }
+
+/** Whether a job with this status belongs to the list for this status filter. */
+export function matchesStatus(status: JobStatus, filter: StatusFilter): boolean {
+  if (filter === "all") return true;
+  if (filter === "active") return status !== "ignored";
+  if (filter === "todo") return status === "new";
+  return status === filter;
+}

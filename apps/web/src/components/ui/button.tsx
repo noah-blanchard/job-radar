@@ -11,8 +11,8 @@ const buttonVariants = cva(
         default:
           "bg-primary text-primary-foreground hover:bg-[color-mix(in_oklab,var(--primary)_88%,white)] active:bg-[color-mix(in_oklab,var(--primary)_85%,black)]",
         outline:
-          "border border-input bg-transparent text-foreground hover:bg-secondary hover:border-[#384754] active:bg-raised",
-        secondary: "bg-secondary text-foreground hover:bg-[#223039] active:bg-raised",
+          "border border-input bg-transparent text-foreground hover:bg-secondary hover:border-input-hover active:bg-raised",
+        secondary: "bg-secondary text-foreground hover:bg-secondary-hover active:bg-raised",
         ghost: "text-muted-foreground hover:bg-secondary hover:text-foreground active:bg-raised",
         destructive:
           "border border-[color-mix(in_oklab,var(--destructive)_45%,transparent)] text-destructive hover:bg-[color-mix(in_oklab,var(--destructive)_14%,transparent)]",

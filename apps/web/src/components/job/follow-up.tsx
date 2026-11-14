@@ -35,7 +35,7 @@ export function FollowUpControl({
       <PopoverTrigger
         title="Date de relance (f)"
         className={cn(
-          "border-input inline-flex shrink-0 items-center gap-1.5 rounded-md border whitespace-nowrap transition-colors duration-[var(--dur-fast)] hover:border-[#384754]",
+          "border-input inline-flex shrink-0 items-center gap-1.5 rounded-md border whitespace-nowrap transition-colors duration-[var(--dur-fast)] hover:border-input-hover",
           size === "sm" ? "h-7 px-2 text-xs" : "h-8 px-2.5 text-[13px]",
           at
             ? due
@@ -81,7 +81,7 @@ export function FollowUpControl({
               const iso = fromDateInput(e.currentTarget.value);
               if (iso) set(iso);
             }}
-            className="border-input text-foreground h-8 rounded-md border bg-transparent px-2 text-[13px] [color-scheme:dark]"
+            className="border-input text-foreground h-8 rounded-md border bg-transparent px-2 text-[13px]"
           />
         </label>
         {at ? (

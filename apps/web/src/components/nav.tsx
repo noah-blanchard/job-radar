@@ -15,6 +15,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { openCommandPalette } from "@/components/command-palette";
+import { ModeToggle } from "@/components/theme-controls";
 import { Kbd } from "@/components/ui/kbd";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -75,7 +76,7 @@ function RailLink({
         "flex h-8 items-center gap-2.5 rounded-md px-2.5 text-[13px] transition-colors duration-[var(--dur-fast)]",
         active
           ? "bg-rail-active text-foreground"
-          : "text-muted-foreground hover:text-foreground hover:bg-[#182a23]",
+          : "text-muted-foreground hover:text-foreground hover:bg-rail-hover",
       )}
     >
       <Icon className={cn("size-4 shrink-0", active ? "text-primary" : "")} aria-hidden />
@@ -95,7 +96,7 @@ export function Rail({
 }) {
   const pathname = usePathname();
   return (
-    <aside className="bg-rail hidden h-full w-[208px] shrink-0 flex-col border-r border-[#1e3029] px-2.5 py-4 md:flex">
+    <aside className="bg-rail hidden h-full w-[208px] shrink-0 flex-col border-r border-rail-border px-2.5 py-4 md:flex">
       <Link
         href="/"
         className="mb-5 flex items-center gap-2 px-2.5 text-sm font-semibold tracking-[-0.01em]"
@@ -106,11 +107,11 @@ export function Rail({
       <button
         type="button"
         onClick={openCommandPalette}
-        className="text-muted-foreground hover:text-foreground mb-4 flex h-8 items-center gap-2 rounded-md border border-[#22362e] px-2.5 text-[13px] transition-colors hover:border-[#2d463c]"
+        className="text-muted-foreground hover:text-foreground mb-4 flex h-8 items-center gap-2 rounded-md border border-rail-border px-2.5 text-[13px] transition-colors hover:border-input-hover"
       >
         <Search className="size-3.5" aria-hidden />
         Aller à…
-        <Kbd className="ml-auto border-[#2d463c]">Ctrl K</Kbd>
+        <Kbd className="ml-auto">Ctrl K</Kbd>
       </button>
       <nav aria-label="Navigation principale" className="flex flex-col gap-0.5">
         <RailLink {...WORK[0]} active={isActive(pathname, "/")}>
@@ -131,10 +132,11 @@ export function Rail({
           </RailLink>
         ))}
       </nav>
-      <form action={logout} className="mt-auto">
+      <ModeToggle className="mt-auto" />
+      <form action={logout}>
         <button
           type="submit"
-          className="text-muted-foreground hover:text-foreground flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-[13px] hover:bg-[#182a23]"
+          className="text-muted-foreground hover:text-foreground flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-[13px] hover:bg-rail-hover"
         >
           <LogOut className="size-4" aria-hidden />
           Se déconnecter
@@ -155,7 +157,7 @@ export function TopBar({
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   return (
-    <header className="bg-rail sticky top-0 z-30 flex h-12 items-center gap-1 border-b border-[#1e3029] px-3 md:hidden">
+    <header className="bg-rail sticky top-0 z-30 flex h-12 items-center gap-1 border-b border-rail-border px-3 md:hidden">
       <Link href="/" aria-label="JobRadar" className="mr-1 px-1">
         <RadarMark />
       </Link>
@@ -207,6 +209,7 @@ export function TopBar({
               ) : null}
             </Link>
           ))}
+          <ModeToggle className="h-9 w-full px-2" />
           <form action={logout} className="mt-1 border-t pt-1">
             <button
               type="submit"
@@ -226,8 +229,8 @@ export function TopBar({
 export function RadarMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={cn("size-[18px]", className)} aria-hidden>
-      <circle cx="16" cy="16" r="12" fill="none" stroke="#6f8a7c" strokeWidth="2.4" />
-      <circle cx="16" cy="16" r="6" fill="none" stroke="#6f8a7c" strokeWidth="2.4" />
+      <circle cx="16" cy="16" r="12" fill="none" stroke="var(--mark)" strokeWidth="2.4" />
+      <circle cx="16" cy="16" r="6" fill="none" stroke="var(--mark)" strokeWidth="2.4" />
       <path d="M16 16 L25.5 7.5" stroke="var(--primary)" strokeWidth="3" strokeLinecap="round" />
       <circle cx="16" cy="16" r="2.2" fill="var(--primary)" />
     </svg>

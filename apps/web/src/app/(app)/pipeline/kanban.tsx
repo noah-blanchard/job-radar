@@ -82,8 +82,8 @@ const Card = memo(function Card({
       onClick={() => onSelect(c.id)}
       aria-selected={selected}
       className={cn(
-        "border-border-soft cursor-grab rounded-md border bg-[#131b23] p-3 transition-[background-color,border-color,opacity] duration-[var(--dur-fast)] active:cursor-grabbing",
-        selected ? "bg-raised border-[#33424e]" : "hover:border-border",
+        "border-border-soft cursor-grab rounded-md border bg-card-ground p-3 transition-[background-color,border-color,opacity] duration-[var(--dur-fast)] active:cursor-grabbing",
+        selected ? "bg-raised border-input" : "hover:border-border",
         dragging && "opacity-40",
         c.closed && "opacity-70",
       )}
@@ -315,7 +315,7 @@ export function Kanban({ cards: initial }: { cards: PipelineCard[] }) {
             }}
             className={cn(
               "bg-background flex min-h-40 flex-col gap-2 p-3 transition-colors duration-[var(--dur-fast)] md:min-h-0 md:overflow-y-auto md:p-4",
-              over === col && "bg-[#131e27]",
+              over === col && "bg-drop",
               collapsed ? "xl:w-56" : col === "rejected" && "xl:w-80",
             )}
           >

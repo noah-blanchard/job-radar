@@ -15,7 +15,7 @@ export default async function LoginPage({
   return (
     <main className="flex min-h-dvh">
       <div
-        className="bg-rail hidden w-[208px] shrink-0 border-r border-[#1e3029] md:block"
+        className="bg-rail hidden w-[208px] shrink-0 border-r border-rail-border md:block"
         aria-hidden
       />
       <div className="flex flex-1 items-center justify-center px-4">
