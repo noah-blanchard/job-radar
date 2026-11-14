@@ -47,6 +47,8 @@ export function githubListings(id: string, url: string): Connector {
           applyUrl: l.url,
           locationRaw: locations.join("; ") || undefined,
           postedAt: l.date_posted ? new Date(l.date_posted * 1000) : undefined,
+          // Curated new-grad list: every entry is an entry-level role.
+          seniorityHint: "entry",
         };
       }
     },

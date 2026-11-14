@@ -54,6 +54,8 @@ export const companies = pgTable(
     careersUrl: text("careers_url"),
     origin: companyOrigin("origin").notNull().default("seed"),
     priority: companyPriority("priority").notNull().default("normal"),
+    /** Priority edited in the dashboard: the seed sync no longer overwrites it. */
+    priorityManual: boolean("priority_manual").notNull().default(false),
     atsStatus: atsStatus("ats_status").notNull().default("unknown"),
     consecutiveFailures: smallint("consecutive_failures").notNull().default(0),
     lastOkAt: tstz("last_ok_at"),
@@ -85,6 +87,8 @@ export const jobs = pgTable(
     remote: remoteKind("remote").notNull().default("unknown"),
     employmentType: text("employment_type"),
     seniority: text("seniority"),
+    /** Seniority stated by the source itself (new grad list, "Entry-level" filter, Personio). */
+    seniorityHint: text("seniority_hint"),
     isNewGrad: boolean("is_new_grad"),
     isNewGradReason: text("is_new_grad_reason"),
     salaryMin: integer("salary_min"),
@@ -103,6 +107,11 @@ export const jobs = pgTable(
     lang: text("lang"),
     score: smallint("score"),
     scoreBreakdown: jsonb("score_breakdown"),
+    /** profile.yaml domains matched by the scorer (Inbox domain filter, GIN-indexed). */
+    domains: text("domains")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     tsv: tsvector("tsv").generatedAlwaysAs(
       sql`setweight(to_tsvector('simple', coalesce("title", '')), 'A') || setweight(to_tsvector('simple', coalesce("company_name", '')), 'A') || setweight(to_tsvector('simple', coalesce("location_raw", '')), 'B') || setweight(to_tsvector('simple', coalesce("description_text", '')), 'C')`,
     ),
@@ -115,6 +124,14 @@ export const jobs = pgTable(
     index("jobs_score_idx").on(t.score.desc()),
     index("jobs_country_idx").on(t.country),
     index("jobs_company_idx").on(t.companyId),
+    index("jobs_domains_idx").using("gin", t.domains),
+    // Inbox default view: open jobs by score then freshness.
+    index("jobs_open_score_idx")
+      .on(t.score.desc().nullsLast(), t.firstSeenAt.desc())
+      .where(sql`${t.closedAt} is null`),
+    index("jobs_open_first_seen_idx")
+      .on(t.firstSeenAt.desc())
+      .where(sql`${t.closedAt} is null`),
   ],
 );
 

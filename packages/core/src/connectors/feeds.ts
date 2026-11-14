@@ -206,6 +206,8 @@ export const himalayas: Connector = {
             locationRaw: where ? `Remote - ${where}` : "Remote",
             remoteHint: "remote",
             employmentType: j.employmentType ?? undefined,
+            // Searched with seniority=Entry-level.
+            seniorityHint: "entry",
             postedAt: j.pubDate ? new Date(j.pubDate * 1000) : undefined,
             descriptionHtml: j.description ?? undefined,
             salaryMin: yearly ? (j.minSalary ?? undefined) : undefined,

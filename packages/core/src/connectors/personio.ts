@@ -1,10 +1,18 @@
-import { ConnectorError, requireCompany, type Connector } from "./types";
+import { ConnectorError, requireCompany, type Connector, type SeniorityHint } from "./types";
 import { parseDate, parseXml, xmlText, type XmlNode } from "./xml";
 
 // Verified 2026-11-13: GET {slug}.jobs.personio.de/xml -> 200 text/xml, ETag.
 // <workzag-jobs><position> with id, name, office, subcompany, jobDescriptions (CDATA HTML),
 // employmentType, schedule, seniority, createdAt and optional salaryInformation.
 // Tested on 1komma5grad (328 positions) and tado; `.jobs.personio.com` serves the same feed.
+
+/** Personio <seniority> values -> classifier hint. */
+const PERSONIO_SENIORITY: Record<string, SeniorityHint> = {
+  student: "intern",
+  "entry-level": "entry",
+  experienced: "experienced",
+  executive: "executive",
+};
 
 export const personio: Connector = {
   id: "personio",
@@ -53,6 +61,7 @@ export const personio: Connector = {
         employmentType:
           [xmlText(p.employmentType), xmlText(p.schedule)].filter(Boolean).join(", ") || undefined,
         postedAt: parseDate(xmlText(p.createdAt)),
+        seniorityHint: PERSONIO_SENIORITY[xmlText(p.seniority)?.toLowerCase() ?? ""],
         descriptionHtml: html || undefined,
         salaryMin: yearly && min > 0 ? min : undefined,
         salaryMax: yearly && max > 0 ? max : undefined,
