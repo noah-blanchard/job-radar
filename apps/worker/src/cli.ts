@@ -4,12 +4,19 @@
  *   node dist/cli.js run <all|ats|tier-b|aggregators|feeds|<source>> [--company <name>] [--max-minutes N]
  *   node dist/cli.js detect-ats <careers-url> [--name <company>] [--dry-run]
  *   node dist/cli.js stats
- *   node dist/cli.js rescore [--if-changed]
+ *   node dist/cli.js rescore [--if-changed] [--user <email>]
  *   node dist/cli.js alerts <test|digest|instant|health>
+ *   node dist/cli.js user <list|invite <email>|reset <email>|delete <email>>
  */
 import { parseArgs } from "node:util";
 import {
+  createInvite,
+  deleteUser,
+  ensureOwner,
+  findUserByEmail,
+  listUsers,
   loadCompanySeed,
+  profileHash,
   PoliteHttpClient,
   probeCareersUrl,
   registerCompany,
@@ -30,9 +37,10 @@ const { positionals, values } = parseArgs({
     "max-minutes": { type: "string" },
     "dry-run": { type: "boolean" },
     "if-changed": { type: "boolean" },
+    user: { type: "string" },
   },
 });
-const [cmd, target] = positionals;
+const [cmd, target, arg] = positionals;
 const rt = createRuntime("cli");
 
 const GROUPS: Record<string, Schedule[]> = {
@@ -124,6 +132,45 @@ async function detect(url: string) {
   );
 }
 
+async function userCmd(sub: string | undefined, email: string | undefined) {
+  await ensureOwner(rt.db, rt.env);
+  const base = rt.env.PUBLIC_BASE_URL.replace(/\/+$/, "");
+  if (sub === "list") {
+    for (const u of await listUsers(rt.db)) {
+      const state = !u.profileYaml.trim()
+        ? "no profile"
+        : u.scoredHash === profileHash(u.profileYaml)
+          ? `scored ${u.scoredAt?.toISOString() ?? ""}`
+          : "rescore pending";
+      console.log(
+        `${String(u.id).padEnd(4)} ${(u.email ?? "(no e-mail)").padEnd(32)} ${u.role.padEnd(6)} ${u.passwordHash ? "" : "(no password) "}${state}`,
+      );
+    }
+    return;
+  }
+  if (!email) throw new Error("usage: user <list|invite <email>|reset <email>|delete <email>>");
+  if (sub === "invite" || sub === "reset") {
+    const existing = await findUserByEmail(rt.db, email);
+    if (sub === "invite" && existing)
+      throw new Error(`${email} already has an account (use reset)`);
+    if (sub === "reset" && !existing) throw new Error(`no account for ${email}`);
+    const inv = await createInvite(rt.db, { email });
+    console.log(
+      `${sub === "invite" ? "Invitation" : "Password reset"} link for ${email}, valid until ${inv.expiresAt.toISOString()}:`,
+    );
+    console.log(`${base}/invite/${inv.token}`);
+    return;
+  }
+  if (sub === "delete") {
+    const u = await findUserByEmail(rt.db, email);
+    if (!u) throw new Error(`no account for ${email}`);
+    await deleteUser(rt.db, u.id);
+    console.log(`deleted ${email} (id ${u.id}) and their scores, statuses and priorities`);
+    return;
+  }
+  throw new Error("usage: user <list|invite <email>|reset <email>|delete <email>>");
+}
+
 async function main() {
   switch (cmd) {
     case "seed": {
@@ -136,6 +183,8 @@ async function main() {
           "usage: run <all|ats|tier-b|aggregators|feeds|<source>> [--company <name>]",
         );
       await syncCompanySeed(rt.db, loadCompanySeed());
+      // Jobs touched by the runs are scored for every user.
+      await rt.reloadProfiles();
       const group = GROUPS[target];
       const minutes = Number(values["max-minutes"] ?? rt.env.ATS_SWEEP_MAX_MINUTES);
       const { runs, deferred } = await runSweep(rt, {
@@ -167,17 +216,26 @@ async function main() {
       await stats();
       break;
     case "rescore": {
-      // Full reclassification + rescore (forced unless --if-changed), batches of 1000 jobs.
-      const r = await ensureProfileScores(rt, { force: !values["if-changed"] });
+      // Full reclassification + rescore of every user (forced unless --if-changed), or one user.
+      let userIds: number[] | undefined;
+      if (values.user) {
+        const u = await findUserByEmail(rt.db, values.user);
+        if (!u) throw new Error(`no account for ${values.user}`);
+        userIds = [u.id];
+      }
+      const r = await ensureProfileScores(rt, { force: !values["if-changed"], userIds });
       if (!r) console.log("a full rescore is already running");
-      else if (!r.changed) console.log(`profile unchanged (${r.hash}): nothing to do`);
+      else if (!r.changed) console.log("profiles unchanged: nothing to do");
       else
         console.log(
-          `rescored ${r.rescore?.scanned} jobs (${r.rescore?.updated} changed, ${r.rescore?.llmCalls} LLM calls) in ${((r.rescore?.ms ?? 0) / 1000).toFixed(1)} s, profile ${r.hash}`,
+          `rescored ${r.rescore?.scanned} jobs for users ${r.users.join(", ")} (${r.rescore?.updated} scores changed, ${r.rescore?.llmCalls} LLM calls) in ${((r.rescore?.ms ?? 0) / 1000).toFixed(1)} s`,
         );
+      for (const i of r?.invalid ?? [])
+        console.log(`user ${i.userId}: invalid profile: ${i.error}`);
       break;
     }
     case "alerts": {
+      await rt.reloadProfiles();
       // Same code paths as the scheduler: digest/instant/health stay idempotent (alerts_sent).
       const alerts = createAlerts(rt);
       console.log(`channels: ${alerts.channels.join(", ") || "none configured"}`);
@@ -196,9 +254,12 @@ async function main() {
       console.log(JSON.stringify(out ?? "instant alerts disabled", null, 2));
       break;
     }
+    case "user":
+      await userCmd(target, arg);
+      break;
     default:
       throw new Error(
-        "usage: seed | run <all|ats|tier-b|aggregators|feeds|<source>> [--company <name>] [--max-minutes N] | detect-ats <url> [--name X] [--dry-run] | stats | rescore [--if-changed] | alerts <test|digest|instant|health>",
+        "usage: seed | run <all|ats|tier-b|aggregators|feeds|<source>> [--company <name>] [--max-minutes N] | detect-ats <url> [--name X] [--dry-run] | stats | rescore [--if-changed] [--user <email>] | alerts <test|digest|instant|health> | user <list|invite|reset|delete> [email]",
       );
   }
 }

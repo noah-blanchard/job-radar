@@ -1,19 +1,39 @@
 import "server-only";
-import { loadProfileFile, type LoadedProfile } from "@jobradar/core/score";
+import { parseProfileText, type LoadedProfile } from "@jobradar/core/score";
+import { getUser } from "@jobradar/core/users";
+import { getDb } from "./db";
 
-/**
- * config/profile.yaml as seen by the dashboard (CONFIG_DIR in Docker). Read on every call: the
- * file is tiny and edits must show up without a restart. Null when the file is missing/invalid.
- */
-export function readProfile(): (LoadedProfile & { error?: undefined }) | { error: string } {
+export type ProfileState =
+  /** No profile yet: nothing is scored for this user. */
+  | { state: "empty"; text: ""; scoredAt: Date | null }
+  /** Does not parse: the user keeps their previous scores. */
+  | { state: "invalid"; text: string; error: string; scoredAt: Date | null }
+  /** Saved, the worker has not rescored with it yet (within a minute, ~1 min per 100k jobs). */
+  | ({ state: "pending"; scoredAt: Date | null } & LoadedProfile)
+  /** The stored scores reflect this profile. */
+  | ({ state: "ok"; scoredAt: Date | null } & LoadedProfile);
+
+/** A user's profile (stored in the database) and whether their scores reflect it. */
+export async function readProfile(userId: number): Promise<ProfileState> {
+  const u = await getUser(getDb(), userId);
+  const text = u?.profileYaml ?? "";
+  const scoredAt = u?.scoredAt ?? null;
+  if (!text.trim()) return { state: "empty", text: "", scoredAt };
   try {
-    return loadProfileFile();
+    const loaded = parseProfileText(text);
+    return { ...loaded, state: u?.scoredHash === loaded.hash ? "ok" : "pending", scoredAt };
   } catch (err) {
-    return { error: err instanceof Error ? err.message : String(err) };
+    return {
+      state: "invalid",
+      text,
+      error: err instanceof Error ? err.message : String(err),
+      scoredAt,
+    };
   }
 }
 
-export function profileDomains(): string[] {
-  const p = readProfile();
+/** Domains of a user's profile (Inbox domain filter). */
+export async function profileDomains(userId: number): Promise<string[]> {
+  const p = await readProfile(userId);
   return "profile" in p ? Object.keys(p.profile.domains) : [];
 }

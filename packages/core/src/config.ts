@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { companies, eq, type AnyDb } from "@jobradar/db";
+import { and, asc, companies, eq, or, sql, type AnyDb } from "@jobradar/db";
 import { parse } from "yaml";
 import { z } from "zod";
 import { companyKey } from "./normalize/text";
@@ -64,10 +64,23 @@ export async function syncCompanySeed(db: AnyDb, seed: SeedCompany[]) {
   let updated = 0;
   for (const s of seed) {
     const nameKey = companyKey(s.name);
+    // The seed's own board first, then a seed row of the same name: a discovered company with the
+    // same name (another board of the same employer) must never be given this board, which would
+    // break the (ats, ats_key) unique index.
+    const sameBoard =
+      s.ats && s.ats_key
+        ? and(eq(companies.ats, s.ats), eq(companies.atsKey, s.ats_key))
+        : undefined;
     const [existing] = await db
       .select()
       .from(companies)
-      .where(eq(companies.nameKey, nameKey))
+      .where(
+        sameBoard ? or(sameBoard, eq(companies.nameKey, nameKey)) : eq(companies.nameKey, nameKey),
+      )
+      .orderBy(
+        sql`case when ${sameBoard ?? sql`false`} then 0 when ${companies.origin} = 'seed' then 1 else 2 end`,
+        asc(companies.id),
+      )
       .limit(1);
     if (!existing) {
       await db
@@ -110,14 +123,29 @@ const ProfileLocation = z.object({
   remote: z.boolean().optional(),
   weight: z.number(),
 });
+/** Job levels a profile can target (the classifier's seniority, "entry" = new grad / junior). */
+export const TARGET_LEVELS = ["entry", "mid", "senior", "manager"] as const;
+export type TargetLevel = (typeof TARGET_LEVELS)[number];
+
 const ProfileFile = z.object({
   grad_date: z.union([z.string(), z.date()]).optional(),
   seniority: z.string().optional(),
+  /** Levels worth the full level points; any other known level is capped at 20. */
+  target_seniority: z.array(z.enum(TARGET_LEVELS)).min(1).default(["entry"]),
+  /**
+   * Caps at 20 the jobs outside the profile's domains. true: no domain keyword in the title and
+   * fewer than 2 in the description; "title": no domain keyword in the title.
+   */
+  require_domain: z.union([z.boolean(), z.literal("title")]).default(false),
+  /** Free-text searches for the aggregators (Jooble, JSearch); default: a new-grad SWE search. */
+  search_titles: z.array(z.string().min(2)).default([]),
   locations: z.array(ProfileLocation).default([]),
   domains: z.record(z.string(), z.array(z.string())).default({}),
   languages: z.array(z.string()).default([]),
   work_auth_note: z.string().nullish(),
   exclude_companies: z.array(z.string()).default([]),
+  /** Companies worth the "entreprise prioritaire" bonus for this profile (by name). */
+  priority_companies: z.array(z.string()).default([]),
   exclude_title: z.array(z.string()).default([]),
 });
 export type Profile = z.infer<typeof ProfileFile>;

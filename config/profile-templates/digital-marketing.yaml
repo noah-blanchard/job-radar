@@ -1,0 +1,99 @@
+# Modèle : marketing digital (début de carrière)
+# Score = lieu (0-30) + niveau junior (0-25) + domaines (0-25) + langue (+5/-10) + bonus
+# Mots-clés : texte simple, insensible à la casse. "|" = "ou". Exemple : 'seo|sea'.
+
+# --- Lieux : la PREMIÈRE règle qui correspond donne les points ---
+# country = code pays à 2 lettres (CA, FR, BE, CH, GB, US...). remote: true = télétravail.
+locations:
+  - { country: CA, weight: 30 }
+  - { match: "Montreal|Montréal|Toronto|Vancouver|Quebec|Ottawa", weight: 30 }
+  - { remote: true, country: CA, weight: 30 }
+  - { country: FR, weight: 22 }
+  - { remote: true, weight: 12 }
+
+# --- Domaines : +3 par mot-clé trouvé (x2 dans le titre), plafond 25 ---
+domains:
+  digital_marketing:
+    - 'digital marketing|marketing digital|marketing numérique'
+    - 'growth (marketing|marketer)'
+    - 'performance marketing'
+    - 'marketing (coordinator|specialist|associate|analyst|assistant)'
+    - 'coordonnat(eur|rice) marketing'
+    - 'chargée? de marketing'
+  acquisition:
+    - seo
+    - sem
+    - 'sea|ppc|paid (search|media|social)'
+    - 'google ads|meta ads|facebook ads|linkedin ads'
+    - 'google analytics|ga4'
+    - 'a/b test(ing)?'
+  content_social:
+    - 'social media|réseaux sociaux|médias sociaux'
+    - 'community manager|gestionnaire de communauté'
+    - 'content (marketing|strategist|creator|specialist)'
+    - 'marketing de contenu'
+    - copywrit(er|ing)
+    - influence
+  crm_email:
+    - crm
+    - 'email marketing|emailing|marketing automation'
+    - hubspot
+    - salesforce marketing cloud
+    - mailchimp
+    - 'lifecycle marketing'
+  brand_comms:
+    - 'brand (coordinator|associate|marketing)'
+    - 'communications? (coordinator|specialist|associate|officer)'
+    - 'relations publiques|public relations'
+
+# --- Niveau visé : entry (junior, nouveau diplômé), mid, senior, manager ---
+# Niveau visé = 25 points, inconnu = 10, autre niveau = score plafonné à 20.
+target_seniority: [entry]
+
+# title : une offre sans aucun mot-clé des domaines dans son titre est plafonnée à 20.
+# (true : plus souple, un mot-clé dans le titre ou deux dans la description suffisent.)
+require_domain: title
+
+# Recherches envoyées aux agrégateurs (Jooble, JSearch), en plus de la collecte des entreprises.
+search_titles:
+  - junior digital marketing
+  - marketing coordinator
+  - social media coordinator
+
+# Langues que tu parles (fr, en, de, es...) : +5, une autre langue exigée : -10.
+languages: [fr, en]
+
+# Entreprises prioritaires : +10 points sur leurs offres (même bonus que « priorité haute »).
+priority_companies:
+  - "MLSE"
+  - "Canadian Tire"
+  - "Saputo"
+  - "Agropur"
+  - "Mondelez"
+  - "Aritzia"
+  - "TELUS Santé"
+  - "Unilever"
+  - "Havas"
+  - "Vidéotron"
+  - "Cirque du Soleil"
+  - "Sid Lee"
+  - "lg2"
+  - "Hopper"
+  - "Mejuri"
+  - "Knix"
+  - "Hootsuite"
+  - "Thinkific"
+  - "Faire"
+  - "Wattpad"
+  - "Dentsu"
+  - "Ubisoft"
+
+exclude_companies: []
+
+# Titres jamais intéressants -> score 0
+exclude_title:
+  - 'intern(ship)?|stagiaire|stage|co-?op|alternance'
+  - 'sales (representative|executive)|représentant(e)? des ventes'
+  - 'account executive'
+  - 'customer support|service à la clientèle'
+  - 'software engineer|developer|développeu(r|se)'

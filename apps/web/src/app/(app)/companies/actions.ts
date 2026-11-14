@@ -1,8 +1,9 @@
 "use server";
 
 import { detectAts, registerCompany } from "@jobradar/core/discovery";
-import { companies, eq, kvSet } from "@jobradar/db";
+import { and, companies, companyPrefs, eq, kvSet } from "@jobradar/db";
 import { revalidatePath } from "next/cache";
+import { currentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 
 export interface AddCompanyState {
@@ -43,8 +44,10 @@ const PRIORITIES = ["low", "normal", "high"] as const;
 type Priority = (typeof PRIORITIES)[number];
 
 /**
- * Edits a company's priority. `priority_manual` keeps the seed sync from reverting it, and a
- * rescore request makes the worker update the "entreprise prioritaire" bonus within a minute.
+ * Edits the signed-in user's priority for a company (`company_prefs`: "normal" removes it). A
+ * rescore request makes the worker update their "entreprise prioritaire" bonus within a minute.
+ * The sweep order (`companies.priority`) is not touched: a "high" from any user already puts
+ * the company first in the ATS sweep.
  */
 export async function setCompanyPriority(
   companyId: number,
@@ -53,13 +56,26 @@ export async function setCompanyPriority(
   if (!Number.isSafeInteger(companyId) || companyId <= 0 || !PRIORITIES.includes(priority))
     return { ok: false, error: "requête invalide" };
   const db = getDb();
-  const rows = await db
-    .update(companies)
-    .set({ priority, priorityManual: true })
+  const user = await currentUser();
+  const [company] = await db
+    .select({ id: companies.id })
+    .from(companies)
     .where(eq(companies.id, companyId))
-    .returning({ id: companies.id });
-  if (rows.length === 0) return { ok: false, error: "entreprise introuvable" };
-  await kvSet(db, `rescore_request:company:${companyId}`, {
+    .limit(1);
+  if (!company) return { ok: false, error: "entreprise introuvable" };
+  if (priority === "normal")
+    await db
+      .delete(companyPrefs)
+      .where(and(eq(companyPrefs.userId, user.id), eq(companyPrefs.companyId, companyId)));
+  else
+    await db
+      .insert(companyPrefs)
+      .values({ userId: user.id, companyId, priority })
+      .onConflictDoUpdate({
+        target: [companyPrefs.userId, companyPrefs.companyId],
+        set: { priority },
+      });
+  await kvSet(db, `rescore_request:company:${companyId}:${user.id}`, {
     requestedAt: new Date().toISOString(),
   });
   revalidatePath("/companies");

@@ -1,6 +1,7 @@
 "use server";
 
 import { jobStatus, sql } from "@jobradar/db";
+import { currentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { STATUSES, type JobStatus } from "@/lib/filters";
 import { followUpRule } from "@/lib/follow-up";
@@ -25,6 +26,7 @@ export interface StatusResult {
 export async function setJobStatus(jobId: number, status: JobStatus): Promise<StatusResult> {
   const id = validId(jobId);
   if (id === null || !STATUSES.includes(status)) return { ok: false, error: "requête invalide" };
+  const user = await currentUser();
   const rule = followUpRule(status);
   const fresh = typeof rule === "number" ? sql`now() + make_interval(days => ${rule})` : sql`null`;
   const next =
@@ -35,9 +37,14 @@ export async function setJobStatus(jobId: number, status: JobStatus): Promise<St
         : sql`case when job_status.next_action_at > now() then job_status.next_action_at else ${fresh} end`;
   const [row] = await getDb()
     .insert(jobStatus)
-    .values({ jobId: id, status, nextActionAt: rule === "keep" || rule === null ? null : fresh })
+    .values({
+      userId: user.id,
+      jobId: id,
+      status,
+      nextActionAt: rule === "keep" || rule === null ? null : fresh,
+    })
     .onConflictDoUpdate({
-      target: jobStatus.jobId,
+      target: [jobStatus.userId, jobStatus.jobId],
       set: { status, nextActionAt: next, updatedAt: sql`now()` },
     })
     .returning({ nextActionAt: jobStatus.nextActionAt });
@@ -52,11 +59,12 @@ export async function setNextAction(jobId: number, at: string | null): Promise<S
   const date = at === null ? null : new Date(at);
   if (id === null || (date && Number.isNaN(date.getTime())))
     return { ok: false, error: "requête invalide" };
+  const user = await currentUser();
   await getDb()
     .insert(jobStatus)
-    .values({ jobId: id, nextActionAt: date })
+    .values({ userId: user.id, jobId: id, nextActionAt: date })
     .onConflictDoUpdate({
-      target: jobStatus.jobId,
+      target: [jobStatus.userId, jobStatus.jobId],
       set: { nextActionAt: date, updatedAt: sql`now()` },
     });
   return { ok: true, nextActionAt: date ? date.toISOString() : null };
@@ -70,9 +78,13 @@ export async function saveNotes(
   const id = validId(jobId);
   if (id === null) return { ok: false, error: "requête invalide" };
   const text = String(notes ?? "").slice(0, 20_000);
+  const user = await currentUser();
   await getDb()
     .insert(jobStatus)
-    .values({ jobId: id, notes: text })
-    .onConflictDoUpdate({ target: jobStatus.jobId, set: { notes: text, updatedAt: sql`now()` } });
+    .values({ userId: user.id, jobId: id, notes: text })
+    .onConflictDoUpdate({
+      target: [jobStatus.userId, jobStatus.jobId],
+      set: { notes: text, updatedAt: sql`now()` },
+    });
   return { ok: true };
 }

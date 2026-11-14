@@ -1,17 +1,25 @@
 import {
   ALERT_TEST_REQUEST_KEY,
   ALERT_TEST_RESULT_KEY,
+  alertTestRequestKey,
+  alertTestResultKey,
   type AlertTestResult,
 } from "@jobradar/core/alerts/keys";
-import { PROFILE_KV_KEY, type AppliedProfile } from "@jobradar/core/score";
+import { listProfileTemplates, profileHash, type ProfileTemplate } from "@jobradar/core/score";
+import { getUser, listUsers, ownerUser } from "@jobradar/core/users";
+import { randomBytes } from "node:crypto";
 import { kvGet } from "@jobradar/db";
 import type { Metadata } from "next";
 import { PageFrame, PageHeader, PageScroll } from "@/components/placeholder";
 import { Badge } from "@/components/ui/badge";
 import { AppearanceSettings } from "@/components/theme-controls";
+import { currentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { readProfile } from "@/lib/profile";
-import { formatDateTime, formatDuration } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
+import { DeleteUserButton, InviteForm, PasswordForm } from "./account-forms";
+import { AlertSettingsForm } from "./alert-form";
+import { ProfileEditor } from "./profile-editor";
 import { TestChannelsButton } from "./test-button";
 
 export const metadata: Metadata = { title: "Réglages" };
@@ -43,28 +51,115 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-export default async function SettingsPage() {
-  const file = readProfile();
-  const db = getDb();
-  const [applied, testRequest, testResult] = await Promise.all([
-    kvGet<AppliedProfile>(db, PROFILE_KV_KEY),
-    kvGet<{ requestedAt?: string }>(db, ALERT_TEST_REQUEST_KEY),
-    kvGet<AlertTestResult>(db, ALERT_TEST_RESULT_KEY),
-  ]);
-  const inSync = "hash" in file && applied?.hash === file.hash;
+/** Scoring state of an account, as a badge. */
+function ScoreState({ text, scoredHash }: { text: string; scoredHash: string | null }) {
+  if (!text.trim()) return <Badge variant="outline">sans profil</Badge>;
+  return scoredHash === profileHash(text) ? (
+    <Badge variant="success">scores à jour</Badge>
+  ) : (
+    <Badge variant="warning">recalcul en attente</Badge>
+  );
+}
 
-  const channels = [
-    { id: "ntfy", name: "ntfy", ok: isSet("NTFY_TOPIC") },
-    { id: "email", name: "E-mail (SMTP)", ok: isSet("SMTP_HOST", "ALERT_EMAIL_TO") },
-    { id: "discord", name: "Discord", ok: isSet("DISCORD_WEBHOOK_URL") },
-    { id: "telegram", name: "Telegram", ok: isSet("TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID") },
-  ];
+/** Starter profiles (config/profile-templates/); none when config/ is not readable. */
+function templates(): ProfileTemplate[] {
+  try {
+    return listProfileTemplates();
+  } catch {
+    return [];
+  }
+}
+
+function ProfileHelp() {
+  return (
+    <details className="mt-4 text-[13px]">
+      <summary className="text-muted-foreground hover:text-foreground cursor-pointer text-xs">
+        Comment écrire son profil
+      </summary>
+      <div className="text-muted-foreground mt-2 grid max-w-prose gap-2 leading-relaxed">
+        <p>
+          Chaque offre reçoit un score de 0 à 100 : <b className="text-foreground">lieu</b> (0 à
+          30), <b className="text-foreground">niveau</b> (25 si visé, 10 si inconnu),{" "}
+          <b className="text-foreground">domaines</b> (3 points par mot-clé trouvé, le double dans
+          le titre, 25 au plus), <b className="text-foreground">langue</b> (+5, ou −10 si une autre
+          langue est exigée), plus des bonus (entreprise prioritaire +10, offre de moins de 24 h +5,
+          salaire affiché +3).
+        </p>
+        <p>
+          <code className="text-foreground">locations</code> : la première ligne qui correspond
+          donne ses points. <code className="text-foreground">country</code> est un code pays à deux
+          lettres (CA, FR, BE…), <code className="text-foreground">match</code> une liste de villes
+          séparées par <code className="text-foreground">|</code>,{" "}
+          <code className="text-foreground">remote: true</code> le télétravail.
+        </p>
+        <p>
+          <code className="text-foreground">domains</code> : des groupes de mots-clés, en minuscules
+          ou non. <code className="text-foreground">|</code> veut dire « ou » (
+          <code className="text-foreground">&apos;seo|sea&apos;</code>), un point remplace
+          n&apos;importe quel caractère. Mets les mots-clés entre apostrophes s&apos;ils contiennent
+          des symboles.
+        </p>
+        <p>
+          <code className="text-foreground">target_seniority</code> : les niveaux visés (entry, mid,
+          senior, manager). Les autres niveaux sont plafonnés à 20.{" "}
+          <code className="text-foreground">require_domain: title</code> plafonne à 20 les offres
+          dont le titre ne contient aucun mot-clé de tes domaines (
+          <code className="text-foreground">true</code> : plus souple, deux mots-clés dans la
+          description suffisent).
+        </p>
+        <p>
+          <code className="text-foreground">exclude_title</code> : un de ces mots dans le titre et
+          l&apos;offre tombe à 0. <code className="text-foreground">exclude_companies</code> : idem
+          pour une entreprise.
+        </p>
+      </div>
+    </details>
+  );
+}
+
+export default async function SettingsPage() {
+  const me = await currentUser();
+  const admin = me.role === "admin";
+  const db = getDb();
+  const [file, user, owner, accounts] = await Promise.all([
+    readProfile(me.id),
+    getUser(db, me.id),
+    ownerUser(db),
+    admin ? listUsers(db) : Promise.resolve([]),
+  ]);
+  const isOwner = owner?.id === me.id;
+  // The owner's test request/result may still sit under the pre-accounts keys.
+  const [testRequest, testResult] = await Promise.all([
+    kvGet<{ requestedAt?: string }>(db, alertTestRequestKey(me.id)).then(
+      async (r) => r ?? (isOwner ? kvGet<{ requestedAt?: string }>(db, ALERT_TEST_REQUEST_KEY) : r),
+    ),
+    kvGet<AlertTestResult>(db, alertTestResultKey(me.id)).then(
+      async (r) => r ?? (isOwner ? kvGet<AlertTestResult>(db, ALERT_TEST_RESULT_KEY) : r),
+    ),
+  ]);
+
+  const smtp = isSet("SMTP_HOST");
+  const channels = isOwner
+    ? [
+        { id: "ntfy", name: "ntfy", ok: isSet("NTFY_TOPIC") },
+        { id: "email", name: "E-mail (SMTP)", ok: isSet("SMTP_HOST", "ALERT_EMAIL_TO") },
+        { id: "discord", name: "Discord", ok: isSet("DISCORD_WEBHOOK_URL") },
+        { id: "telegram", name: "Telegram", ok: isSet("TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID") },
+      ]
+    : [
+        { id: "ntfy", name: "ntfy", ok: !!user?.ntfyTopic },
+        { id: "email", name: "E-mail", ok: smtp && !!user?.alertEmail },
+      ];
+  const num = (k: string, def: number) => {
+    const n = Number(env(k, String(def)));
+    return Number.isFinite(n) ? n : def;
+  };
 
   return (
     <PageFrame>
       <PageHeader
         title="Réglages"
-        description="Lecture seule : modifie config/profile.yaml et .env, puis redéploie."
+        description={`Connecté${me.name ? ` en tant que ${me.name}` : ""} · ${me.email ?? ""}`}
       />
       <PageScroll>
         <div className="max-w-4xl px-4 md:px-6">
@@ -74,105 +169,177 @@ export default async function SettingsPage() {
 
           <Section title="Profil de matching">
             <div className="flex flex-wrap items-center gap-2 text-[13px]">
-              <code className="text-xs">config/profile.yaml</code>
               {"hash" in file ? (
                 <code className="text-muted-foreground text-xs">{file.hash}</code>
               ) : null}
-              {"hash" in file ? (
-                inSync ? (
-                  <Badge variant="success">scores à jour</Badge>
-                ) : (
-                  <Badge variant="warning">recalcul en attente</Badge>
-                )
+              {file.state === "ok" ? (
+                <Badge variant="success">scores à jour</Badge>
+              ) : file.state === "pending" ? (
+                <Badge variant="warning">recalcul en cours</Badge>
+              ) : file.state === "invalid" ? (
+                <Badge variant="destructive">invalide</Badge>
               ) : (
-                <Badge variant="destructive">illisible</Badge>
+                <Badge variant="outline">aucun profil</Badge>
               )}
             </div>
-            {"error" in file && file.error ? (
+            {file.state === "invalid" ? (
               <p className="text-destructive mt-2 text-[13px]">{file.error}</p>
             ) : null}
             <p className="text-muted-foreground mt-2 text-xs">
-              {applied
-                ? `Scores calculés avec le profil ${applied.hash} le ${formatDateTime(new Date(applied.appliedAt))} (${applied.jobs.toLocaleString("fr-CA")} offres en ${formatDuration(applied.ms)}).`
-                : "Aucun recalcul complet enregistré pour l'instant."}{" "}
-              {"hash" in file && !inSync
-                ? "Le worker recalcule tout au prochain balayage (ou : cli rescore)."
-                : ""}
+              {file.scoredAt
+                ? `Scores calculés le ${formatDateTime(file.scoredAt)}.`
+                : "Aucun score calculé pour l'instant."}{" "}
+              {file.state === "pending"
+                ? "Le worker recalcule tes scores dans la minute (environ 1 min pour 100 000 offres)."
+                : file.state === "empty"
+                  ? "Sans profil, aucune offre n'est scorée : pars d'un modèle ci-dessous."
+                  : ""}
             </p>
-            <details className="mt-3">
-              <summary className="text-muted-foreground hover:text-foreground cursor-pointer text-xs">
-                Voir le profil effectif
-              </summary>
-              <pre className="mt-2 max-h-[32rem] overflow-auto rounded-md border bg-code p-3 text-xs leading-relaxed">
-                {"text" in file ? file.text : (applied?.text ?? "")}
-              </pre>
-            </details>
+            <ProfileEditor
+              key={file.text}
+              initial={file.text}
+              templates={templates()}
+              rescoring={file.state === "pending"}
+            />
+            <ProfileHelp />
           </Section>
+
+          <Section title="Mot de passe">
+            <PasswordForm />
+          </Section>
+
+          {admin ? (
+            <Section title="Comptes">
+              <ul className="text-[13px]">
+                {accounts.map((u) => (
+                  <li
+                    key={u.id}
+                    className="border-border-soft flex items-center justify-between gap-3 border-b py-2 last:border-0"
+                  >
+                    <span className="min-w-0 truncate">
+                      {u.name ? <span className="font-medium">{u.name} · </span> : null}
+                      <span className={u.name ? "text-muted-foreground" : undefined}>
+                        {u.email ?? "(sans e-mail)"}
+                      </span>
+                    </span>
+                    <span className="flex shrink-0 items-center gap-2">
+                      {u.role === "admin" ? <Badge variant="outline">admin</Badge> : null}
+                      {u.passwordHash ? null : <Badge variant="outline">sans mot de passe</Badge>}
+                      <ScoreState text={u.profileYaml} scoredHash={u.scoredHash} />
+                      {u.id !== me.id && u.role !== "admin" ? (
+                        <DeleteUserButton id={u.id} email={u.email ?? String(u.id)} />
+                      ) : null}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <InviteForm />
+            </Section>
+          ) : null}
 
           <Section title="Alertes">
-            <Row label="Digest quotidien">{env("DIGEST_CRON", "0 8 * * *")} (Toronto)</Row>
-            <Row label="Score minimum du digest">{env("DIGEST_MIN_SCORE", "40")}</Row>
-            <Row label="Alertes instantanées">
-              {env("INSTANT_ALERTS_ENABLED", "true") === "true" ? "activées" : "désactivées"}
-            </Row>
-            <Row label="Score minimum instantané">{env("INSTANT_MIN_SCORE", "75")}</Row>
-            <Row label="Worker silencieux après">{env("HEALTH_SILENCE_HOURS", "12")} h</Row>
-          </Section>
-
-          <Section title="Canaux">
-            {channels.map((c) => (
-              <Row key={c.name} label={c.name}>
-                {c.ok ? (
-                  <span className="text-success">configuré</span>
-                ) : (
-                  <span className="text-muted-foreground">non configuré</span>
-                )}
-              </Row>
-            ))}
-            <TestChannelsButton
-              disabled={!channels.some((c) => c.ok)}
-              pendingSince={testRequest?.requestedAt}
-            />
-            {testResult ? (
-              <div className="mt-3 text-xs">
-                <p className="text-muted-foreground mb-1">
-                  Dernier test : {formatDateTime(new Date(testResult.finishedAt))}
-                </p>
-                {testResult.results.length === 0 ? (
-                  <p className="text-muted-foreground">
-                    aucun canal configuré côté worker (variables du .env du worker)
-                  </p>
-                ) : (
-                  <ul className="space-y-1">
-                    {testResult.results.map((r) => (
-                      <li key={r.channel} className="flex items-baseline justify-between gap-2">
-                        <span>{channels.find((c) => c.id === r.channel)?.name ?? r.channel}</span>
-                        {r.ok ? (
-                          <span className="text-success">envoyé</span>
-                        ) : (
-                          <span className="text-destructive text-right break-all">
-                            {r.error ?? "échec"}
-                          </span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+            {user ? (
+              <AlertSettingsForm
+                values={{
+                  digestEnabled: user.digestEnabled,
+                  digestMinScore: user.digestMinScore,
+                  instantEnabled: user.instantEnabled,
+                  instantMinScore: user.instantMinScore,
+                  alertEmail: user.alertEmail,
+                  ntfyTopic: user.ntfyTopic,
+                }}
+                defaults={{
+                  digest: num("DIGEST_MIN_SCORE", 40),
+                  instant: num("INSTANT_MIN_SCORE", 75),
+                  digestTime:
+                    env("DIGEST_CRON", "0 8 * * *") === "0 8 * * *" ? "8 h" : env("DIGEST_CRON"),
+                }}
+                ownChannels={!isOwner}
+                smtp={smtp}
+                suggestedTopic={`jobradar-${randomBytes(9)
+                  .toString("base64url")
+                  .replace(/[^A-Za-z0-9]/g, "x")}`}
+                ntfyUrl={env("NTFY_URL", "https://ntfy.sh")}
+              />
             ) : null}
+            <div className="mt-5">
+              {channels.map((c) => (
+                <Row key={c.name} label={c.name}>
+                  {c.ok ? (
+                    <span className="text-success">configuré</span>
+                  ) : (
+                    <span className="text-muted-foreground">non configuré</span>
+                  )}
+                </Row>
+              ))}
+              {isOwner ? (
+                <p className="text-muted-foreground mt-1 text-xs">
+                  Tes canaux sont ceux du .env (NTFY_*, SMTP_* et ALERT_EMAIL_TO, DISCORD_*,
+                  TELEGRAM_*) ; tu reçois aussi les alertes de santé.
+                </p>
+              ) : null}
+              <TestChannelsButton
+                disabled={!channels.some((c) => c.ok)}
+                ownerChannels={isOwner}
+                pendingSince={testRequest?.requestedAt}
+              />
+              {testResult ? (
+                <div className="mt-3 text-xs">
+                  <p className="text-muted-foreground mb-1">
+                    Dernier test : {formatDateTime(new Date(testResult.finishedAt))}
+                  </p>
+                  {testResult.results.length === 0 ? (
+                    <p className="text-muted-foreground">aucun canal configuré</p>
+                  ) : (
+                    <ul className="space-y-1">
+                      {testResult.results.map((r) => (
+                        <li key={r.channel} className="flex items-baseline justify-between gap-2">
+                          <span>{channels.find((c) => c.id === r.channel)?.name ?? r.channel}</span>
+                          {r.ok ? (
+                            <span className="text-success">envoyé</span>
+                          ) : (
+                            <span className="text-destructive text-right break-all">
+                              {r.error ?? "échec"}
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ) : null}
+            </div>
           </Section>
 
-          <Section title="Classification">
-            <Row label="Règles new grad">toujours actives</Row>
-            <Row label="LLM (offres ambiguës)">
-              {env("LLM_ENABLED", "false") === "true"
-                ? isSet("ANTHROPIC_API_KEY")
-                  ? `activé (${env("LLM_MODEL", "claude-haiku-5-5")})`
-                  : "activé mais clé absente"
-                : "désactivé"}
-            </Row>
-            <Row label="Plafond LLM / jour">{env("LLM_DAILY_MAX_CALLS", "200")}</Row>
-          </Section>
+          {admin ? (
+            <>
+              <Section title="Technique">
+                <Row label="Digest quotidien">{env("DIGEST_CRON", "0 8 * * *")} (Toronto)</Row>
+                <Row label="Seuils par défaut">
+                  digest {env("DIGEST_MIN_SCORE", "40")} · instantané{" "}
+                  {env("INSTANT_MIN_SCORE", "75")}
+                </Row>
+                <Row label="Alertes instantanées">
+                  {env("INSTANT_ALERTS_ENABLED", "true") === "true"
+                    ? "activées"
+                    : "désactivées pour tous"}
+                </Row>
+                <Row label="Worker silencieux après">{env("HEALTH_SILENCE_HOURS", "12")} h</Row>
+              </Section>
+
+              <Section title="Classification">
+                <Row label="Règles new grad">toujours actives</Row>
+                <Row label="LLM (offres ambiguës)">
+                  {env("LLM_ENABLED", "false") === "true"
+                    ? isSet("ANTHROPIC_API_KEY")
+                      ? `activé (${env("LLM_MODEL", "claude-haiku-5-5")})`
+                      : "activé mais clé absente"
+                    : "désactivé"}
+                </Row>
+                <Row label="Plafond LLM / jour">{env("LLM_DAILY_MAX_CALLS", "200")}</Row>
+              </Section>
+            </>
+          ) : null}
         </div>
       </PageScroll>
     </PageFrame>

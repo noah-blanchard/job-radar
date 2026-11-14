@@ -29,7 +29,8 @@ export interface SweepResult {
 }
 
 /**
- * Companies of one ATS, best first: high priority, then never/least recently OK, broken last.
+ * Companies of one ATS, best first: high priority (seed file, or some user's priority), then
+ * never/least recently OK, broken last.
  * With the time budget this rotates through hundreds of discovered boards across sweeps.
  */
 async function companiesFor(rt: Runtime, ats: string): Promise<Company[]> {
@@ -45,7 +46,9 @@ async function companiesFor(rt: Runtime, ats: string): Promise<Company[]> {
     )
     .orderBy(
       sql`case when ${companies.atsStatus} = 'broken' then 1 else 0 end`,
-      sql`case ${companies.priority} when 'high' then 0 when 'normal' then 1 else 2 end`,
+      sql`case when ${companies.priority} = 'high' or exists (select 1 from company_prefs cp
+        where cp.company_id = ${companies.id} and cp.priority = 'high') then 0
+        when ${companies.priority} = 'normal' then 1 else 2 end`,
       sql`${companies.lastOkAt} asc nulls first`,
       asc(companies.id),
     );
@@ -65,10 +68,11 @@ function depsFor(rt: Runtime, sourceId: string) {
     http: rt.http,
     log: rt.log,
     env: rt.env,
-    profile: rt.profile,
+    profile: rt.searchProfile,
     quota: rt.quotaFor(sourceId),
-    // Classify and score the jobs each run touched (optional LLM for the ambiguous ones).
-    rescore: { llm: rt.llm },
+    // Classify the jobs each run touched and score them for every user (optional LLM for the
+    // ambiguous ones). Profiles are read when the run ends.
+    rescore: { llm: rt.llm, profiles: () => rt.profiles },
   };
 }
 

@@ -12,26 +12,15 @@ const OPTIONS = [
   { value: "low", label: "basse" },
 ] as const;
 
-/** Optimistic priority switch; the worker rescores this company's jobs within a minute. */
-export function PrioritySelect({
-  companyId,
-  priority,
-  manual,
-}: {
-  companyId: number;
-  priority: Priority;
-  manual: boolean;
-}) {
+/**
+ * Optimistic switch of the user's own priority for a company ("haute" = score bonus for them
+ * only); the worker rescores this company's jobs for them within a minute.
+ */
+export function PrioritySelect({ companyId, priority }: { companyId: number; priority: Priority }) {
   const [value, setValue] = useState(priority);
   const [pending, start] = useTransition();
   return (
-    <span
-      title={
-        manual
-          ? "Modifiée ici (le seed ne l'écrase plus)"
-          : "Scores recalculés par le worker dans la minute"
-      }
-    >
+    <span title="Ta priorité (bonus de score pour toi seul·e), recalculée dans la minute">
       <Segmented
         label="Priorité"
         size="sm"

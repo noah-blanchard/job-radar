@@ -72,4 +72,42 @@ describe("syncCompanySeed", () => {
       await close();
     }
   });
+
+  it("never moves a seed board onto a discovered company with the same name", async () => {
+    const { db, close } = await testDb();
+    try {
+      const seed = [
+        {
+          name: "Akuna Capital",
+          priority: "high" as const,
+          ats: "greenhouse",
+          ats_key: "akunacapital",
+        },
+      ];
+      // Discovered first (lower id): another board of the same employer.
+      await db.insert(companies).values({
+        name: "Akuna Capital",
+        nameKey: "akuna capital",
+        ats: "greenhouse",
+        atsKey: "akunacapitaloci",
+        origin: "discovered",
+      });
+      await db.insert(companies).values({
+        name: "Akuna Capital",
+        nameKey: "akuna capital",
+        ats: "greenhouse",
+        atsKey: "akunacapital",
+        origin: "seed",
+      });
+      // Only the seed row is touched (its priority), never the discovered board.
+      expect(await syncCompanySeed(db, seed)).toEqual({ inserted: 0, updated: 1 });
+      const rows = await db.select().from(companies).orderBy(companies.id);
+      expect(rows.map((r) => [r.atsKey, r.priority])).toEqual([
+        ["akunacapitaloci", "normal"],
+        ["akunacapital", "high"],
+      ]);
+    } finally {
+      await close();
+    }
+  });
 });

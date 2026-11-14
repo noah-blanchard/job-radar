@@ -200,6 +200,37 @@ export function telegramChannel(env: AlertEnv, deps: ChannelDeps = {}): AlertCha
   };
 }
 
+/** A user's own channels: e-mail through the shared SMTP server, ntfy topic on NTFY_URL. */
+export interface UserChannelSettings {
+  alertEmail: string | null;
+  ntfyTopic: string | null;
+}
+
+/**
+ * The channels of one user. The owner's are the .env ones (all four); any other user gets only
+ * their own e-mail address (if SMTP_HOST is set) and ntfy topic, never the owner's channels.
+ */
+export function createUserChannels(
+  env: AlertEnv,
+  user: UserChannelSettings,
+  isOwner: boolean,
+  deps: ChannelDeps = {},
+): AlertChannel[] {
+  if (isOwner) return createChannels(env, deps);
+  return createChannels(
+    {
+      ...env,
+      NTFY_TOPIC: user.ntfyTopic?.trim() || undefined,
+      NTFY_TOKEN: undefined,
+      ALERT_EMAIL_TO: user.alertEmail?.trim() || undefined,
+      DISCORD_WEBHOOK_URL: undefined,
+      TELEGRAM_BOT_TOKEN: undefined,
+      TELEGRAM_CHAT_ID: undefined,
+    },
+    deps,
+  );
+}
+
 /** Every channel whose env variables are set. None configured = alerts are only logged. */
 export function createChannels(env: AlertEnv, deps: ChannelDeps = {}): AlertChannel[] {
   return [

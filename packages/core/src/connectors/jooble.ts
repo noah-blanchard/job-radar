@@ -1,7 +1,13 @@
 import { z } from "zod";
 import { htmlToText } from "../normalize/html";
 import { parseItems } from "./parse";
-import { COUNTRY_NAMES, domainTerms, profileCountries, profileWantsRemote } from "./queries";
+import {
+  COUNTRY_NAMES,
+  domainTerms,
+  profileCountries,
+  profileWantsRemote,
+  searchTitles,
+} from "./queries";
 import { ConnectorError, requireKeys, takeQuota, type Connector, type FetchCtx } from "./types";
 
 // Verified 2026-11-13: POST jooble.org/api/{key} {keywords, location, page, datecreatedfrom}
@@ -29,14 +35,14 @@ export interface JoobleQuery {
   location: string;
 }
 
-/** (new grad + "junior <domain>") x (profile countries Jooble supports + Remote). */
+/** (search titles + "junior <domain>") x (profile countries Jooble supports + Remote). */
 export function joobleQueries(ctx: Pick<FetchCtx, "profile">): JoobleQuery[] {
   const locations = profileCountries(ctx.profile)
     .map((c) => SUPPORTED[c])
     .filter((x): x is string => !!x);
   if (profileWantsRemote(ctx.profile)) locations.push("Remote");
   const keywords = [
-    "new grad software engineer",
+    ...searchTitles(ctx.profile),
     ...domainTerms(ctx.profile)
       .filter((d) => d.terms.length > 0)
       .map((d) => `junior ${d.terms[0]}`),

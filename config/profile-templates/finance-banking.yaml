@@ -1,0 +1,110 @@
+# Modèle : finance, banque, audit (début de carrière)
+# Score = lieu (0-30) + niveau junior (0-25) + domaines (0-25) + langue (+5/-10) + bonus
+# Mots-clés : texte simple, insensible à la casse. "|" = "ou". Exemple : 'audit|auditor'.
+
+# --- Lieux : la PREMIÈRE règle qui correspond donne les points ---
+# country = code pays à 2 lettres (CA, FR, BE, CH, GB, US...). remote: true = télétravail.
+locations:
+  - { country: CA, weight: 30 }
+  - { match: "Montreal|Montréal|Toronto|Vancouver|Quebec|Ottawa", weight: 30 }
+  - { remote: true, country: CA, weight: 30 }
+  - { country: FR, weight: 22 }
+  - { remote: true, weight: 12 }
+
+# --- Domaines : +3 par mot-clé trouvé (x2 dans le titre), plafond 25 ---
+domains:
+  corporate_finance:
+    - 'financial analyst|analyste financi(er|ère)'
+    - 'fp&a|financial planning'
+    - 'corporate finance|finance d.entreprise'
+    - 'budget(ing)?|forecast(ing)?'
+    - 'financial model(l)?ing|modélisation financière'
+  banking:
+    - 'banking|banque|bancaire'
+    - 'investment bank(ing)?|banque d.investissement'
+    - 'commercial banking|retail banking'
+    - 'credit (analyst|risk)|analyste (de )?crédit'
+    - 'wealth management|gestion de patrimoine'
+    - 'conseill(er|ère) financi(er|ère)|financial advisor'
+  markets_investment:
+    - 'asset management|gestion d.actifs'
+    - 'portfolio (analyst|management)'
+    - 'equity research'
+    - 'private equity|venture capital'
+    - 'trading|markets analyst'
+    - cfa
+  audit_accounting:
+    - 'audit(or|eur|rice)?'
+    - 'accounting|accountant|comptab(le|ilité)'
+    - 'cpa|expert(e)?.comptable'
+    - 'ifrs|gaap'
+    - 'contrôle de gestion|controller|contrôleu(r|se)'
+  risk_compliance:
+    - 'risk (analyst|management)|gestion des risques'
+    - 'compliance|conformité'
+    - 'aml|kyc|lutte anti.blanchiment'
+    - 'regulatory reporting'
+
+# --- Niveau visé : entry (junior, nouveau diplômé), mid, senior, manager ---
+# Niveau visé = 25 points, inconnu = 10, autre niveau = score plafonné à 20.
+target_seniority: [entry]
+
+# title : une offre sans aucun mot-clé des domaines dans son titre est plafonnée à 20.
+# (true : plus souple, un mot-clé dans le titre ou deux dans la description suffisent.)
+require_domain: title
+
+# Recherches envoyées aux agrégateurs (Jooble, JSearch), en plus de la collecte des entreprises.
+search_titles:
+  - junior financial analyst
+  - banking analyst
+  - junior accountant
+
+# Langues que tu parles (fr, en, de, es...) : +5, une autre langue exigée : -10.
+languages: [fr, en]
+
+# Entreprises prioritaires : +10 points sur leurs offres (même bonus que « priorité haute »).
+priority_companies:
+  - "RBC"
+  - "RBC (programmes étudiants et diplômés)"
+  - "CIBC"
+  - "CIBC (campus)"
+  - "Desjardins"
+  - "Intact"
+  - "iA Groupe financier"
+  - "Sun Life"
+  - "Sun Life (campus)"
+  - "Manulife"
+  - "Investissements PSP"
+  - "Investissements RPC"
+  - "Ontario Teachers' Pension Plan"
+  - "OMERS"
+  - "Interac"
+  - "Fiera Capital"
+  - "Moneris"
+  - "Beneva"
+  - "Aviva"
+  - "BDC"
+  - "Groupe TMX"
+  - "BDO Canada"
+  - "Questrade"
+  - "EQ Bank"
+  - "Neo Financial"
+  - "KOHO"
+  - "Nuvei"
+  - "Wave"
+  - "nesto"
+  - "Borrowell"
+  - "Ratehub"
+  - "Flinks"
+  - "TD Bank"
+  - "Bank of Montreal"
+
+exclude_companies: []
+
+# Titres jamais intéressants -> score 0
+exclude_title:
+  - 'intern(ship)?|stagiaire|stage|co-?op|alternance'
+  - 'sales (representative|executive)|représentant(e)? des ventes'
+  - 'teller|caissi(er|ère)'
+  - 'customer service|service à la clientèle|call center'
+  - 'software engineer|developer|développeu(r|se)'

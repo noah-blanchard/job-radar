@@ -1,7 +1,4 @@
-import { mkdtempSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { companies, eq, jobs, kvGet, type AnyDb } from "@jobradar/db";
+import { and, companies, companyPrefs, eq, jobs, jobScores, users, type AnyDb } from "@jobradar/db";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { LlmClassifier, LlmVerdict } from "../src/classify/llm";
 import { createAnthropicClassifier } from "../src/classify/llm";
@@ -11,11 +8,17 @@ import { HttpShared } from "../src/http/client";
 import { ingestJob } from "../src/pipeline/ingest";
 import { dbQuota } from "../src/pipeline/quota";
 import { runSource } from "../src/pipeline/run";
-import { loadProfileFile, PROFILE_KV_KEY, type AppliedProfile } from "../src/score/profile";
+import {
+  listProfileTemplates,
+  loadProfileFile,
+  loadUserProfiles,
+  parseProfileText,
+} from "../src/score/profile";
 import { rescoreJobs, staleFreshJobIds, syncProfileScores } from "../src/score/rescore";
 import {
   compileProfile,
   profileHash,
+  profileProblems,
   scoreJob,
   type NewGradInfo,
   type ScoreBreakdown,
@@ -150,6 +153,66 @@ describe("scoreJob (fixture profile)", () => {
     expect(part(r.breakdown, "language")).toBe(-10);
   });
 
+  it("scores the targeted levels (target_seniority)", () => {
+    const mid = compileProfile(parseProfile({ ...profile, target_seniority: ["entry", "mid"] }));
+    const ca = job({ city: "Montreal", country: "CA" });
+    const midJob = { ...ng(false), seniority: "mid" };
+    const r = scoreJob(ca, midJob, mid, NOW);
+    expect(part(r.breakdown, "newGrad")).toBe(25);
+    expect(r.breakdown.parts[1]!.detail).toBe("niveau intermédiaire (visé)");
+    expect(r.breakdown.capped).toBeUndefined();
+    const senior = scoreJob(ca, { ...ng(false), seniority: "senior" }, mid, NOW);
+    expect(senior.score).toBe(20);
+    expect(senior.breakdown.capped).toBe("niveau hors cible (senior) : score plafonné à 20");
+    // Default profile (entry only): a mid-level job stays "pas new grad", capped.
+    expect(scoreJob(ca, midJob, cp, NOW).breakdown.capped).toContain("pas new grad");
+  });
+
+  it("caps jobs outside the profile's domains when require_domain is set", () => {
+    const strict = compileProfile(parseProfile({ ...profile, require_domain: true }));
+    const byTitle = compileProfile(parseProfile({ ...profile, require_domain: "title" }));
+    const ca = job({ city: "Montreal", country: "CA", title: "Account Coordinator" });
+    // One keyword in a long description is not enough.
+    const oneDesc = { ...ca, descriptionText: "We use React internally." };
+    const r = scoreJob(oneDesc, ng(true), strict, NOW);
+    expect(r.breakdown.raw).toBeGreaterThan(20);
+    expect(r.score).toBe(20);
+    expect(r.breakdown.capped).toBe("hors des domaines du profil : score plafonné à 20");
+    // Two description keywords pass "true" but not "title".
+    const twoDesc = { ...ca, descriptionText: "React and Node.js on the front and back." };
+    expect(scoreJob(twoDesc, ng(true), strict, NOW).breakdown.capped).toBeUndefined();
+    expect(scoreJob(twoDesc, ng(true), byTitle, NOW).breakdown.capped).toBe(
+      "aucun mot-clé du profil dans le titre : score plafonné à 20",
+    );
+    const title = { ...ca, title: "Junior React Developer" };
+    expect(scoreJob(title, ng(true), byTitle, NOW).breakdown.capped).toBeUndefined();
+  });
+
+  it("gives the priority bonus to the profile's priority_companies", () => {
+    const p = compileProfile(
+      parseProfile({ ...profile, priority_companies: ["Banque Nationale"] }),
+    );
+    const r = scoreJob(job({ companyName: "Banque Nationale Inc." }), ng(true), p, NOW);
+    expect(r.breakdown.parts.find((x) => x.key === "priority")).toEqual({
+      key: "priority",
+      points: 10,
+      detail: "entreprise prioritaire (profil)",
+    });
+    expect(part(scoreJob(job(), ng(true), p, NOW).breakdown, "priority")).toBeUndefined();
+  });
+
+  it("lists the invalid patterns of a profile", () => {
+    const p = parseProfile({
+      locations: [{ match: "Montr(eal", weight: 30 }],
+      domains: { web: ["react", "node(js"] },
+      exclude_title: ["[sales"],
+    });
+    const problems = profileProblems(p);
+    expect(problems).toHaveLength(3);
+    expect(problems[1]).toMatch(/^domaine web : « node\(js » n'est pas valide/);
+    expect(profileProblems(profile)).toEqual([]);
+  });
+
   it("hashes the profile text together with the scoring version", () => {
     expect(profileHash("a: 1\n")).toBe(profileHash("a: 1\r\n"));
     expect(profileHash("a: 1\n")).not.toBe(profileHash("a: 2\n"));
@@ -197,7 +260,24 @@ async function seed(n: number) {
   }
 }
 
-const allJobs = () => db.select().from(jobs).orderBy(jobs.id);
+/** The owner (user 1, created by the migration). */
+const OWNER = 1;
+const profiles = [{ userId: OWNER, profile }];
+
+/** Jobs with one user's score columns. */
+async function allJobs(userId = OWNER) {
+  const rows = await db
+    .select()
+    .from(jobs)
+    .leftJoin(jobScores, and(eq(jobScores.jobId, jobs.id), eq(jobScores.userId, userId)))
+    .orderBy(jobs.id);
+  return rows.map((r) => ({
+    ...r.jobs,
+    score: r.job_scores?.score ?? null,
+    scoreBreakdown: r.job_scores?.scoreBreakdown ?? null,
+    domains: r.job_scores?.domains ?? null,
+  }));
+}
 
 describe("rescoreJobs", () => {
   it("scores every job in batches with one update per batch", async () => {
@@ -205,7 +285,7 @@ describe("rescoreJobs", () => {
     const r = await rescoreJobs(
       db,
       { kind: "all" },
-      { profile, log: silentLog, now: () => NOW, batchSize: 10 },
+      { profiles, log: silentLog, now: () => NOW, batchSize: 10 },
     );
     expect(r).toMatchObject({ scanned: 25, updated: 25, llmCalls: 0 });
     const rows = await allJobs();
@@ -222,7 +302,7 @@ describe("rescoreJobs", () => {
     const again = await rescoreJobs(
       db,
       { kind: "all" },
-      { profile, log: silentLog, now: () => NOW },
+      { profiles, log: silentLog, now: () => NOW },
     );
     expect(again).toMatchObject({ scanned: 25, updated: 0 });
   });
@@ -231,18 +311,19 @@ describe("rescoreJobs", () => {
     await seed(6);
     const [c] = await db
       .insert(companies)
-      .values({ name: "Acme", nameKey: "acme", priority: "high" })
+      .values({ name: "Acme", nameKey: "acme", priority: "normal" })
       .returning();
+    await db.insert(companyPrefs).values({ userId: OWNER, companyId: c!.id, priority: "high" });
     await db.update(jobs).set({ companyId: c!.id }).where(eq(jobs.sourceJobId, "0"));
     const ids = (await allJobs()).slice(0, 2).map((j) => j.id);
-    expect((await rescoreJobs(db, { kind: "ids", ids }, { profile, log: silentLog })).scanned).toBe(
-      2,
-    );
+    expect(
+      (await rescoreJobs(db, { kind: "ids", ids }, { profiles, log: silentLog })).scanned,
+    ).toBe(2);
     expect((await allJobs()).filter((j) => j.score !== null)).toHaveLength(2);
     const r = await rescoreJobs(
       db,
       { kind: "company", companyId: c!.id },
-      { profile, log: silentLog },
+      { profiles, log: silentLog },
     );
     expect(r.scanned).toBe(1);
     const b = (await allJobs())[0]!.scoreBreakdown as ScoreBreakdown;
@@ -251,52 +332,44 @@ describe("rescoreJobs", () => {
 
   it("finds jobs whose freshness bonus expired", async () => {
     await seed(3);
-    await rescoreJobs(db, { kind: "all" }, { profile, log: silentLog, now: () => NOW });
+    await rescoreJobs(db, { kind: "all" }, { profiles, log: silentLog, now: () => NOW });
     expect(await staleFreshJobIds(db, NOW)).toEqual([]);
     const later = new Date(NOW.getTime() + 25 * 3_600_000);
     expect(await staleFreshJobIds(db, later)).toHaveLength(3);
     await rescoreJobs(
       db,
       { kind: "ids", ids: await staleFreshJobIds(db, later) },
-      { profile, log: silentLog, now: () => later },
+      { profiles, log: silentLog, now: () => later },
     );
     expect(await staleFreshJobIds(db, later)).toEqual([]);
   });
 });
 
-describe("profile.yaml changes", () => {
-  it("recomputes every score when profile.yaml changes, and only then", async () => {
-    await seed(9);
-    const dir = mkdtempSync(join(tmpdir(), "jobradar-profile-"));
-    const file = join(dir, "profile.yaml");
-    writeFileSync(file, "locations:\n  - { match: Toronto, weight: 30 }\ndomains: {}\n");
+describe("profile changes", () => {
+  const setProfile = (id: number, text: string) =>
+    db.update(users).set({ profileYaml: text }).where(eq(users.id, id));
 
-    const first = await syncProfileScores(db, loadProfileFile(dir), {
-      log: silentLog,
-      now: () => NOW,
-    });
-    expect(first).toMatchObject({ changed: true, previous: null });
+  it("recomputes a user's scores when their profile changes, and only then", async () => {
+    await seed(9);
+    await setProfile(OWNER, "locations:\n  - { match: Toronto, weight: 30 }\ndomains: {}\n");
+
+    const first = await syncProfileScores(db, { log: silentLog, now: () => NOW });
+    expect(first).toMatchObject({ changed: true, users: [OWNER] });
     expect(first.rescore?.scanned).toBe(9);
     const before = new Map((await allJobs()).map((j) => [j.id, j.score]));
-    const stored = await kvGet<AppliedProfile>(db, PROFILE_KV_KEY);
-    expect(stored?.hash).toBe(first.hash);
-    expect(stored?.text).toContain("Toronto");
+    const [p1] = (await loadUserProfiles(db)).profiles;
+    expect(p1?.scoredHash).toBe(p1?.hash);
 
-    // Same file: no rescore.
-    expect((await syncProfileScores(db, loadProfileFile(dir), { log: silentLog })).changed).toBe(
-      false,
-    );
+    // Same profile: no rescore.
+    expect((await syncProfileScores(db, { log: silentLog })).changed).toBe(false);
 
     // Paris is now worth more than Toronto: every score is recomputed.
-    writeFileSync(
-      file,
+    await setProfile(
+      OWNER,
       "locations:\n  - { match: Paris, weight: 30 }\n  - { match: Toronto, weight: 5 }\ndomains: {}\n",
     );
-    const second = await syncProfileScores(db, loadProfileFile(dir), {
-      log: silentLog,
-      now: () => NOW,
-    });
-    expect(second).toMatchObject({ changed: true, previous: first.hash });
+    const second = await syncProfileScores(db, { log: silentLog, now: () => NOW });
+    expect(second).toMatchObject({ changed: true, users: [OWNER] });
     const after = await allJobs();
     for (const j of after) {
       const loc = (j.scoreBreakdown as ScoreBreakdown).parts.find((p) => p.key === "location")!;
@@ -305,12 +378,54 @@ describe("profile.yaml changes", () => {
     expect(after.some((j) => j.score !== before.get(j.id))).toBe(true);
   });
 
+  it("keeps each user's scores apart and rescores only the user who changed", async () => {
+    await seed(6);
+    await setProfile(OWNER, "locations:\n  - { match: Toronto, weight: 30 }\ndomains: {}\n");
+    const [other] = await db
+      .insert(users)
+      .values({
+        email: "b@example.com",
+        profileYaml: "locations:\n  - { match: Paris, weight: 30 }\ndomains: {}\n",
+      })
+      .returning();
+    const all = await syncProfileScores(db, { log: silentLog, now: () => NOW });
+    expect(all.users.sort()).toEqual([OWNER, other!.id].sort());
+    const loc = (rows: Awaited<ReturnType<typeof allJobs>>, place: string) =>
+      rows
+        .filter((j) => j.locationRaw?.startsWith(place))
+        .map((j) => (j.scoreBreakdown as ScoreBreakdown).parts[0]!.points);
+    expect(loc(await allJobs(OWNER), "Toronto")).toEqual([30, 30, 30]);
+    expect(loc(await allJobs(OWNER), "Paris")).toEqual([0, 0, 0]);
+    expect(loc(await allJobs(other!.id), "Paris")).toEqual([30, 30, 30]);
+
+    await setProfile(other!.id, "locations: []\ndomains: {}\n");
+    const again = await syncProfileScores(db, { log: silentLog, now: () => NOW });
+    expect(again.users).toEqual([other!.id]);
+
+    // An invalid profile is reported and skipped, the others are still scored.
+    await setProfile(other!.id, "locations: 12\n");
+    const bad = await syncProfileScores(db, { log: silentLog, force: true });
+    expect(bad.users).toEqual([OWNER]);
+    expect(bad.invalid.map((i) => i.userId)).toEqual([other!.id]);
+  });
+
   it("loads the real config/profile.yaml", () => {
     const p = loadProfileFile(CONFIG_DIR);
     expect(p.profile.locations.length).toBeGreaterThan(0);
     expect(Object.keys(p.profile.domains).length).toBeGreaterThan(0);
     expect(p.hash).toMatch(/^[0-9a-f]{16}$/);
+    expect(profileProblems(p.profile)).toEqual([]);
   });
+
+  it.each(listProfileTemplates(CONFIG_DIR).map((t) => [t.id, t]))(
+    "ships a valid starter profile: %s",
+    (_id, t) => {
+      const p = parseProfileText(t.text);
+      expect(profileProblems(p.profile)).toEqual([]);
+      expect(Object.keys(p.profile.domains).length).toBeGreaterThan(0);
+      expect(p.profile.require_domain).toBe("title");
+    },
+  );
 });
 
 describe("runSource hook", () => {
@@ -326,7 +441,7 @@ describe("runSource hook", () => {
     };
     const http = new HttpShared({ userAgent: "test", log: silentLog });
     const r = await runSource(
-      { db, http, log: silentLog, profile, rescore: {}, now: () => NOW },
+      { db, http, log: silentLog, profile, rescore: { profiles: () => profiles }, now: () => NOW },
       connector,
     );
     expect(r.status).toBe("ok");
@@ -367,7 +482,7 @@ describe("optional LLM pass", () => {
     const r = await rescoreJobs(
       db,
       { kind: "ids", ids },
-      { profile, log: silentLog, now: () => NOW, llm },
+      { profiles, log: silentLog, now: () => NOW, llm },
     );
     expect(r.llmCalls).toBe(2);
     expect(calls.every((t) => t.startsWith("Engineer - ref"))).toBe(true);
@@ -382,7 +497,7 @@ describe("optional LLM pass", () => {
     const r2 = await rescoreJobs(
       db,
       { kind: "ids", ids },
-      { profile, log: silentLog, now: () => NOW, llm },
+      { profiles, log: silentLog, now: () => NOW, llm },
     );
     expect(r2.llmCalls).toBe(0);
     expect(calls).toHaveLength(2);
@@ -393,7 +508,7 @@ describe("optional LLM pass", () => {
       db,
       { kind: "all" },
       {
-        profile,
+        profiles,
         log: silentLog,
         now: () => tomorrow,
         llm: { classifier: c3, quota: dbQuota(db, "llm", 100, () => tomorrow) },

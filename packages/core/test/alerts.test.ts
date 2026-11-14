@@ -2,8 +2,11 @@ import {
   alertsSent,
   apiUsage,
   companies,
+  companyPrefs,
   jobs,
+  jobScores,
   jobStatus,
+  users,
   kvSet,
   sourceRuns,
   type AnyDb,
@@ -13,6 +16,7 @@ import {
   BACKUP_STATUS_KEY,
   buildDigestMessage,
   createChannels,
+  createUserChannels,
   emailChannel,
   findHealthIssues,
   ntfyChannel,
@@ -58,8 +62,13 @@ function fakeChannel(id: ChannelId, opts: { fail?: boolean } = {}) {
   return ch;
 }
 
+const OWNER = 1;
 let seq = 0;
-async function addJob(over: Partial<typeof jobs.$inferInsert> = {}) {
+/** A job and the owner's score for it (`score` goes to job_scores). */
+async function addJob({
+  score = 60,
+  ...over
+}: Partial<typeof jobs.$inferInsert> & { score?: number } = {}) {
   seq++;
   const [row] = await db
     .insert(jobs)
@@ -73,16 +82,24 @@ async function addJob(over: Partial<typeof jobs.$inferInsert> = {}) {
       region: "ON",
       country: "CA",
       url: `https://boards.example.test/${seq}`,
-      score: 60,
       isNewGrad: true,
       firstSeenAt: new Date(NOW.getTime() - 2 * H),
       ...over,
     })
     .returning({ id: jobs.id });
+  await db
+    .insert(jobScores)
+    .values({ userId: OWNER, jobId: row!.id, score, scoreBreakdown: { total: score } });
   return row!.id;
 }
 
-const deps = (channels: AlertChannel[]) => ({ db, channels, log: silentLog, now: () => NOW });
+const deps = (channels: AlertChannel[], userId = OWNER) => ({
+  db,
+  userId,
+  channels,
+  log: silentLog,
+  now: () => NOW,
+});
 const digestOpts = { anchor: NOW, minScore: 40, publicBaseUrl: BASE };
 
 describe("digest", () => {
@@ -90,7 +107,8 @@ describe("digest", () => {
     const top = await addJob({ title: "Top", score: 90 });
     await addJob({ title: "Paris", score: 70, country: "FR", city: "Paris", region: null });
     await addJob({ title: "Unknown seniority", score: 50, isNewGrad: null });
-    await addJob({ title: "Senior", score: 95, isNewGrad: false });
+    // Off-target level: the scorer caps it at 20, under the threshold.
+    await addJob({ title: "Senior", score: 20, isNewGrad: false });
     await addJob({ title: "Low score", score: 39 });
     await addJob({ title: "Too old", score: 80, firstSeenAt: new Date(NOW.getTime() - 25 * H) });
     await addJob({
@@ -100,7 +118,7 @@ describe("digest", () => {
     });
     await addJob({ title: "Closed", score: 80, closedAt: NOW });
     const ignored = await addJob({ title: "Ignored", score: 80 });
-    await db.insert(jobStatus).values({ jobId: ignored, status: "ignored" });
+    await db.insert(jobStatus).values({ userId: OWNER, jobId: ignored, status: "ignored" });
 
     const ch = fakeChannel("email");
     const res = await runDigest(deps([ch]), digestOpts);
@@ -212,14 +230,15 @@ describe("instant alerts", () => {
   it("alerts high scores and high-priority companies once, new jobs only", async () => {
     const [hp] = await db
       .insert(companies)
-      .values({ name: "Stripe", nameKey: "stripe", priority: "high" })
+      .values({ name: "Stripe", nameKey: "stripe" })
       .returning();
+    await db.insert(companyPrefs).values({ userId: OWNER, companyId: hp!.id, priority: "high" });
     const a = await addJob({ title: "Great", score: 80 });
     const b = await addJob({ title: "Priority", score: 50, companyId: hp!.id });
     await addJob({ title: "Priority but excluded", score: 0, companyId: hp!.id });
     await addJob({ title: "Average", score: 60 });
     await addJob({ title: "Old", score: 90, firstSeenAt: new Date(NOW.getTime() - 30 * H) });
-    await addJob({ title: "Not new grad", score: 90, isNewGrad: false });
+    await addJob({ title: "Not new grad", score: 20, isNewGrad: false });
 
     const ch = fakeChannel("ntfy");
     const d = deps([ch]);
@@ -237,6 +256,54 @@ describe("instant alerts", () => {
     expect(ch.sent[1]!.url).toBe(`${BASE}/jobs/${c}`);
     const rows = await db.select().from(alertsSent);
     expect(rows.map((r) => r.jobId).sort()).toEqual([a, b, c].sort());
+  });
+});
+
+describe("per-user selection", () => {
+  it("uses the recipient's scores and statuses only", async () => {
+    const [other] = await db.insert(users).values({ email: "b@example.com" }).returning();
+    const mine = await addJob({ title: "Mine", score: 80 });
+    // Same job, scored low for the other user and ignored by them: no effect on the owner.
+    await db
+      .insert(jobScores)
+      .values({ userId: other!.id, jobId: mine, score: 10, scoreBreakdown: { total: 10 } });
+    await db.insert(jobStatus).values({ userId: other!.id, jobId: mine, status: "ignored" });
+
+    const own = fakeChannel("ntfy");
+    await runDigest(deps([own]), digestOpts);
+    expect(own.sent[0]!.text).toContain("Mine");
+
+    const theirs = fakeChannel("ntfy");
+    // Same digest, same channel id: each user gets their own (dedup is per user).
+    await runDigest(deps([theirs], other!.id), digestOpts);
+    expect(theirs.sent).toHaveLength(1);
+    expect(theirs.sent[0]!.text).not.toContain("Mine");
+    expect(await runDigest(deps([theirs], other!.id), digestOpts)).toEqual([
+      { channel: "ntfy", sent: 0, ok: true },
+    ]);
+    const rows = await db.select().from(alertsSent);
+    expect(rows.map((r) => r.userId).sort()).toEqual([OWNER, other!.id].sort());
+  });
+
+  it("gives a non-owner only their own channels, never the .env ones", () => {
+    const env = testEnv({
+      NTFY_TOPIC: "owner-topic",
+      SMTP_HOST: "smtp.example.test",
+      ALERT_EMAIL_TO: "owner@example.test",
+      DISCORD_WEBHOOK_URL: "https://discord.example.test/hook",
+    });
+    const none = { alertEmail: null, ntfyTopic: null };
+    expect(createUserChannels(env, none, true).map((c) => c.id)).toEqual([
+      "ntfy",
+      "email",
+      "discord",
+    ]);
+    expect(createUserChannels(env, none, false)).toEqual([]);
+    const own = { alertEmail: "b@example.test", ntfyTopic: "b-topic" };
+    expect(createUserChannels(env, own, false).map((c) => c.id)).toEqual(["ntfy", "email"]);
+    // No SMTP server: no e-mail channel, whatever the address.
+    const noSmtp = testEnv({});
+    expect(createUserChannels(noSmtp, own, false).map((c) => c.id)).toEqual(["ntfy"]);
   });
 });
 

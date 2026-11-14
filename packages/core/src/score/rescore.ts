@@ -1,8 +1,9 @@
 /**
- * (Re)classifies and (re)scores jobs in batches: one SELECT and one set-based UPDATE per batch
- * (`UPDATE jobs FROM jsonb_to_recordset(...)`), never one query per job.
+ * (Re)classifies and (re)scores jobs in batches. Per batch: one SELECT, one set-based UPDATE of
+ * the classification (`jobs`, shared by every user) and one upsert of the scores of every
+ * profile (`job_scores`, one row per user and job). Never one query per job.
  */
-import { kvGet, kvSet, queryRows, sql, type AnyDb } from "@jobradar/db";
+import { kvSet, queryRows, sql, users, type AnyDb } from "@jobradar/db";
 import { classifyNewGrad } from "../classify/rules";
 import { isFatalLlmError, type LlmClassifier, type LlmVerdict } from "../classify/llm";
 import type { Profile } from "../config";
@@ -16,7 +17,7 @@ import {
   type NewGradInfo,
   type ScoreInput,
 } from "./score";
-import { PROFILE_KV_KEY, type AppliedProfile, type LoadedProfile } from "./profile";
+import { loadUserProfiles, type UserProfile } from "./profile";
 
 export const RESCORE_BATCH = 1000;
 const llmKey = (fingerprint: string) => `llm:${fingerprint}`;
@@ -26,8 +27,15 @@ export interface LlmOptions {
   quota: QuotaCounter;
 }
 
-export interface RescoreOptions {
+/** One user's profile to score with. */
+export interface ScoringProfile {
+  userId: number;
   profile: Profile;
+}
+
+export interface RescoreOptions {
+  /** Users to score (none: classification only). */
+  profiles: readonly ScoringProfile[];
   log: Logger;
   now?: () => Date;
   /** Optional LLM pass for ambiguous jobs (new calls only for targeted rescores). */
@@ -37,6 +45,7 @@ export interface RescoreOptions {
 
 export interface RescoreResult {
   scanned: number;
+  /** Score rows written or changed (one per user and job). */
   updated: number;
   llmCalls: number;
   ms: number;
@@ -45,12 +54,12 @@ export interface RescoreResult {
 interface Row extends Record<string, unknown> {
   id: number;
   fingerprint: string;
+  company_id: number | null;
   title: string;
   description_text: string | null;
   employment_type: string | null;
   seniority_hint: string | null;
   company_name: string;
-  company_priority: "low" | "normal" | "high" | null;
   city: string | null;
   region: string | null;
   country: string | null;
@@ -88,11 +97,12 @@ async function selectBatch(db: AnyDb, target: RescoreTarget, afterId: number, li
   return queryRows<Row>(
     db,
     sql`
-    select j.id, j.fingerprint, j.title, left(j.description_text, 20000) as description_text,
-      j.employment_type, j.seniority_hint, j.company_name, c.priority as company_priority,
+    select j.id, j.fingerprint, j.company_id, j.title,
+      left(j.description_text, 20000) as description_text,
+      j.employment_type, j.seniority_hint, j.company_name,
       j.city, j.region, j.country, j.remote, j.location_raw, j.lang,
       j.salary_min, j.salary_max, j.first_seen_at
-    from jobs j left join companies c on c.id = j.company_id
+    from jobs j
     where ${where} and j.id > ${afterId}
     order by j.id
     limit ${limit}`,
@@ -109,10 +119,31 @@ async function cachedLlm(db: AnyDb, fingerprints: string[]): Promise<Map<string,
   return new Map(rows.map((r) => [r.key.slice(4), r.value]));
 }
 
+/** "userId:companyId" of the companies each user marked high priority, for this batch. */
+async function highPriority(db: AnyDb, rows: Row[], userIds: number[]): Promise<Set<string>> {
+  const companyIds = [
+    ...new Set(rows.map((r) => r.company_id).filter((c): c is number => c !== null)),
+  ];
+  if (companyIds.length === 0 || userIds.length === 0) return new Set();
+  const prefs = await queryRows<{ user_id: number; company_id: number }>(
+    db,
+    sql`select user_id, company_id from company_prefs
+        where priority = 'high'
+          and user_id = any(${`{${userIds.join(",")}}`}::int[])
+          and company_id = any(${`{${companyIds.join(",")}}`}::int[])`,
+  );
+  return new Set(prefs.map((p) => `${p.user_id}:${p.company_id}`));
+}
+
+interface Compiled {
+  userId: number;
+  cp: CompiledProfile;
+}
+
 async function processBatch(
   db: AnyDb,
   rows: Row[],
-  cp: CompiledProfile,
+  compiled: Compiled[],
   opts: RescoreOptions,
   allowLlmCalls: boolean,
   llmState: { calls: number; stopped: boolean },
@@ -129,7 +160,7 @@ async function processBatch(
       title: r.title,
       descriptionText: r.description_text,
       companyName: r.company_name,
-      companyPriority: r.company_priority,
+      companyPriority: null,
       city: r.city,
       region: r.region,
       country: r.country,
@@ -164,10 +195,11 @@ async function processBatch(
       else misses.push(x);
     }
     if (allowLlmCalls && !llmState.stopped) {
-      misses.sort(
-        (a, b) =>
-          scoreJob(b.job, b.newGrad, cp, now).score - scoreJob(a.job, a.newGrad, cp, now).score,
-      );
+      // Best provisional score for any user first: the daily quota goes where it matters.
+      const best = (x: (typeof misses)[number]) =>
+        Math.max(0, ...compiled.map((c) => scoreJob(x.job, x.newGrad, c.cp, now).score));
+      const order = new Map(misses.map((x) => [x, best(x)]));
+      misses.sort((a, b) => order.get(b)! - order.get(a)!);
       for (const x of misses) {
         if (llmState.stopped || !(await opts.llm.quota.take())) {
           llmState.stopped = true;
@@ -192,41 +224,62 @@ async function processBatch(
     }
   }
 
-  const values = inputs.map(({ row, job, newGrad }) => {
-    const s = scoreJob(job, newGrad, cp, now);
-    return {
-      id: row.id,
-      score: s.score,
-      score_breakdown: s.breakdown,
-      domains: s.domains,
-      is_new_grad: newGrad.value,
-      is_new_grad_reason: newGrad.reason,
-      seniority: newGrad.seniority,
-    };
-  });
-  if (values.length === 0) return 0;
-  // One UPDATE per batch; rows whose values did not change are not rewritten.
-  const updated = await queryRows<{ id: number }>(
-    db,
-    sql`
+  if (inputs.length === 0) return 0;
+  // Classification: shared by every user, written on `jobs` (unchanged rows are not rewritten).
+  const classes = inputs.map(({ row, newGrad }) => ({
+    id: row.id,
+    is_new_grad: newGrad.value,
+    is_new_grad_reason: newGrad.reason,
+    seniority: newGrad.seniority,
+  }));
+  await db.execute(sql`
     update jobs j set
-      score = v.score,
-      score_breakdown = v.score_breakdown,
-      domains = v.domains,
       is_new_grad = v.is_new_grad,
       is_new_grad_reason = v.is_new_grad_reason,
       seniority = v.seniority
-    from jsonb_to_recordset(${JSON.stringify(values)}::jsonb) as v(
-      id bigint, score smallint, score_breakdown jsonb, domains text[],
-      is_new_grad boolean, is_new_grad_reason text, seniority text)
+    from jsonb_to_recordset(${JSON.stringify(classes)}::jsonb) as v(
+      id bigint, is_new_grad boolean, is_new_grad_reason text, seniority text)
     where j.id = v.id
-      and (j.score is distinct from v.score
-        or j.score_breakdown is distinct from v.score_breakdown
-        or j.domains is distinct from v.domains
-        or j.is_new_grad is distinct from v.is_new_grad
+      and (j.is_new_grad is distinct from v.is_new_grad
         or j.is_new_grad_reason is distinct from v.is_new_grad_reason
-        or j.seniority is distinct from v.seniority)
-    returning j.id`,
+        or j.seniority is distinct from v.seniority)`);
+
+  if (compiled.length === 0) return 0;
+  const high = await highPriority(
+    db,
+    rows,
+    compiled.map((c) => c.userId),
+  );
+  const scores = compiled.flatMap(({ userId, cp }) =>
+    inputs.map(({ row, job, newGrad }) => {
+      const priority =
+        row.company_id !== null && high.has(`${userId}:${row.company_id}`) ? "high" : null;
+      const s = scoreJob({ ...job, companyPriority: priority }, newGrad, cp, now);
+      return {
+        user_id: userId,
+        job_id: row.id,
+        score: s.score,
+        score_breakdown: s.breakdown,
+        domains: s.domains,
+      };
+    }),
+  );
+  // One upsert per batch for every user; rows whose values did not change are not rewritten.
+  const updated = await queryRows<{ job_id: number }>(
+    db,
+    sql`
+    insert into job_scores (user_id, job_id, score, score_breakdown, domains)
+    select v.user_id, v.job_id, v.score, v.score_breakdown, v.domains
+    from jsonb_to_recordset(${JSON.stringify(scores)}::jsonb) as v(
+      user_id int, job_id bigint, score smallint, score_breakdown jsonb, domains text[])
+    on conflict (user_id, job_id) do update set
+      score = excluded.score,
+      score_breakdown = excluded.score_breakdown,
+      domains = excluded.domains
+    where job_scores.score is distinct from excluded.score
+      or job_scores.score_breakdown is distinct from excluded.score_breakdown
+      or job_scores.domains is distinct from excluded.domains
+    returning job_id`,
   );
   return updated.length;
 }
@@ -238,7 +291,10 @@ export async function rescoreJobs(
   opts: RescoreOptions,
 ): Promise<RescoreResult> {
   const t0 = Date.now();
-  const cp = compileProfile(opts.profile);
+  const compiled = opts.profiles.map((p) => ({
+    userId: p.userId,
+    cp: compileProfile(p.profile),
+  }));
   const batch = opts.batchSize ?? RESCORE_BATCH;
   const llmState = { calls: 0, stopped: false };
   // New LLM calls only for targeted rescores (after a run); a full rescore uses the cache only.
@@ -251,7 +307,7 @@ export async function rescoreJobs(
     for (let i = 0; i < ids.length; i += batch) {
       const rows = await selectBatch(db, { kind: "ids", ids: ids.slice(i, i + batch) }, 0, batch);
       scanned += rows.length;
-      updated += await processBatch(db, rows, cp, opts, allowLlmCalls, llmState);
+      updated += await processBatch(db, rows, compiled, opts, allowLlmCalls, llmState);
     }
   } else {
     let afterId = 0;
@@ -260,57 +316,63 @@ export async function rescoreJobs(
       if (rows.length === 0) break;
       afterId = Number(rows[rows.length - 1]!.id);
       scanned += rows.length;
-      updated += await processBatch(db, rows, cp, opts, allowLlmCalls, llmState);
+      updated += await processBatch(db, rows, compiled, opts, allowLlmCalls, llmState);
     }
   }
   return { scanned, updated, llmCalls: llmState.calls, ms: Date.now() - t0 };
 }
 
-/** Jobs whose freshness bonus has expired (first seen more than 24 h ago). */
+/** Jobs whose freshness bonus has expired for some user (first seen more than 24 h ago). */
 export async function staleFreshJobIds(db: AnyDb, now = new Date()): Promise<number[]> {
   const cutoff = new Date(now.getTime() - FRESH_MS).toISOString();
   const rows = await queryRows<{ id: number }>(
     db,
     sql`
-    select id from jobs
-    where first_seen_at < ${cutoff}::timestamptz
-      and score_breakdown @> '{"parts":[{"key":"freshness"}]}'::jsonb`,
+    select distinct s.job_id as id from job_scores s join jobs j on j.id = s.job_id
+    where j.first_seen_at < ${cutoff}::timestamptz
+      and s.score_breakdown @> '{"parts":[{"key":"freshness"}]}'::jsonb`,
   );
   return rows.map((r) => Number(r.id));
 }
 
 export interface ProfileSyncResult {
   changed: boolean;
-  hash: string;
-  previous: string | null;
+  /** Users rescored by this call. */
+  users: number[];
+  /** Users whose profile does not parse (not scored). */
+  invalid: { userId: number; error: string }[];
   rescore?: RescoreResult;
 }
 
 /**
- * Full rescore when profile.yaml (or the scoring code version) changed since the stored scores
- * were computed. The hash is written only after the rescore succeeded.
+ * Full rescore of the users whose profile (or the scoring code version) changed since their
+ * stored scores were computed: one pass over the jobs scores all of them at once. A user's hash
+ * is recorded only after the rescore succeeded, and only if the profile was not edited meanwhile.
+ * `force` rescores every user (`userIds` narrows it).
  */
 export async function syncProfileScores(
   db: AnyDb,
-  loaded: LoadedProfile,
-  opts: Omit<RescoreOptions, "profile"> & { force?: boolean },
+  opts: Omit<RescoreOptions, "profiles"> & { force?: boolean; userIds?: number[] },
 ): Promise<ProfileSyncResult> {
-  const stored = await kvGet<{ hash: string }>(db, PROFILE_KV_KEY);
-  if (!opts.force && stored?.hash === loaded.hash)
-    return { changed: false, hash: loaded.hash, previous: stored.hash };
+  const { profiles, invalid } = await loadUserProfiles(db);
+  const stale = profiles.filter(
+    (p) =>
+      (!opts.userIds || opts.userIds.includes(p.userId)) && (opts.force || p.scoredHash !== p.hash),
+  );
+  if (stale.length === 0) return { changed: false, users: [], invalid };
   opts.log.info(
-    { previous: stored?.hash ?? null, hash: loaded.hash, forced: !!opts.force },
+    { users: stale.map((p) => ({ userId: p.userId, previous: p.scoredHash, hash: p.hash })) },
     "full rescore",
   );
-  const rescore = await rescoreJobs(db, { kind: "all" }, { ...opts, profile: loaded.profile });
-  const applied: AppliedProfile = {
-    hash: loaded.hash,
-    appliedAt: new Date().toISOString(),
-    text: loaded.text,
-    jobs: rescore.scanned,
-    ms: rescore.ms,
-  };
-  await kvSet(db, PROFILE_KV_KEY, applied);
+  const rescore = await rescoreJobs(db, { kind: "all" }, { ...opts, profiles: stale });
+  for (const p of stale) await markScored(db, p);
   opts.log.info(rescore, "full rescore done");
-  return { changed: true, hash: loaded.hash, previous: stored?.hash ?? null, rescore };
+  return { changed: true, users: stale.map((p) => p.userId), invalid, rescore };
+}
+
+async function markScored(db: AnyDb, p: UserProfile) {
+  await db
+    .update(users)
+    .set({ scoredHash: p.hash, scoredAt: new Date() })
+    .where(sql`${users.id} = ${p.userId} and ${users.profileYaml} = ${p.text}`);
 }

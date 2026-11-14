@@ -69,7 +69,17 @@ describe("sanitizeHtml", () => {
     );
     expect(JSON.parse(JSON.stringify(tree))).toEqual([
       { t: "h3", c: ["T"] },
-      { t: "p", c: ["a ", { t: "strong", c: ["b"] }, " ", "c", " ", { t: "a", h: "https://x.dev/j", c: ["d"] }] },
+      {
+        t: "p",
+        c: [
+          "a ",
+          { t: "strong", c: ["b"] },
+          " ",
+          "c",
+          " ",
+          { t: "a", h: "https://x.dev/j", c: ["d"] },
+        ],
+      },
       { t: "br", c: [] },
     ]);
   });

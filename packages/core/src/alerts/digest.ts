@@ -9,6 +9,7 @@ import {
   inArray,
   isNull,
   jobs,
+  jobScores,
   jobStatus,
   lt,
   sql,
@@ -37,11 +38,12 @@ export const DIGEST_MAX_JOBS = 150;
 const PUSH_TOP = 5;
 
 /**
- * Open jobs worth alerting: new grad or unknown (never `false`), not ignored in the dashboard.
- * Sorted by score, then freshness.
+ * Open jobs worth alerting for one user: not ignored in their dashboard, sorted by their score,
+ * then freshness. The level is in the score: a level outside the profile caps it at 20.
  */
 export async function selectAlertJobs(
   db: AnyDb,
+  userId: number,
   where: SQL | undefined,
   limit: number,
 ): Promise<AlertJob[]> {
@@ -55,24 +57,18 @@ export async function selectAlertJobs(
       country: jobs.country,
       locationRaw: jobs.locationRaw,
       remote: jobs.remote,
-      score: sql<number>`coalesce(${jobs.score}, 0)::int`,
+      score: sql<number>`${jobScores.score}::int`,
       isNewGrad: jobs.isNewGrad,
       firstSeenAt: jobs.firstSeenAt,
       url: jobs.url,
       applyUrl: jobs.applyUrl,
     })
     .from(jobs)
+    .innerJoin(jobScores, and(eq(jobScores.jobId, jobs.id), eq(jobScores.userId, userId)))
     .leftJoin(companies, eq(companies.id, jobs.companyId))
-    .leftJoin(jobStatus, eq(jobStatus.jobId, jobs.id))
-    .where(
-      and(
-        isNull(jobs.closedAt),
-        sql`${jobs.isNewGrad} is distinct from false`,
-        sql`${jobStatus.status} is distinct from 'ignored'`,
-        where,
-      ),
-    )
-    .orderBy(desc(jobs.score), desc(jobs.firstSeenAt), desc(jobs.id))
+    .leftJoin(jobStatus, and(eq(jobStatus.jobId, jobs.id), eq(jobStatus.userId, userId)))
+    .where(and(isNull(jobs.closedAt), sql`${jobStatus.status} is distinct from 'ignored'`, where))
+    .orderBy(desc(jobScores.score), desc(jobs.firstSeenAt), desc(jobs.id))
     .limit(limit);
 }
 
@@ -83,22 +79,27 @@ export interface DigestWindow {
 }
 
 const digestWhere = (w: DigestWindow) =>
-  and(gte(jobs.firstSeenAt, w.since), lt(jobs.firstSeenAt, w.until), gte(jobs.score, w.minScore));
+  and(
+    gte(jobs.firstSeenAt, w.since),
+    lt(jobs.firstSeenAt, w.until),
+    gte(jobScores.score, w.minScore),
+  );
 
 export async function selectDigest(
   db: AnyDb,
+  userId: number,
   w: DigestWindow,
 ): Promise<{ total: number; jobs: AlertJob[] }> {
   // Fetch more than shown so the per-country cap still leaves every country represented.
-  const list = await selectAlertJobs(db, digestWhere(w), 2000);
+  const list = await selectAlertJobs(db, userId, digestWhere(w), 2000);
   const [row] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(jobs)
-    .leftJoin(jobStatus, eq(jobStatus.jobId, jobs.id))
+    .innerJoin(jobScores, and(eq(jobScores.jobId, jobs.id), eq(jobScores.userId, userId)))
+    .leftJoin(jobStatus, and(eq(jobStatus.jobId, jobs.id), eq(jobStatus.userId, userId)))
     .where(
       and(
         isNull(jobs.closedAt),
-        sql`${jobs.isNewGrad} is distinct from false`,
         sql`${jobStatus.status} is distinct from 'ignored'`,
         digestWhere(w),
       ),
@@ -266,13 +267,13 @@ export interface DigestOptions {
   quotas?: Record<string, number>;
 }
 
-export async function loadDigest(deps: Pick<AlertDeps, "db" | "now">, o: DigestOptions) {
+export async function loadDigest(deps: Pick<AlertDeps, "db" | "now" | "userId">, o: DigestOptions) {
   const window: DigestWindow = {
     since: new Date(o.anchor.getTime() - 24 * 3_600_000),
     until: o.anchor,
     minScore: o.minScore,
   };
-  const { total, jobs: list } = await selectDigest(deps.db, window);
+  const { total, jobs: list } = await selectDigest(deps.db, deps.userId, window);
   const days = [...new Set([torontoDay(window.since), torontoDay(window.until)])];
   const quotas = await exhaustedQuotas(deps.db, days, o.quotas ?? {});
   return { jobs: list, total, window, quotas, publicBaseUrl: o.publicBaseUrl };
@@ -290,7 +291,13 @@ export async function runDigest(deps: AlertDeps, o: DigestOptions): Promise<Chan
   const done = await deps.db
     .select({ channel: alertsSent.channel })
     .from(alertsSent)
-    .where(and(eq(alertsSent.kind, "digest"), eq(alertsSent.dedupKey, key)));
+    .where(
+      and(
+        eq(alertsSent.userId, deps.userId),
+        eq(alertsSent.kind, "digest"),
+        eq(alertsSent.dedupKey, key),
+      ),
+    );
   const doneSet = new Set(done.map((d) => d.channel));
   if (deps.channels.every((c) => doneSet.has(c.id)))
     return deps.channels.map((c) => ({ channel: c.id, sent: 0, ok: true }));

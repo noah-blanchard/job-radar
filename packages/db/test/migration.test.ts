@@ -19,6 +19,10 @@ describe("generated migrations", () => {
     "api_usage",
     "alerts_sent",
     "kv",
+    "users",
+    "invites",
+    "job_scores",
+    "company_prefs",
   ])("creates table %s", (table) => {
     expect(sqlText).toContain(`CREATE TABLE "${table}"`);
   });
@@ -33,6 +37,15 @@ describe("generated migrations", () => {
 
   it("makes tsv a stored generated column", () => {
     expect(sqlText).toMatch(/"tsv" "tsvector" GENERATED ALWAYS AS \(.*\) STORED/);
+  });
+
+  it("moves the single-user data to the owner (user 1) without a rescore", () => {
+    expect(sqlText).toMatch(/INSERT INTO "users" \("id", "role"/);
+    expect(sqlText).toMatch(
+      /INSERT INTO "job_scores"[\s\S]*SELECT 1, "id", "score", "score_breakdown", "domains" FROM "jobs"/,
+    );
+    expect(sqlText).toMatch(/UPDATE "job_status" SET "user_id" = 1/);
+    expect(sqlText).toMatch(/"job_status_user_id_job_id_pk" PRIMARY KEY\("user_id","job_id"\)/);
   });
 
   it("deduplicates alerts", () => {

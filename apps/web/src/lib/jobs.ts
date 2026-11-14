@@ -24,6 +24,11 @@ export interface InboxRow extends Record<string, unknown> {
   ledger: [string, number][];
 }
 
+/** The user's scores and statuses: every Inbox query is scoped to one user. */
+const scoped = (userId: number) => sql`jobs j
+  join job_scores sc on sc.job_id = j.id and sc.user_id = ${userId}
+  left join job_status s on s.job_id = j.id and s.user_id = ${userId}`;
+
 /** WHERE clause of the Inbox, built only from bound parameters. */
 function where(f: InboxFilters): SQL {
   const c: SQL[] = [];
@@ -35,13 +40,13 @@ function where(f: InboxFilters): SQL {
   if (f.newGrad === "yes") c.push(sql`j.is_new_grad`);
   else if (f.newGrad === "no") c.push(sql`j.is_new_grad = false`);
   else if (f.newGrad === "unknown") c.push(sql`j.is_new_grad is null`);
-  if (f.domain) c.push(sql`j.domains @> array[${f.domain}]::text[]`);
+  if (f.domain) c.push(sql`sc.domains @> array[${f.domain}]::text[]`);
   if (f.source)
     c.push(
       sql`exists (select 1 from job_sources js where js.job_id = j.id and js.source = ${f.source})`,
     );
   if (f.company) c.push(sql`j.company_name ilike ${`%${f.company}%`}`);
-  if (f.minScore > 0) c.push(sql`j.score >= ${f.minScore}`);
+  if (f.minScore > 0) c.push(sql`sc.score >= ${f.minScore}`);
   if (SINCE[f.since] > 0)
     c.push(sql`j.first_seen_at >= now() - make_interval(hours => ${SINCE[f.since]})`);
   if (f.status === "active") c.push(sql`(s.status is null or s.status <> 'ignored')`);
@@ -54,20 +59,24 @@ function where(f: InboxFilters): SQL {
 function orderBy(f: InboxFilters): SQL {
   return f.sort === "recent"
     ? sql`j.first_seen_at desc, j.id desc`
-    : sql`j.score desc nulls last, j.first_seen_at desc, j.id desc`;
+    : sql`sc.score desc, j.first_seen_at desc, j.id desc`;
 }
 
 /** One slice of the Inbox (infinite scroll): `offset` rows in, at most PAGE_SIZE rows. */
-export async function loadInboxRows(f: InboxFilters, offset: number): Promise<InboxRow[]> {
+export async function loadInboxRows(
+  userId: number,
+  f: InboxFilters,
+  offset: number,
+): Promise<InboxRow[]> {
   const rows = await queryRows<InboxRow>(
     getDb(),
     sql`
-    select j.id, j.title, j.company_name, j.city, j.region, j.country, j.remote, j.score,
-      j.is_new_grad, j.first_seen_at, j.url, j.apply_url, j.source, j.domains, j.closed_at,
+    select j.id, j.title, j.company_name, j.city, j.region, j.country, j.remote, sc.score,
+      j.is_new_grad, j.first_seen_at, j.url, j.apply_url, j.source, sc.domains, j.closed_at,
       coalesce(s.status, 'new') as status,
       coalesce((select jsonb_agg(jsonb_build_array(p->>'key', (p->>'points')::int))
-        from jsonb_array_elements(j.score_breakdown->'parts') p), '[]'::jsonb) as ledger
-    from jobs j left join job_status s on s.job_id = j.id
+        from jsonb_array_elements(sc.score_breakdown->'parts') p), '[]'::jsonb) as ledger
+    from ${scoped(userId)}
     where ${where(f)}
     order by ${orderBy(f)}
     limit ${PAGE_SIZE} offset ${Math.max(0, Math.floor(offset))}`,
@@ -81,12 +90,15 @@ export async function loadInboxRows(f: InboxFilters, offset: number): Promise<In
 }
 
 /** First slice and the total count (the page's server render). */
-export async function loadInbox(f: InboxFilters): Promise<{ rows: InboxRow[]; total: number }> {
+export async function loadInbox(
+  userId: number,
+  f: InboxFilters,
+): Promise<{ rows: InboxRow[]; total: number }> {
   const [rows, count] = await Promise.all([
-    loadInboxRows(f, 0),
+    loadInboxRows(userId, f, 0),
     queryRows<{ n: number }>(
       getDb(),
-      sql`select count(*)::int as n from jobs j left join job_status s on s.job_id = j.id where ${where(f)}`,
+      sql`select count(*)::int as n from ${scoped(userId)} where ${where(f)}`,
     ),
   ]);
   return { rows, total: count[0]?.n ?? 0 };

@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { currentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { cn, formatAge, formatDateTime } from "@/lib/utils";
 import { AddCompanyForm } from "./add-company-form";
@@ -30,13 +31,13 @@ interface CompanyRow extends Record<string, unknown> {
   ats_key: string | null;
   ats_status: (typeof STATUSES)[number];
   origin: (typeof ORIGINS)[number];
+  /** The signed-in user's priority (score bonus); "normal" when they set none. */
   priority: "low" | "normal" | "high";
-  priority_manual: boolean;
   last_ok_at: Date | null;
   open_jobs: number;
 }
 
-async function loadCompanies(f: CompanyFilterValues) {
+async function loadCompanies(userId: number, f: CompanyFilterValues) {
   const db = getDb();
   const conds = [sql`true`];
   if (f.q) conds.push(sql`c.name ilike ${`%${f.q}%`}`);
@@ -46,16 +47,18 @@ async function loadCompanies(f: CompanyFilterValues) {
   else if (f.ats) conds.push(sql`c.ats = ${f.ats}`);
   const where = sql.join(conds, sql` and `);
   const rows = await db.execute<CompanyRow>(sql`
-    select c.id, c.name, c.ats, c.ats_key, c.ats_status, c.origin, c.priority, c.priority_manual, c.last_ok_at,
+    select c.id, c.name, c.ats, c.ats_key, c.ats_status, c.origin,
+      coalesce(cp.priority, 'normal') as priority, c.last_ok_at,
       coalesce(j.open_jobs, 0)::int as open_jobs
     from companies c
+    left join company_prefs cp on cp.company_id = c.id and cp.user_id = ${userId}
     left join (
       select company_id, count(*)::int as open_jobs
       from jobs where closed_at is null and company_id is not null
       group by company_id
     ) j on j.company_id = c.id
     where ${where}
-    order by (c.priority = 'high') desc, open_jobs desc, c.name
+    order by (cp.priority = 'high') is true desc, open_jobs desc, c.name
     limit ${LIMIT}`);
   const summary = await db.execute<{ origin: string; n: number; with_ats: number }>(sql`
     select origin, count(*)::int as n, count(ats)::int as with_ats
@@ -99,7 +102,8 @@ export default async function CompaniesPage({
     status: pick("status", STATUSES),
     ats: pick("ats"),
   };
-  const { rows, summary, atsList } = await loadCompanies(filters);
+  const user = await currentUser();
+  const { rows, summary, atsList } = await loadCompanies(user.id, filters);
   const total = summary.reduce((a, s) => a + s.n, 0);
   const withAts = summary.reduce((a, s) => a + s.with_ats, 0);
   const discovered = summary.find((s) => s.origin === "discovered")?.n ?? 0;
@@ -162,11 +166,7 @@ export default async function CompaniesPage({
                     {ORIGIN_LABEL[r.origin] ?? r.origin}
                   </TableCell>
                   <TableCell>
-                    <PrioritySelect
-                      companyId={r.id}
-                      priority={r.priority}
-                      manual={r.priority_manual}
-                    />
+                    <PrioritySelect companyId={r.id} priority={r.priority} />
                   </TableCell>
                   <TableCell className="text-right tabular-nums">
                     {r.open_jobs > 0 ? (

@@ -6,3 +6,6 @@ dist/
 docs/
 config/
 *.md
+.claude/
+.impeccable/
+apps/web/.impeccable/
