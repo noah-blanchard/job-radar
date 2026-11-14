@@ -50,9 +50,11 @@ CMD ["node", "--enable-source-maps", "dist/index.js"]
 
 # ---------- web ----------
 FROM runtime AS web
-ENV NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
+ENV NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0 CONFIG_DIR=/app/config
 COPY --from=build --chown=node:node /repo/apps/web/.next/standalone ./
 COPY --from=build --chown=node:node /repo/apps/web/.next/static ./apps/web/.next/static
+# profile.yaml (Inbox domains, /settings) and sources.yaml (/sources quotas): read-only.
+COPY --chown=node:node config ./config
 EXPOSE 3000
 USER node
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \

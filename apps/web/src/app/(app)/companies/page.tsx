@@ -14,6 +14,7 @@ import {
 import { getDb } from "@/lib/db";
 import { cn, formatDateTime } from "@/lib/utils";
 import { AddCompanyForm } from "./add-company-form";
+import { PrioritySelect } from "./priority-select";
 
 export const metadata: Metadata = { title: "Entreprises" };
 export const dynamic = "force-dynamic";
@@ -30,6 +31,7 @@ interface CompanyRow extends Record<string, unknown> {
   ats_status: (typeof STATUSES)[number];
   origin: (typeof ORIGINS)[number];
   priority: "low" | "normal" | "high";
+  priority_manual: boolean;
   last_ok_at: Date | null;
   open_jobs: number;
 }
@@ -49,7 +51,7 @@ async function loadCompanies(f: Filters) {
   else if (f.ats) conds.push(sql`c.ats = ${f.ats}`);
   const where = sql.join(conds, sql` and `);
   const rows = await db.execute<CompanyRow>(sql`
-    select c.id, c.name, c.ats, c.ats_key, c.ats_status, c.origin, c.priority, c.last_ok_at,
+    select c.id, c.name, c.ats, c.ats_key, c.ats_status, c.origin, c.priority, c.priority_manual, c.last_ok_at,
       coalesce(j.open_jobs, 0)::int as open_jobs
     from companies c
     left join (
@@ -186,7 +188,7 @@ export default async function CompaniesPage({
                 <TableHead className="hidden md:table-cell">Clé</TableHead>
                 <TableHead>Statut</TableHead>
                 <TableHead>Origine</TableHead>
-                <TableHead className="hidden sm:table-cell">Priorité</TableHead>
+                <TableHead>Priorité</TableHead>
                 <TableHead className="text-right">Offres ouvertes</TableHead>
                 <TableHead className="hidden lg:table-cell">Dernier run OK</TableHead>
               </TableRow>
@@ -210,7 +212,13 @@ export default async function CompaniesPage({
                       {ORIGIN_LABEL[r.origin] ?? r.origin}
                     </Badge>
                   </TableCell>
-                  <TableCell className="hidden sm:table-cell">{r.priority}</TableCell>
+                  <TableCell>
+                    <PrioritySelect
+                      companyId={r.id}
+                      priority={r.priority}
+                      manual={r.priority_manual}
+                    />
+                  </TableCell>
                   <TableCell className="text-right tabular-nums">{r.open_jobs}</TableCell>
                   <TableCell className="text-muted-foreground hidden lg:table-cell">
                     {formatDateTime(r.last_ok_at)}
