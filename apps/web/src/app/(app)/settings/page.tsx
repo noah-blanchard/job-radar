@@ -1,13 +1,18 @@
+import {
+  ALERT_TEST_REQUEST_KEY,
+  ALERT_TEST_RESULT_KEY,
+  type AlertTestResult,
+} from "@jobradar/core/alerts/keys";
 import { PROFILE_KV_KEY, type AppliedProfile } from "@jobradar/core/score";
 import { kvGet } from "@jobradar/db";
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/placeholder";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDb } from "@/lib/db";
 import { readProfile } from "@/lib/profile";
 import { formatDateTime, formatDuration } from "@/lib/utils";
+import { TestChannelsButton } from "./test-button";
 
 export const metadata: Metadata = { title: "Réglages" };
 export const dynamic = "force-dynamic";
@@ -29,25 +34,26 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 export default async function SettingsPage() {
   const file = readProfile();
-  const applied = await kvGet<AppliedProfile>(getDb(), PROFILE_KV_KEY);
+  const db = getDb();
+  const [applied, testRequest, testResult] = await Promise.all([
+    kvGet<AppliedProfile>(db, PROFILE_KV_KEY),
+    kvGet<{ requestedAt?: string }>(db, ALERT_TEST_REQUEST_KEY),
+    kvGet<AlertTestResult>(db, ALERT_TEST_RESULT_KEY),
+  ]);
   const inSync = "hash" in file && applied?.hash === file.hash;
 
   const channels = [
-    { name: "ntfy", ok: isSet("NTFY_TOPIC"), detail: env("NTFY_URL") },
-    {
-      name: "E-mail (SMTP)",
-      ok: isSet("SMTP_HOST", "ALERT_EMAIL_TO"),
-      detail: isSet("SMTP_HOST") ? "SMTP configuré" : "SMTP_HOST vide",
-    },
-    { name: "Discord", ok: isSet("DISCORD_WEBHOOK_URL"), detail: "webhook" },
-    { name: "Telegram", ok: isSet("TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"), detail: "bot" },
+    { id: "ntfy", name: "ntfy", ok: isSet("NTFY_TOPIC") },
+    { id: "email", name: "E-mail (SMTP)", ok: isSet("SMTP_HOST", "ALERT_EMAIL_TO") },
+    { id: "discord", name: "Discord", ok: isSet("DISCORD_WEBHOOK_URL") },
+    { id: "telegram", name: "Telegram", ok: isSet("TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID") },
   ];
 
   return (
     <>
       <PageHeader
         title="Réglages"
-        description="Profil de matching effectif, seuils d'alerte et canaux. Lecture seule : modifie config/profile.yaml et .env, puis redéploie."
+        description="Profil de matching effectif, seuils d'alerte et canaux. Modifie config/profile.yaml et .env, puis redéploie. Le test des canaux est exécuté par le worker."
       />
       <div className="grid gap-4 lg:grid-cols-[1fr_22rem]">
         <Card className="gap-3 py-4">
@@ -116,16 +122,37 @@ export default async function SettingsPage() {
                   )}
                 </Row>
               ))}
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                disabled
-                className="mt-3 w-full"
-                title="Arrive avec les alertes (jalon M5)"
-              >
-                Tester les canaux (M5)
-              </Button>
+              <TestChannelsButton
+                disabled={!channels.some((c) => c.ok)}
+                pendingSince={testRequest?.requestedAt}
+              />
+              {testResult ? (
+                <div className="mt-3 text-xs">
+                  <p className="text-muted-foreground mb-1">
+                    Dernier test : {formatDateTime(new Date(testResult.finishedAt))}
+                  </p>
+                  {testResult.results.length === 0 ? (
+                    <p className="text-muted-foreground">
+                      aucun canal configuré côté worker (variables du .env du worker)
+                    </p>
+                  ) : (
+                    <ul className="space-y-1">
+                      {testResult.results.map((r) => (
+                        <li key={r.channel} className="flex items-baseline justify-between gap-2">
+                          <span>{channels.find((c) => c.id === r.channel)?.name ?? r.channel}</span>
+                          {r.ok ? (
+                            <Badge variant="success">envoyé</Badge>
+                          ) : (
+                            <span className="text-destructive text-right break-all">
+                              {r.error ?? "échec"}
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ) : null}
             </CardContent>
           </Card>
 
