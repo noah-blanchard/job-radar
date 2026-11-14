@@ -1,5 +1,6 @@
 import { rescoreJobs } from "@jobradar/core";
 import { queryRows, sql } from "@jobradar/db";
+import type { Alerts } from "./alerts";
 import type { Runtime } from "./runtime";
 import { runSweep } from "./sweep";
 
@@ -7,6 +8,7 @@ import { runSweep } from "./sweep";
  * Requests written by the dashboard into `kv` (the web never runs a connector itself):
  *   run_request:<source>              "lancer maintenant" on /sources
  *   rescore_request:company:<id>      priority edited on /companies
+ *   alert_test_request                "Tester les canaux" on /settings
  * Claimed atomically (DELETE ... RETURNING) at the worker's one-minute tick.
  */
 export const RUN_REQUEST_PREFIX = "run_request:";
@@ -20,7 +22,10 @@ async function claim(rt: Runtime, prefix: string): Promise<string[]> {
   return rows.map((r) => r.key.slice(prefix.length));
 }
 
-export async function processRequests(rt: Runtime): Promise<void> {
+export async function processRequests(rt: Runtime, alerts?: Alerts): Promise<void> {
+  // Not awaited: sending can take a few seconds (SMTP) and must not delay the tick.
+  if (alerts) void alerts.processTestRequest();
+
   for (const source of await claim(rt, RUN_REQUEST_PREFIX)) {
     if (!rt.sources.some((s) => s.id === source)) {
       rt.log.warn({ source }, "run request for an unknown source ignored");
@@ -34,6 +39,9 @@ export async function processRequests(rt: Runtime): Promise<void> {
       only: [source],
       includeDisabled: false,
       deadline: Date.now() + rt.env.ATS_SWEEP_MAX_MINUTES * 60_000,
+      onRun: (r) => {
+        if (r.nbNew > 0) void alerts?.instant();
+      },
     })
       .then(({ runs }) =>
         rt.log.info(

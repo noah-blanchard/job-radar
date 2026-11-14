@@ -31,6 +31,10 @@ const SECRET_KEYS = [
   "THEMUSE_KEY",
   "CAREERJET_AFFID",
   "ANTHROPIC_API_KEY",
+  "NTFY_TOKEN",
+  "SMTP_PASS",
+  "DISCORD_WEBHOOK_URL",
+  "TELEGRAM_BOT_TOKEN",
 ] as const satisfies readonly (keyof Env)[];
 
 /** Process-wide dependencies shared by the scheduler and the CLI. */

@@ -5,6 +5,7 @@
  *   node dist/cli.js detect-ats <careers-url> [--name <company>] [--dry-run]
  *   node dist/cli.js stats
  *   node dist/cli.js rescore [--if-changed]
+ *   node dist/cli.js alerts <test|digest|instant|health>
  */
 import { parseArgs } from "node:util";
 import {
@@ -16,6 +17,7 @@ import {
   type DetectedAts,
 } from "@jobradar/core";
 import { companies, count, isNull, jobs, jobSources, sql } from "@jobradar/db";
+import { createAlerts } from "./alerts";
 import { createRuntime } from "./runtime";
 import { ensureProfileScores } from "./scoring";
 import { runSweep, type Schedule } from "./sweep";
@@ -175,9 +177,28 @@ async function main() {
         );
       break;
     }
+    case "alerts": {
+      // Same code paths as the scheduler: digest/instant/health stay idempotent (alerts_sent).
+      const alerts = createAlerts(rt);
+      console.log(`channels: ${alerts.channels.join(", ") || "none configured"}`);
+      const out =
+        target === "test"
+          ? await alerts.test("cli")
+          : target === "digest"
+            ? await alerts.digest()
+            : target === "instant"
+              ? await alerts.instant()
+              : target === "health"
+                ? await alerts.health()
+                : undefined;
+      if (out === undefined && !["instant"].includes(target ?? ""))
+        throw new Error("usage: alerts <test|digest|instant|health>");
+      console.log(JSON.stringify(out ?? "instant alerts disabled", null, 2));
+      break;
+    }
     default:
       throw new Error(
-        "usage: seed | run <all|ats|tier-b|aggregators|feeds|<source>> [--company <name>] [--max-minutes N] | detect-ats <url> [--name X] [--dry-run] | stats | rescore [--if-changed]",
+        "usage: seed | run <all|ats|tier-b|aggregators|feeds|<source>> [--company <name>] [--max-minutes N] | detect-ats <url> [--name X] [--dry-run] | stats | rescore [--if-changed] | alerts <test|digest|instant|health>",
       );
   }
 }
