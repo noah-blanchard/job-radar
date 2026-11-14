@@ -7,13 +7,16 @@ export function cn(...inputs: ClassValue[]) {
 
 const TZ = "America/Toronto";
 
-export function formatDateTime(d: Date | null | undefined): string {
+/** Raw SQL (db.execute) returns timestamps as strings with postgres-js: accept both. */
+export function formatDateTime(d: Date | string | null | undefined): string {
   if (!d) return "—";
+  const date = new Date(d);
+  if (Number.isNaN(date.getTime())) return "—";
   return new Intl.DateTimeFormat("fr-CA", {
     timeZone: TZ,
     dateStyle: "short",
     timeStyle: "short",
-  }).format(d);
+  }).format(date);
 }
 
 export function formatDuration(ms: number | null | undefined): string {
@@ -36,9 +39,9 @@ export function formatAge(d: Date | string | null | undefined, now: Date = new D
 
 export function formatDate(d: Date | string | null | undefined): string {
   if (!d) return "—";
-  return new Intl.DateTimeFormat("fr-CA", { timeZone: TZ, dateStyle: "medium" }).format(
-    new Date(d),
-  );
+  const date = new Date(d);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat("fr-CA", { timeZone: TZ, dateStyle: "medium" }).format(date);
 }
 
 const REMOTE_LABEL: Record<string, string> = {
