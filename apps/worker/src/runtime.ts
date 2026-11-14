@@ -1,16 +1,19 @@
 import {
+  createAnthropicClassifier,
   createLogger,
   dbQuota,
   FINDWORK_MIN_INTERVAL_MS,
   getEnv,
   HttpShared,
   kvValidatorStore,
-  loadProfile,
+  loadProfileFile,
   loadSourcesConfig,
   requireEnv,
   unlimitedQuota,
   USER_AGENT,
   type Env,
+  type LlmOptions,
+  type LoadedProfile,
   type QuotaCounter,
 } from "@jobradar/core";
 import { createDb } from "@jobradar/db";
@@ -27,6 +30,7 @@ const SECRET_KEYS = [
   "GITHUB_TOKEN",
   "THEMUSE_KEY",
   "CAREERJET_AFFID",
+  "ANTHROPIC_API_KEY",
 ] as const satisfies readonly (keyof Env)[];
 
 /** Process-wide dependencies shared by the scheduler and the CLI. */
@@ -42,7 +46,9 @@ export function createRuntime(service: string) {
     await Promise.all([closeDb(), locks.close()]);
   };
   const sources = loadSourcesConfig();
-  const profile = loadProfile();
+  // Reloaded before each sweep: a profile.yaml edit is picked up without a restart.
+  let profileFile: LoadedProfile = loadProfileFile();
+  const reloadProfile = (): LoadedProfile => (profileFile = loadProfileFile());
   const workdayGap = env.WORKDAY_MIN_INTERVAL_MS;
 
   const http = new HttpShared({
@@ -72,7 +78,39 @@ export function createRuntime(service: string) {
     return dbQuota(db, sourceId, max);
   }
 
-  return { env, log, db, lockSql: locks.client, close, http, sources, profile, quotaFor };
+  /** Optional LLM pass for ambiguous jobs: LLM_ENABLED=true and ANTHROPIC_API_KEY set. */
+  let llm: LlmOptions | undefined;
+  if (env.LLM_ENABLED) {
+    if (env.ANTHROPIC_API_KEY) {
+      llm = {
+        classifier: createAnthropicClassifier({
+          apiKey: env.ANTHROPIC_API_KEY,
+          model: env.LLM_MODEL,
+          log,
+        }),
+        quota: dbQuota(db, "llm", env.LLM_DAILY_MAX_CALLS),
+      };
+    } else log.warn("LLM_ENABLED=true but ANTHROPIC_API_KEY is empty: rules only");
+  }
+
+  return {
+    env,
+    log,
+    db,
+    lockSql: locks.client,
+    close,
+    http,
+    sources,
+    get profile() {
+      return profileFile.profile;
+    },
+    get profileFile() {
+      return profileFile;
+    },
+    reloadProfile,
+    llm,
+    quotaFor,
+  };
 }
 
 export type Runtime = ReturnType<typeof createRuntime>;
