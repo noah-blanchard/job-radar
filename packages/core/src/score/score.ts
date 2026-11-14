@@ -106,6 +106,10 @@ export interface CompiledProfile {
   languages: Set<string>;
   excludeTitle: RegExp | null;
   excludeCompanies: Set<string>;
+  targetLevels: Set<string>;
+  /** Only "entry" targeted: the original new-grad wording in the breakdown. */
+  newGradOnly: boolean;
+  requireDomain: boolean | "title";
 }
 
 /** Keyword regex with word-ish boundaries (works for "c\+\+" and "next\.js"). */
@@ -151,7 +155,52 @@ export function compileProfile(profile: Profile): CompiledProfile {
     languages: new Set(profile.languages.map((l) => l.toLowerCase())),
     excludeTitle: excl.length ? safeRegex(bounded(excl.join("|")), "iu") : null,
     excludeCompanies: new Set(profile.exclude_companies.map(companyKey)),
+    targetLevels: new Set<string>(profile.target_seniority),
+    newGradOnly: profile.target_seniority.length === 1 && profile.target_seniority[0] === "entry",
+    requireDomain: profile.require_domain,
   };
+}
+
+/**
+ * Patterns of a profile that are not valid regular expressions. compileProfile skips them
+ * silently (a bad keyword must never stop the scoring of everyone); the profile editor refuses
+ * them with this list.
+ */
+export function profileProblems(profile: Profile): string[] {
+  const out: string[] = [];
+  const check = (where: string, pattern: string, wrap: (p: string) => string) => {
+    try {
+      // Alone first: an unclosed "[" would swallow the wrapper and look valid.
+      new RegExp(pattern, "iu");
+      new RegExp(wrap(pattern), "iu");
+    } catch (err) {
+      const why =
+        err instanceof Error ? err.message.replace(/^Invalid regular expression: /, "") : "";
+      out.push(`${where} : « ${pattern} » n'est pas valide (${why})`);
+    }
+  };
+  profile.locations.forEach((l, i) => {
+    if (l.match) check(`lieu ${i + 1}`, l.match, stripAccents);
+  });
+  for (const [name, kws] of Object.entries(profile.domains))
+    for (const k of kws) check(`domaine ${name}`, k, bounded);
+  for (const k of profile.exclude_title) check("exclude_title", k, bounded);
+  return out;
+}
+
+export const LEVEL_LABELS: Record<string, string> = {
+  intern: "stage",
+  entry: "junior",
+  mid: "intermédiaire",
+  senior: "senior",
+  manager: "manager",
+};
+
+/** The job's level for the profile: "entry" when new grad, null when unknown. */
+function jobLevel(newGrad: NewGradInfo): string | null {
+  if (newGrad.value === true) return "entry";
+  if (newGrad.value === null) return null;
+  return newGrad.seniority && newGrad.seniority !== "entry" ? newGrad.seniority : "other";
 }
 
 /** Hash of the profile file text and the scoring code version (full rescore when it changes). */
@@ -178,6 +227,7 @@ function domainHits(job: ScoreInput, cp: CompiledProfile) {
   const matched: Record<string, string[]> = {};
   const tags: string[] = [];
   let raw = 0;
+  let inTitleAny = false;
   for (const d of cp.domains) {
     const inTitle = d.any.test(title);
     const inDesc = desc !== "" && d.any.test(desc);
@@ -196,8 +246,9 @@ function domainHits(job: ScoreInput, cp: CompiledProfile) {
     raw += titleHits * 2 + descHits;
     matched[d.name] = labels;
     if (titleHits > 0 || descHits >= 2) tags.push(d.name);
+    if (titleHits > 0) inTitleAny = true;
   }
-  return { matched, tags, raw };
+  return { matched, tags, raw, inTitleAny };
 }
 
 export function scoreJob(
@@ -209,16 +260,19 @@ export function scoreJob(
   const parts: ScorePart[] = [];
   parts.push(locationPart(job, cp));
 
+  const level = jobLevel(newGrad);
+  const onTarget = level !== null && cp.targetLevels.has(level);
+  const levelLabel = level === null ? "inconnu" : (LEVEL_LABELS[level] ?? "autre");
   parts.push({
     key: "newGrad",
-    points:
-      newGrad.value === true
-        ? POINTS.newGradTrue
+    points: level === null ? POINTS.newGradUnknown : onTarget ? POINTS.newGradTrue : 0,
+    detail: cp.newGradOnly
+      ? newGrad.value === true
+        ? "new grad"
         : newGrad.value === null
-          ? POINTS.newGradUnknown
-          : 0,
-    detail:
-      newGrad.value === true ? "new grad" : newGrad.value === null ? "inconnu" : "pas new grad",
+          ? "inconnu"
+          : "pas new grad"
+      : `niveau ${levelLabel}${level === null ? "" : onTarget ? " (visé)" : " (hors cible)"}`,
   });
 
   const dom = domainHits(job, cp);
@@ -271,10 +325,23 @@ export function scoreJob(
   else if (cp.excludeCompanies.has(companyKey(job.companyName)))
     breakdown.excluded = `entreprise exclue : ${job.companyName}`;
 
+  const cap = POINTS.newGradFalseCap;
   if (breakdown.excluded) total = 0;
-  else if (newGrad.value === false && total > POINTS.newGradFalseCap) {
-    total = POINTS.newGradFalseCap;
-    breakdown.capped = `pas new grad : score plafonné à ${POINTS.newGradFalseCap}`;
+  else if (level !== null && !onTarget && total > cap) {
+    total = cap;
+    breakdown.capped = cp.newGradOnly
+      ? `pas new grad : score plafonné à ${cap}`
+      : `niveau hors cible (${levelLabel}) : score plafonné à ${cap}`;
+  } else if (
+    total > cap &&
+    ((cp.requireDomain === "title" && !dom.inTitleAny) ||
+      (cp.requireDomain === true && dom.tags.length === 0))
+  ) {
+    total = cap;
+    breakdown.capped =
+      cp.requireDomain === "title"
+        ? `aucun mot-clé du profil dans le titre : score plafonné à ${cap}`
+        : `hors des domaines du profil : score plafonné à ${cap}`;
   }
   breakdown.total = total;
   return { score: total, breakdown, domains: dom.tags };

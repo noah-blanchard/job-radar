@@ -45,6 +45,15 @@ domains:
     - 'aml|kyc|lutte anti.blanchiment'
     - 'regulatory reporting'
 
+# --- Niveau visé : entry (junior, nouveau diplômé), mid, senior, manager ---
+# Niveau visé = 25 points, inconnu = 10, autre niveau = score plafonné à 20.
+target_seniority: [entry]
+
+# title : une offre sans aucun mot-clé des domaines dans son titre est plafonnée à 20.
+# (true : plus souple, un mot-clé dans le titre ou deux dans la description suffisent.)
+require_domain: title
+
+# Langues que tu parles (fr, en, de, es...) : +5, une autre langue exigée : -10.
 languages: [fr, en]
 
 exclude_companies: []

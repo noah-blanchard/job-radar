@@ -8,11 +8,17 @@ import { HttpShared } from "../src/http/client";
 import { ingestJob } from "../src/pipeline/ingest";
 import { dbQuota } from "../src/pipeline/quota";
 import { runSource } from "../src/pipeline/run";
-import { loadProfileFile, loadUserProfiles } from "../src/score/profile";
+import {
+  listProfileTemplates,
+  loadProfileFile,
+  loadUserProfiles,
+  parseProfileText,
+} from "../src/score/profile";
 import { rescoreJobs, staleFreshJobIds, syncProfileScores } from "../src/score/rescore";
 import {
   compileProfile,
   profileHash,
+  profileProblems,
   scoreJob,
   type NewGradInfo,
   type ScoreBreakdown,
@@ -145,6 +151,53 @@ describe("scoreJob (fixture profile)", () => {
   it("penalizes a language outside the profile", () => {
     const r = scoreJob(job(), { ...ng(null), languagesRequired: ["de"] }, cp, NOW);
     expect(part(r.breakdown, "language")).toBe(-10);
+  });
+
+  it("scores the targeted levels (target_seniority)", () => {
+    const mid = compileProfile(parseProfile({ ...profile, target_seniority: ["entry", "mid"] }));
+    const ca = job({ city: "Montreal", country: "CA" });
+    const midJob = { ...ng(false), seniority: "mid" };
+    const r = scoreJob(ca, midJob, mid, NOW);
+    expect(part(r.breakdown, "newGrad")).toBe(25);
+    expect(r.breakdown.parts[1]!.detail).toBe("niveau intermédiaire (visé)");
+    expect(r.breakdown.capped).toBeUndefined();
+    const senior = scoreJob(ca, { ...ng(false), seniority: "senior" }, mid, NOW);
+    expect(senior.score).toBe(20);
+    expect(senior.breakdown.capped).toBe("niveau hors cible (senior) : score plafonné à 20");
+    // Default profile (entry only): a mid-level job stays "pas new grad", capped.
+    expect(scoreJob(ca, midJob, cp, NOW).breakdown.capped).toContain("pas new grad");
+  });
+
+  it("caps jobs outside the profile's domains when require_domain is set", () => {
+    const strict = compileProfile(parseProfile({ ...profile, require_domain: true }));
+    const byTitle = compileProfile(parseProfile({ ...profile, require_domain: "title" }));
+    const ca = job({ city: "Montreal", country: "CA", title: "Account Coordinator" });
+    // One keyword in a long description is not enough.
+    const oneDesc = { ...ca, descriptionText: "We use React internally." };
+    const r = scoreJob(oneDesc, ng(true), strict, NOW);
+    expect(r.breakdown.raw).toBeGreaterThan(20);
+    expect(r.score).toBe(20);
+    expect(r.breakdown.capped).toBe("hors des domaines du profil : score plafonné à 20");
+    // Two description keywords pass "true" but not "title".
+    const twoDesc = { ...ca, descriptionText: "React and Node.js on the front and back." };
+    expect(scoreJob(twoDesc, ng(true), strict, NOW).breakdown.capped).toBeUndefined();
+    expect(scoreJob(twoDesc, ng(true), byTitle, NOW).breakdown.capped).toBe(
+      "aucun mot-clé du profil dans le titre : score plafonné à 20",
+    );
+    const title = { ...ca, title: "Junior React Developer" };
+    expect(scoreJob(title, ng(true), byTitle, NOW).breakdown.capped).toBeUndefined();
+  });
+
+  it("lists the invalid patterns of a profile", () => {
+    const p = parseProfile({
+      locations: [{ match: "Montr(eal", weight: 30 }],
+      domains: { web: ["react", "node(js"] },
+      exclude_title: ["[sales"],
+    });
+    const problems = profileProblems(p);
+    expect(problems).toHaveLength(3);
+    expect(problems[1]).toMatch(/^domaine web : « node\(js » n'est pas valide/);
+    expect(profileProblems(profile)).toEqual([]);
   });
 
   it("hashes the profile text together with the scoring version", () => {
@@ -348,7 +401,18 @@ describe("profile changes", () => {
     expect(p.profile.locations.length).toBeGreaterThan(0);
     expect(Object.keys(p.profile.domains).length).toBeGreaterThan(0);
     expect(p.hash).toMatch(/^[0-9a-f]{16}$/);
+    expect(profileProblems(p.profile)).toEqual([]);
   });
+
+  it.each(listProfileTemplates(CONFIG_DIR).map((t) => [t.id, t]))(
+    "ships a valid starter profile: %s",
+    (_id, t) => {
+      const p = parseProfileText(t.text);
+      expect(profileProblems(p.profile)).toEqual([]);
+      expect(Object.keys(p.profile.domains).length).toBeGreaterThan(0);
+      expect(p.profile.require_domain).toBe("title");
+    },
+  );
 });
 
 describe("runSource hook", () => {

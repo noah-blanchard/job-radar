@@ -3,7 +3,7 @@ import {
   ALERT_TEST_RESULT_KEY,
   type AlertTestResult,
 } from "@jobradar/core/alerts/keys";
-import { profileHash } from "@jobradar/core/score";
+import { listProfileTemplates, profileHash, type ProfileTemplate } from "@jobradar/core/score";
 import { listUsers } from "@jobradar/core/users";
 import { kvGet } from "@jobradar/db";
 import type { Metadata } from "next";
@@ -15,6 +15,7 @@ import { getDb } from "@/lib/db";
 import { readProfile } from "@/lib/profile";
 import { formatDateTime } from "@/lib/utils";
 import { DeleteUserButton, InviteForm, PasswordForm } from "./account-forms";
+import { ProfileEditor } from "./profile-editor";
 import { TestChannelsButton } from "./test-button";
 
 export const metadata: Metadata = { title: "Réglages" };
@@ -53,6 +54,62 @@ function ScoreState({ text, scoredHash }: { text: string; scoredHash: string | n
     <Badge variant="success">scores à jour</Badge>
   ) : (
     <Badge variant="warning">recalcul en attente</Badge>
+  );
+}
+
+/** Starter profiles (config/profile-templates/); none when config/ is not readable. */
+function templates(): ProfileTemplate[] {
+  try {
+    return listProfileTemplates();
+  } catch {
+    return [];
+  }
+}
+
+function ProfileHelp() {
+  return (
+    <details className="mt-4 text-[13px]">
+      <summary className="text-muted-foreground hover:text-foreground cursor-pointer text-xs">
+        Comment écrire son profil
+      </summary>
+      <div className="text-muted-foreground mt-2 grid max-w-prose gap-2 leading-relaxed">
+        <p>
+          Chaque offre reçoit un score de 0 à 100 : <b className="text-foreground">lieu</b> (0 à
+          30), <b className="text-foreground">niveau</b> (25 si visé, 10 si inconnu),{" "}
+          <b className="text-foreground">domaines</b> (3 points par mot-clé trouvé, le double dans
+          le titre, 25 au plus), <b className="text-foreground">langue</b> (+5, ou −10 si une autre
+          langue est exigée), plus des bonus (entreprise prioritaire +10, offre de moins de 24 h +5,
+          salaire affiché +3).
+        </p>
+        <p>
+          <code className="text-foreground">locations</code> : la première ligne qui correspond
+          donne ses points. <code className="text-foreground">country</code> est un code pays à deux
+          lettres (CA, FR, BE…), <code className="text-foreground">match</code> une liste de villes
+          séparées par <code className="text-foreground">|</code>,{" "}
+          <code className="text-foreground">remote: true</code> le télétravail.
+        </p>
+        <p>
+          <code className="text-foreground">domains</code> : des groupes de mots-clés, en minuscules
+          ou non. <code className="text-foreground">|</code> veut dire « ou » (
+          <code className="text-foreground">&apos;seo|sea&apos;</code>), un point remplace
+          n&apos;importe quel caractère. Mets les mots-clés entre apostrophes s&apos;ils contiennent
+          des symboles.
+        </p>
+        <p>
+          <code className="text-foreground">target_seniority</code> : les niveaux visés (entry, mid,
+          senior, manager). Les autres niveaux sont plafonnés à 20.{" "}
+          <code className="text-foreground">require_domain: title</code> plafonne à 20 les offres
+          dont le titre ne contient aucun mot-clé de tes domaines (
+          <code className="text-foreground">true</code> : plus souple, deux mots-clés dans la
+          description suffisent).
+        </p>
+        <p>
+          <code className="text-foreground">exclude_title</code> : un de ces mots dans le titre et
+          l&apos;offre tombe à 0. <code className="text-foreground">exclude_companies</code> : idem
+          pour une entreprise.
+        </p>
+      </div>
+    </details>
   );
 }
 
@@ -110,18 +167,17 @@ export default async function SettingsPage() {
                 : "Aucun score calculé pour l'instant."}{" "}
               {file.state === "pending"
                 ? "Le worker recalcule tes scores dans la minute (environ 1 min pour 100 000 offres)."
-                : ""}
+                : file.state === "empty"
+                  ? "Sans profil, aucune offre n'est scorée : pars d'un modèle ci-dessous."
+                  : ""}
             </p>
-            {file.text ? (
-              <details className="mt-3">
-                <summary className="text-muted-foreground hover:text-foreground cursor-pointer text-xs">
-                  Voir le profil
-                </summary>
-                <pre className="mt-2 max-h-[32rem] overflow-auto rounded-md border bg-code p-3 text-xs leading-relaxed">
-                  {file.text}
-                </pre>
-              </details>
-            ) : null}
+            <ProfileEditor
+              key={file.text}
+              initial={file.text}
+              templates={templates()}
+              rescoring={file.state === "pending"}
+            />
+            <ProfileHelp />
           </Section>
 
           <Section title="Mot de passe">

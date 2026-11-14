@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { asc, users, type AnyDb } from "@jobradar/db";
 import { parse } from "yaml";
@@ -50,4 +50,27 @@ export async function loadUserProfiles(db: AnyDb): Promise<UserProfiles> {
     }
   }
   return out;
+}
+
+/** A starter profile shipped in config/profile-templates/. */
+export interface ProfileTemplate {
+  /** File name without extension. */
+  id: string;
+  /** From the first line ("# Modèle : marketing digital"). */
+  title: string;
+  text: string;
+}
+
+export function listProfileTemplates(dir = findConfigDir()): ProfileTemplate[] {
+  const folder = join(dir, "profile-templates");
+  if (!existsSync(folder)) return [];
+  return readdirSync(folder)
+    .filter((f) => f.endsWith(".yaml"))
+    .sort()
+    .map((f) => {
+      const text = readFileSync(join(folder, f), "utf8");
+      const first = text.split("\n", 1)[0] ?? "";
+      const id = f.replace(/\.yaml$/, "");
+      return { id, title: first.replace(/^#\s*(Modèle\s*:\s*)?/, "").trim() || id, text };
+    });
 }

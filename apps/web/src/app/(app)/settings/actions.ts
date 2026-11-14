@@ -10,6 +10,7 @@ import {
   MIN_PASSWORD_LENGTH,
   verifyPassword,
 } from "@jobradar/core/users";
+import { parseProfileText, profileProblems } from "@jobradar/core/score";
 import { eq, kvSet, users } from "@jobradar/db";
 import { revalidatePath } from "next/cache";
 import { currentUser, sessionUser } from "@/lib/auth";
@@ -89,4 +90,52 @@ export async function changePassword(_prev: FormState, form: FormData): Promise<
     .set({ passwordHash: await hashPassword(next) })
     .where(eq(users.id, me.id));
   return { ok: "Mot de passe modifié." };
+}
+
+export interface ProfileFormState {
+  ok?: string;
+  errors?: string[];
+}
+
+const MAX_PROFILE_BYTES = 100_000;
+
+/** Readable lines from a YAML or schema error ("locations.0.weight : nombre attendu"). */
+function profileErrors(err: unknown): string[] {
+  if (err && typeof err === "object" && "issues" in err && Array.isArray(err.issues))
+    return (err.issues as { path: PropertyKey[]; message: string }[]).map(
+      (i) => `${i.path.map(String).join(".") || "profil"} : ${i.message}`,
+    );
+  return [err instanceof Error ? err.message : String(err)];
+}
+
+/**
+ * Saves the signed-in user's profile after checking the YAML, the schema and every pattern.
+ * The worker sees the new hash at its next tick and rescores this user (about a minute).
+ */
+export async function saveProfile(
+  _prev: ProfileFormState,
+  form: FormData,
+): Promise<ProfileFormState> {
+  const me = await currentUser();
+  const text = String(form.get("profile") ?? "").replace(/\r\n/g, "\n");
+  if (!text.trim()) return { errors: ["Le profil est vide."] };
+  if (Buffer.byteLength(text) > MAX_PROFILE_BYTES)
+    return { errors: ["Profil trop long (100 Ko au plus)."] };
+  let parsed;
+  try {
+    parsed = parseProfileText(text);
+  } catch (err) {
+    return { errors: profileErrors(err) };
+  }
+  const problems = profileProblems(parsed.profile);
+  if (problems.length > 0) return { errors: problems };
+  if (parsed.profile.locations.length === 0 && Object.keys(parsed.profile.domains).length === 0)
+    return { errors: ["Ajoute au moins un lieu (locations) ou un domaine (domains)."] };
+  await getDb()
+    .update(users)
+    .set({ profileYaml: text, profileUpdatedAt: new Date() })
+    .where(eq(users.id, me.id));
+  revalidatePath("/settings");
+  revalidatePath("/");
+  return { ok: "Profil enregistré : tes scores sont recalculés dans la minute." };
 }

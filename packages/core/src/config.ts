@@ -110,9 +110,20 @@ const ProfileLocation = z.object({
   remote: z.boolean().optional(),
   weight: z.number(),
 });
+/** Job levels a profile can target (the classifier's seniority, "entry" = new grad / junior). */
+export const TARGET_LEVELS = ["entry", "mid", "senior", "manager"] as const;
+export type TargetLevel = (typeof TARGET_LEVELS)[number];
+
 const ProfileFile = z.object({
   grad_date: z.union([z.string(), z.date()]).optional(),
   seniority: z.string().optional(),
+  /** Levels worth the full level points; any other known level is capped at 20. */
+  target_seniority: z.array(z.enum(TARGET_LEVELS)).min(1).default(["entry"]),
+  /**
+   * Caps at 20 the jobs outside the profile's domains. true: no domain keyword in the title and
+   * fewer than 2 in the description; "title": no domain keyword in the title.
+   */
+  require_domain: z.union([z.boolean(), z.literal("title")]).default(false),
   locations: z.array(ProfileLocation).default([]),
   domains: z.record(z.string(), z.array(z.string())).default({}),
   languages: z.array(z.string()).default([]),
