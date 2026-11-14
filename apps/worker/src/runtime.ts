@@ -14,7 +14,13 @@ export function createRuntime(service: string) {
   const log = createLogger(service);
   const env = requireEnv(getEnv(), ["DATABASE_URL"]);
   if (!env.CONTACT_EMAIL) log.warn("CONTACT_EMAIL is not set: User-Agent will say 'unset'");
-  const { db, client, close } = createDb(env.DATABASE_URL, { max: 5 });
+  const { db, close: closeDb } = createDb(env.DATABASE_URL, { max: 5 });
+  // Advisory locks pin one connection each for a whole sweep: they get their own pool so they
+  // can never starve the query pool (deadlock seen with 5 connectors on a 5-connection pool).
+  const locks = createDb(env.DATABASE_URL, { max: 20 });
+  const close = async () => {
+    await Promise.all([closeDb(), locks.close()]);
+  };
   const sources = loadSourcesConfig();
   const workdayGap = env.WORKDAY_MIN_INTERVAL_MS;
 
@@ -27,7 +33,7 @@ export function createRuntime(service: string) {
     validators: kvValidatorStore(db),
   });
 
-  return { env, log, db, sql: client, close, http, sources };
+  return { env, log, db, lockSql: locks.client, close, http, sources };
 }
 
 export type Runtime = ReturnType<typeof createRuntime>;

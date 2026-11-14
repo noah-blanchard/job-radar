@@ -56,7 +56,7 @@ export async function runAtsSweep(rt: Runtime, opts: SweepOptions = {}): Promise
       const jitter = Math.floor(Math.random() * (opts.maxJitterMs ?? 0));
       if (jitter > 0) await new Promise((r) => setTimeout(r, jitter));
 
-      const out = await withAdvisoryLock(rt.sql, `source:${id}`, async () => {
+      const out = await withAdvisoryLock(rt.lockSql, `source:${id}`, async () => {
         const list = (await companiesFor(rt, id)).filter(
           (c) => !opts.company || c.name.toLowerCase().includes(opts.company.toLowerCase()),
         );
