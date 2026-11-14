@@ -45,3 +45,67 @@ companies:
   - { name: LANDR, priority: high, ats: null, ats_key: null }
   - { name: Native Instruments, priority: high, ats: null, ats_key: null }
   - { name: Ableton, priority: high, ats: null, ats_key: null }
+
+  # --- Panel multi-profils (2026-11-14) : employeurs canadiens finance / assurance / marketing ---
+  # Chaque board vérifié par un vrai appel à son API publique (Workday : POST /wday/cxs/...,
+  # autres : sondage detect-ats, nom et lieux des offres contrôlés). Le bonus de score vient des
+  # profils (`priority_companies` des modèles), pas du seed. Déjà au catalogue avant
+  # ce panel (découverts) : TD Bank, Bank of Montreal (External et Campus), CAE, Dentsu.
+  # priority: high = balayés en premier (ordre du balayage ATS seulement : le bonus de score vient
+  # des profils). Sans cela, ils passaient après ~300 boards Workday jamais balayés.
+
+  # Finance, banque, assurance, caisses de retraite, audit
+  - { name: RBC, priority: high, ats: workday, ats_key: rbc/wd3/RBCGLOBAL1, careers_url: "https://rbc.wd3.myworkdayjobs.com/RBCGLOBAL1" }
+  - { name: "RBC (programmes étudiants et diplômés)", priority: high, ats: workday, ats_key: rbc/wd3/RBCEARLYTALENT1, careers_url: "https://rbc.wd3.myworkdayjobs.com/RBCEARLYTALENT1" }
+  - { name: CIBC, priority: high, ats: workday, ats_key: cibc/wd3/search, careers_url: "https://cibc.wd3.myworkdayjobs.com/search" }
+  - { name: "CIBC (campus)", priority: high, ats: workday, ats_key: cibc/wd3/campus, careers_url: "https://cibc.wd3.myworkdayjobs.com/campus" }
+  - { name: Desjardins, priority: high, ats: workday, ats_key: desjardins/wd10/Desjardins, careers_url: "https://desjardins.wd10.myworkdayjobs.com/Desjardins" }
+  - { name: Intact, priority: high, ats: workday, ats_key: intactfc/wd3/intactfc, careers_url: "https://intactfc.wd3.myworkdayjobs.com/intactfc" }
+  - { name: iA Groupe financier, priority: high, ats: workday, ats_key: ia/wd3/Professional, careers_url: "https://ia.wd3.myworkdayjobs.com/Professional" }
+  - { name: Sun Life, priority: high, ats: workday, ats_key: sunlife/wd3/Experienced-Jobs, careers_url: "https://sunlife.wd3.myworkdayjobs.com/Experienced-Jobs" }
+  - { name: "Sun Life (campus)", priority: high, ats: workday, ats_key: sunlife/wd3/Campus, careers_url: "https://sunlife.wd3.myworkdayjobs.com/Campus" }
+  - { name: Manulife, priority: high, ats: workday, ats_key: manulife/wd3/MFCJH_Jobs, careers_url: "https://manulife.wd3.myworkdayjobs.com/MFCJH_Jobs" }
+  - { name: Investissements PSP, priority: high, ats: workday, ats_key: investpsp/wd3/psp_careers, careers_url: "https://investpsp.wd3.myworkdayjobs.com/psp_careers" }
+  - { name: Investissements RPC, priority: high, ats: workday, ats_key: cppib/wd10/cppinvestments, careers_url: "https://cppib.wd10.myworkdayjobs.com/cppinvestments" }
+  - { name: "Ontario Teachers' Pension Plan", priority: high, ats: workday, ats_key: otppb/wd3/OntarioTeachers_Careers, careers_url: "https://otppb.wd3.myworkdayjobs.com/OntarioTeachers_Careers" }
+  - { name: OMERS, priority: high, ats: workday, ats_key: omers/wd3/OMERS_External, careers_url: "https://omers.wd3.myworkdayjobs.com/OMERS_External" }
+  - { name: Interac, priority: high, ats: workday, ats_key: interac/wd3/Interac, careers_url: "https://interac.wd3.myworkdayjobs.com/Interac" }
+  - { name: Fiera Capital, priority: high, ats: workday, ats_key: fieracapital/wd3/Career, careers_url: "https://fieracapital.wd3.myworkdayjobs.com/Career" }
+  - { name: Moneris, priority: high, ats: workday, ats_key: moneris/wd3/Moneris, careers_url: "https://moneris.wd3.myworkdayjobs.com/Moneris" }
+  - { name: Beneva, priority: high, ats: workday, ats_key: beneva/wd10/BenevaSite_carriere, careers_url: "https://beneva.wd10.myworkdayjobs.com/BenevaSite_carriere" }
+  - { name: Aviva, priority: high, ats: workday, ats_key: aviva/wd1/External, careers_url: "https://aviva.wd1.myworkdayjobs.com/External", note: "groupe mondial (Canada et Royaume-Uni surtout)" }
+  - { name: BDC, priority: high, ats: workday, ats_key: bdc/wd10/BDC_Careers, careers_url: "https://bdc.wd10.myworkdayjobs.com/BDC_Careers" }
+  - { name: Groupe TMX, priority: high, ats: workday, ats_key: tmx/wd3/TMX_Careers, careers_url: "https://tmx.wd3.myworkdayjobs.com/TMX_Careers" }
+  - { name: BDO Canada, priority: high, ats: workday, ats_key: bdo/wd3/BDO, careers_url: "https://bdo.wd3.myworkdayjobs.com/BDO" }
+  - { name: Questrade, priority: high, ats: greenhouse, ats_key: questrade }
+  - { name: EQ Bank, priority: high, ats: lever, ats_key: eqbank }
+  - { name: Neo Financial, priority: high, ats: ashby, ats_key: neofinancial }
+  - { name: KOHO, priority: high, ats: ashby, ats_key: koho }
+  - { name: Nuvei, priority: high, ats: workable, ats_key: nuvei }
+  - { name: Wave, priority: high, ats: lever, ats_key: waveapps }
+  - { name: nesto, priority: high, ats: rippling, ats_key: nesto, note: "personio 'nesto' = autre entreprise" }
+  - { name: Borrowell, priority: high, ats: workable, ats_key: borrowell }
+  - { name: Ratehub, priority: high, ats: bamboohr, ats_key: ratehub }
+  - { name: Flinks, priority: high, ats: workable, ats_key: flinks }
+
+  # Marketing : grande consommation, distribution, médias, agences, marques
+  - { name: MLSE, priority: high, ats: workday, ats_key: mlse/wd3/MLSE, careers_url: "https://mlse.wd3.myworkdayjobs.com/MLSE" }
+  - { name: Canadian Tire, priority: high, ats: workday, ats_key: canadiantirecorporation/wd3/Enterprise_External_Careers_Site, careers_url: "https://canadiantirecorporation.wd3.myworkdayjobs.com/Enterprise_External_Careers_Site" }
+  - { name: Saputo, priority: high, ats: workday, ats_key: saputo/wd5/Saputo_External_Careers, careers_url: "https://saputo.wd5.myworkdayjobs.com/Saputo_External_Careers" }
+  - { name: Agropur, priority: high, ats: workday, ats_key: agropur/wd3/Agropur_Careers, careers_url: "https://agropur.wd3.myworkdayjobs.com/Agropur_Careers" }
+  - { name: Mondelez, priority: high, ats: workday, ats_key: mdlz/wd3/External, careers_url: "https://mdlz.wd3.myworkdayjobs.com/External", note: "groupe mondial" }
+  - { name: Aritzia, priority: high, ats: workday, ats_key: aritzia/wd3/External, careers_url: "https://aritzia.wd3.myworkdayjobs.com/External", note: "beaucoup de postes en boutique" }
+  - { name: "TELUS Santé", priority: high, ats: workday, ats_key: lifeworks/wd3/External, careers_url: "https://lifeworks.wd3.myworkdayjobs.com/External" }
+  - { name: Unilever, priority: high, ats: workday, ats_key: unilever/wd3/Unilever_Experienced_Professionals, careers_url: "https://unilever.wd3.myworkdayjobs.com/Unilever_Experienced_Professionals", note: "groupe mondial" }
+  - { name: Havas, priority: high, ats: workday, ats_key: havas/wd3/MediaExternalCareerSite, careers_url: "https://havas.wd3.myworkdayjobs.com/MediaExternalCareerSite" }
+  - { name: "Vidéotron", priority: high, ats: smartrecruiters, ats_key: videotron }
+  - { name: Cirque du Soleil, priority: high, ats: lever, ats_key: cirquedusoleil }
+  - { name: Sid Lee, priority: high, ats: greenhouse, ats_key: sidlee }
+  - { name: lg2, priority: high, ats: recruitee, ats_key: lg2 }
+  - { name: Hopper, priority: high, ats: ashby, ats_key: hopper }
+  - { name: Mejuri, priority: high, ats: greenhouse, ats_key: mejuri }
+  - { name: Knix, priority: high, ats: lever, ats_key: knix }
+  - { name: Hootsuite, priority: high, ats: greenhouse, ats_key: hootsuite, note: "smartrecruiters 'hootsuite' = ancien compte" }
+  - { name: Thinkific, priority: high, ats: ashby, ats_key: thinkific }
+  - { name: Faire, priority: high, ats: greenhouse, ats_key: faire }
+  - { name: Wattpad, priority: high, ats: lever, ats_key: wattpad }

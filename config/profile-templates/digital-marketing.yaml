@@ -63,6 +63,31 @@ search_titles:
 # Langues que tu parles (fr, en, de, es...) : +5, une autre langue exigée : -10.
 languages: [fr, en]
 
+# Entreprises prioritaires : +10 points sur leurs offres (même bonus que « priorité haute »).
+priority_companies:
+  - "MLSE"
+  - "Canadian Tire"
+  - "Saputo"
+  - "Agropur"
+  - "Mondelez"
+  - "Aritzia"
+  - "TELUS Santé"
+  - "Unilever"
+  - "Havas"
+  - "Vidéotron"
+  - "Cirque du Soleil"
+  - "Sid Lee"
+  - "lg2"
+  - "Hopper"
+  - "Mejuri"
+  - "Knix"
+  - "Hootsuite"
+  - "Thinkific"
+  - "Faire"
+  - "Wattpad"
+  - "Dentsu"
+  - "Ubisoft"
+
 exclude_companies: []
 
 # Titres jamais intéressants -> score 0

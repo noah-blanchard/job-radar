@@ -106,6 +106,8 @@ export interface CompiledProfile {
   languages: Set<string>;
   excludeTitle: RegExp | null;
   excludeCompanies: Set<string>;
+  /** Companies of the profile's `priority_companies` (same bonus as a "haute" priority). */
+  priorityCompanies: Set<string>;
   targetLevels: Set<string>;
   /** Only "entry" targeted: the original new-grad wording in the breakdown. */
   newGradOnly: boolean;
@@ -155,6 +157,7 @@ export function compileProfile(profile: Profile): CompiledProfile {
     languages: new Set(profile.languages.map((l) => l.toLowerCase())),
     excludeTitle: excl.length ? safeRegex(bounded(excl.join("|")), "iu") : null,
     excludeCompanies: new Set(profile.exclude_companies.map(companyKey)),
+    priorityCompanies: new Set(profile.priority_companies.map(companyKey)),
     targetLevels: new Set<string>(profile.target_seniority),
     newGradOnly: profile.target_seniority.length === 1 && profile.target_seniority[0] === "entry",
     requireDomain: profile.require_domain,
@@ -304,6 +307,12 @@ export function scoreJob(
 
   if (job.companyPriority === "high")
     parts.push({ key: "priority", points: POINTS.priorityHigh, detail: "entreprise prioritaire" });
+  else if (cp.priorityCompanies.has(companyKey(job.companyName)))
+    parts.push({
+      key: "priority",
+      points: POINTS.priorityHigh,
+      detail: "entreprise prioritaire (profil)",
+    });
   if (now.getTime() - job.firstSeenAt.getTime() < FRESH_MS)
     parts.push({ key: "freshness", points: POINTS.fresh, detail: "vue il y a moins de 24 h" });
   if (job.salaryMin != null || job.salaryMax != null)

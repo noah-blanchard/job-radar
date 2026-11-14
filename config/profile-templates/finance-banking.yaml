@@ -62,6 +62,43 @@ search_titles:
 # Langues que tu parles (fr, en, de, es...) : +5, une autre langue exigée : -10.
 languages: [fr, en]
 
+# Entreprises prioritaires : +10 points sur leurs offres (même bonus que « priorité haute »).
+priority_companies:
+  - "RBC"
+  - "RBC (programmes étudiants et diplômés)"
+  - "CIBC"
+  - "CIBC (campus)"
+  - "Desjardins"
+  - "Intact"
+  - "iA Groupe financier"
+  - "Sun Life"
+  - "Sun Life (campus)"
+  - "Manulife"
+  - "Investissements PSP"
+  - "Investissements RPC"
+  - "Ontario Teachers' Pension Plan"
+  - "OMERS"
+  - "Interac"
+  - "Fiera Capital"
+  - "Moneris"
+  - "Beneva"
+  - "Aviva"
+  - "BDC"
+  - "Groupe TMX"
+  - "BDO Canada"
+  - "Questrade"
+  - "EQ Bank"
+  - "Neo Financial"
+  - "KOHO"
+  - "Nuvei"
+  - "Wave"
+  - "nesto"
+  - "Borrowell"
+  - "Ratehub"
+  - "Flinks"
+  - "TD Bank"
+  - "Bank of Montreal"
+
 exclude_companies: []
 
 # Titres jamais intéressants -> score 0

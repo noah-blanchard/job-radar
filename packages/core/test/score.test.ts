@@ -188,6 +188,19 @@ describe("scoreJob (fixture profile)", () => {
     expect(scoreJob(title, ng(true), byTitle, NOW).breakdown.capped).toBeUndefined();
   });
 
+  it("gives the priority bonus to the profile's priority_companies", () => {
+    const p = compileProfile(
+      parseProfile({ ...profile, priority_companies: ["Banque Nationale"] }),
+    );
+    const r = scoreJob(job({ companyName: "Banque Nationale Inc." }), ng(true), p, NOW);
+    expect(r.breakdown.parts.find((x) => x.key === "priority")).toEqual({
+      key: "priority",
+      points: 10,
+      detail: "entreprise prioritaire (profil)",
+    });
+    expect(part(scoreJob(job(), ng(true), p, NOW).breakdown, "priority")).toBeUndefined();
+  });
+
   it("lists the invalid patterns of a profile", () => {
     const p = parseProfile({
       locations: [{ match: "Montr(eal", weight: 30 }],
