@@ -87,20 +87,22 @@ export function parseJobId(raw: string): number | null {
   return Number.isSafeInteger(n) && n > 0 ? n : null;
 }
 
-export async function loadJobDetail(id: number): Promise<JobDetail | null> {
+/** One job with the given user's score, status, notes and company priority. */
+export async function loadJobDetail(userId: number, id: number): Promise<JobDetail | null> {
   const db = getDb();
   const [job] = await queryRows<Row>(
     db,
     sql`
-    select j.id, j.title, j.company_name, c.priority as company_priority, j.location_raw, j.city,
+    select j.id, j.title, j.company_name, cp.priority as company_priority, j.location_raw, j.city,
       j.region, j.country, j.remote, j.employment_type, j.seniority, j.is_new_grad,
       j.salary_min, j.salary_max, j.salary_currency, j.posted_at, j.first_seen_at, j.closed_at,
       j.url, j.apply_url, j.description_html,
       case when j.description_html is null then j.description_text end as description_text,
-      j.score, j.score_breakdown, j.domains, s.status, s.notes, s.next_action_at
+      sc.score, sc.score_breakdown, sc.domains, s.status, s.notes, s.next_action_at
     from jobs j
-    left join companies c on c.id = j.company_id
-    left join job_status s on s.job_id = j.id
+    left join company_prefs cp on cp.company_id = j.company_id and cp.user_id = ${userId}
+    left join job_scores sc on sc.job_id = j.id and sc.user_id = ${userId}
+    left join job_status s on s.job_id = j.id and s.user_id = ${userId}
     where j.id = ${id}`,
   );
   if (!job) return null;

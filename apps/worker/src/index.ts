@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { loadCompanySeed, syncCompanySeed } from "@jobradar/core";
+import { ensureOwner, loadCompanySeed, syncCompanySeed } from "@jobradar/core";
 import { kvGet, kvSet, sql } from "@jobradar/db";
 import { Cron } from "croner";
 
@@ -31,12 +31,15 @@ async function heartbeat(): Promise<void> {
   log.debug({ at: now.toISOString() }, "heartbeat");
   // Dashboard requests ("lancer maintenant", priority changes), picked up within a minute.
   await processRequests(rt, alerts);
+  // A profile saved in the dashboard (or a new account): rescore that user within a minute.
+  // Not awaited: a full rescore takes about a minute per user and must not delay the tick.
+  void ensureProfileScores(rt).catch((err: unknown) => log.error({ err }, "rescore failed"));
 }
 
 function sweep(schedule: Schedule) {
   return async (): Promise<void> => {
     const t0 = Date.now();
-    // profile.yaml edited since the stored scores? Full rescore first.
+    // A profile edited since its scores were computed? Full rescore of that user first.
     await ensureProfileScores(rt);
     const { runs, deferred } = await runSweep(rt, {
       schedules: [schedule],
@@ -125,6 +128,9 @@ const server = createServer(
 );
 
 async function start(): Promise<void> {
+  const owner = await ensureOwner(db, env);
+  if (owner.changed.length > 0) log.info(owner, "owner account bootstrapped");
+  await rt.reloadProfiles();
   const seeded = await syncCompanySeed(db, loadCompanySeed());
   log.info(seeded, "company seed synced");
   // Heartbeat of the previous process, read before ours overwrites it (worker silence alert).

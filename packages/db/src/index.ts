@@ -11,6 +11,7 @@ export {
   count,
   desc,
   eq,
+  gt,
   gte,
   inArray,
   isNotNull,

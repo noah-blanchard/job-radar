@@ -39,6 +39,47 @@ export const atsStatus = pgEnum("ats_status", ["unknown", "ok", "broken", "unsup
 export const companyOrigin = pgEnum("company_origin", ["seed", "discovered", "manual"]);
 export const companyPriority = pgEnum("company_priority", ["low", "normal", "high"]);
 export const runStatus = pgEnum("run_status", ["running", "ok", "error", "skipped"]);
+export const userRole = pgEnum("user_role", ["admin", "user"]);
+
+// ---------- users ----------
+
+/**
+ * Accounts. Each user has their own scoring profile (YAML, same format as config/profile.yaml),
+ * their own scores (`job_scores`), statuses (`job_status`) and company priorities.
+ */
+export const users = pgTable(
+  "users",
+  {
+    id: serial("id").primaryKey(),
+    /** Login. Null only for the owner row created by the migration, until the bootstrap. */
+    email: text("email"),
+    name: text("name"),
+    /** scrypt hash ("scrypt$N$r$p$salt$hash"); null = cannot log in yet. */
+    passwordHash: text("password_hash"),
+    role: userRole("role").notNull().default("user"),
+    /** Scoring profile, YAML. Empty = not scored yet. */
+    profileYaml: text("profile_yaml").notNull().default(""),
+    profileUpdatedAt: tstz("profile_updated_at"),
+    /** Hash (profile text + scoring version) the stored `job_scores` reflect. */
+    scoredHash: text("scored_hash"),
+    scoredAt: tstz("scored_at"),
+    createdAt: tstz("created_at").notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("users_email_uq").on(sql`lower(${t.email})`)],
+);
+
+/** Invitation (new account) or password reset (`user_id` set) link. Only the hash is stored. */
+export const invites = pgTable("invites", {
+  id: serial("id").primaryKey(),
+  tokenHash: text("token_hash").notNull().unique(),
+  email: text("email").notNull(),
+  /** Set for a password reset of an existing account. */
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
+  createdBy: integer("created_by").references(() => users.id, { onDelete: "set null" }),
+  createdAt: tstz("created_at").notNull().defaultNow(),
+  expiresAt: tstz("expires_at").notNull(),
+  usedAt: tstz("used_at"),
+});
 
 // ---------- companies ----------
 
@@ -53,6 +94,7 @@ export const companies = pgTable(
     atsKey: text("ats_key"),
     careersUrl: text("careers_url"),
     origin: companyOrigin("origin").notNull().default("seed"),
+    /** Sweep order (seed file). The score bonus comes from each user's `company_prefs`. */
     priority: companyPriority("priority").notNull().default("normal"),
     /** Priority edited in the dashboard: the seed sync no longer overwrites it. */
     priorityManual: boolean("priority_manual").notNull().default(false),
@@ -105,9 +147,10 @@ export const jobs = pgTable(
     descriptionHtml: text("description_html"),
     descriptionText: text("description_text"),
     lang: text("lang"),
+    /** Legacy (single-user scores, copied to `job_scores` by 0003): no longer written. */
     score: smallint("score"),
     scoreBreakdown: jsonb("score_breakdown"),
-    /** profile.yaml domains matched by the scorer (Inbox domain filter, GIN-indexed). */
+    /** Legacy, see `score`. */
     domains: text("domains")
       .array()
       .notNull()
@@ -154,16 +197,64 @@ export const jobSources = pgTable(
   ],
 );
 
-export const jobStatus = pgTable("job_status", {
-  jobId: bigint("job_id", { mode: "number" })
-    .primaryKey()
-    .references(() => jobs.id, { onDelete: "cascade" }),
-  status: jobStatusKind("status").notNull().default("new"),
-  notes: text("notes"),
-  /** Follow-up date ("relancer le"): set on applied/interview, editable in the dashboard. */
-  nextActionAt: tstz("next_action_at"),
-  updatedAt: tstz("updated_at").notNull().defaultNow(),
-});
+/** Per-user score of every job (the profile is per user). */
+export const jobScores = pgTable(
+  "job_scores",
+  {
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    jobId: bigint("job_id", { mode: "number" })
+      .notNull()
+      .references(() => jobs.id, { onDelete: "cascade" }),
+    score: smallint("score").notNull(),
+    scoreBreakdown: jsonb("score_breakdown").notNull(),
+    /** Profile domains matched by the scorer (Inbox domain filter, GIN-indexed). */
+    domains: text("domains")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.jobId] }),
+    index("job_scores_user_score_idx").on(t.userId, t.score.desc(), t.jobId),
+    index("job_scores_job_idx").on(t.jobId),
+    index("job_scores_domains_idx").using("gin", t.domains),
+  ],
+);
+
+/** A user's priority for a company ("high" = score bonus for that user only). */
+export const companyPrefs = pgTable(
+  "company_prefs",
+  {
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    companyId: integer("company_id")
+      .notNull()
+      .references(() => companies.id, { onDelete: "cascade" }),
+    priority: companyPriority("priority").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.companyId] })],
+);
+
+export const jobStatus = pgTable(
+  "job_status",
+  {
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    jobId: bigint("job_id", { mode: "number" })
+      .notNull()
+      .references(() => jobs.id, { onDelete: "cascade" }),
+    status: jobStatusKind("status").notNull().default("new"),
+    notes: text("notes"),
+    /** Follow-up date ("relancer le"): set on applied/interview, editable in the dashboard. */
+    nextActionAt: tstz("next_action_at"),
+    updatedAt: tstz("updated_at").notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.jobId] }), index("job_status_job_idx").on(t.jobId)],
+);
 
 // ---------- operations ----------
 
@@ -226,3 +317,4 @@ export type NewCompany = typeof companies.$inferInsert;
 export type Job = typeof jobs.$inferSelect;
 export type NewJob = typeof jobs.$inferInsert;
 export type SourceRun = typeof sourceRuns.$inferSelect;
+export type User = typeof users.$inferSelect;

@@ -7,7 +7,7 @@ import { runSweep } from "./sweep";
 /**
  * Requests written by the dashboard into `kv` (the web never runs a connector itself):
  *   run_request:<source>              "lancer maintenant" on /sources
- *   rescore_request:company:<id>      priority edited on /companies
+ *   rescore_request:company:<id>:<user id>  priority edited on /companies (that user only)
  *   alert_test_request                "Tester les canaux" on /settings
  * Claimed atomically (DELETE ... RETURNING) at the worker's one-minute tick.
  */
@@ -52,14 +52,16 @@ export async function processRequests(rt: Runtime, alerts?: Alerts): Promise<voi
       .catch((err: unknown) => rt.log.error({ err, source }, "manual run failed"));
   }
 
-  for (const id of await claim(rt, RESCORE_COMPANY_PREFIX)) {
-    const companyId = Number(id);
-    if (!Number.isInteger(companyId)) continue;
+  for (const key of await claim(rt, RESCORE_COMPANY_PREFIX)) {
+    const [companyId, userId] = key.split(":").map(Number);
+    if (!Number.isInteger(companyId) || !Number.isInteger(userId)) continue;
+    const profiles = rt.profiles.filter((p) => p.userId === userId);
+    if (profiles.length === 0) continue;
     const r = await rescoreJobs(
       rt.db,
-      { kind: "company", companyId },
-      { profile: rt.profile, log: rt.log },
+      { kind: "company", companyId: companyId! },
+      { profiles, log: rt.log },
     );
-    rt.log.info({ companyId, ...r }, "company jobs rescored (priority changed)");
+    rt.log.info({ companyId, userId, ...r }, "company jobs rescored (priority changed)");
   }
 }

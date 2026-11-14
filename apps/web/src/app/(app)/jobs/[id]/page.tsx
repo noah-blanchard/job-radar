@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
+import { currentUser } from "@/lib/auth";
 import { loadJobDetail, parseJobId } from "@/lib/job-detail";
 import { JobPage } from "./job-page";
 
@@ -8,7 +9,8 @@ export const dynamic = "force-dynamic";
 
 const load = cache(async (raw: string) => {
   const id = parseJobId(raw);
-  return id ? loadJobDetail(id) : null;
+  const user = await currentUser();
+  return id ? loadJobDetail(user.id, id) : null;
 });
 
 export async function generateMetadata({

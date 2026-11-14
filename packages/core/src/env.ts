@@ -35,6 +35,9 @@ export const envSchema = z.object({
   DATABASE_URL: opt(z.string()),
 
   // --- Dashboard ---
+  /** Owner login (first start): ADMIN_EMAIL, else CONTACT_EMAIL. */
+  ADMIN_EMAIL: opt(z.email()),
+  /** Owner password, used once to create the owner account (then change it from the app). */
   DASHBOARD_PASSWORD: opt(z.string().min(8)),
   AUTH_SECRET: opt(z.string().min(32, "AUTH_SECRET must be at least 32 characters")),
 

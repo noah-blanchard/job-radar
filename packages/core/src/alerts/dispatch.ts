@@ -4,6 +4,8 @@ import { redact, type AlertChannel, type AlertKind, type AlertMessage } from "./
 
 export interface AlertDeps {
   db: AnyDb;
+  /** Recipient: the jobs, scores and statuses are this user's. */
+  userId: number;
   channels: AlertChannel[];
   log: Logger;
   now?: () => Date;

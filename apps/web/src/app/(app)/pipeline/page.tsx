@@ -1,5 +1,6 @@
 import { queryRows, sql } from "@jobradar/db";
 import type { Metadata } from "next";
+import { currentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { PIPELINE_STATUSES } from "@/lib/filters";
 import { Kanban, type PipelineCard } from "./kanban";
@@ -14,16 +15,18 @@ type Row = Omit<PipelineCard, "updated_at" | "next_action_at" | "ledger"> & {
 };
 
 export default async function PipelinePage() {
+  const user = await currentUser();
   const rows = await queryRows<Row>(
     getDb(),
     sql`
-    select j.id, j.title, j.company_name, j.city, j.country, j.remote, j.score, j.url,
+    select j.id, j.title, j.company_name, j.city, j.country, j.remote, sc.score, j.url,
       j.apply_url, j.closed_at is not null as closed, s.status, s.notes, s.updated_at,
       s.next_action_at,
       (select jsonb_agg(jsonb_build_array(p->>'key', (p->>'points')::int))
-        from jsonb_array_elements(j.score_breakdown->'parts') p) as ledger
+        from jsonb_array_elements(sc.score_breakdown->'parts') p) as ledger
     from job_status s join jobs j on j.id = s.job_id
-    where s.status in (${sql.join(
+    left join job_scores sc on sc.job_id = j.id and sc.user_id = s.user_id
+    where s.user_id = ${user.id} and s.status in (${sql.join(
       PIPELINE_STATUSES.map((s) => sql`${s}::job_status_kind`),
       sql`, `,
     )})

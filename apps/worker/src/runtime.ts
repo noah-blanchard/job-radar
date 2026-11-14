@@ -6,15 +6,19 @@ import {
   getEnv,
   HttpShared,
   kvValidatorStore,
-  loadProfileFile,
   loadSourcesConfig,
+  loadUserProfiles,
+  ownerUser,
+  parseProfile,
   requireEnv,
   unlimitedQuota,
   USER_AGENT,
   type Env,
   type LlmOptions,
-  type LoadedProfile,
+  type Profile,
   type QuotaCounter,
+  type UserProfile,
+  type UserProfiles,
 } from "@jobradar/core";
 import { createDb } from "@jobradar/db";
 
@@ -50,9 +54,17 @@ export function createRuntime(service: string) {
     await Promise.all([closeDb(), locks.close()]);
   };
   const sources = loadSourcesConfig();
-  // Reloaded before each sweep: a profile.yaml edit is picked up without a restart.
-  let profileFile: LoadedProfile = loadProfileFile();
-  const reloadProfile = (): LoadedProfile => (profileFile = loadProfileFile());
+  // Users' profiles (in the database), reloaded every minute and before each sweep: a profile
+  // edited in the dashboard is picked up without a restart.
+  let profiles: UserProfile[] = [];
+  let ownerId = 1;
+  const emptyProfile = parseProfile({});
+  async function reloadProfiles(): Promise<UserProfiles> {
+    const loaded = await loadUserProfiles(db);
+    profiles = loaded.profiles;
+    ownerId = (await ownerUser(db))?.id ?? ownerId;
+    return loaded;
+  }
   const workdayGap = env.WORKDAY_MIN_INTERVAL_MS;
 
   const http = new HttpShared({
@@ -105,13 +117,19 @@ export function createRuntime(service: string) {
     close,
     http,
     sources,
-    get profile() {
-      return profileFile.profile;
+    /** Every user's parsed profile (the scorer scores them all). */
+    get profiles(): readonly UserProfile[] {
+      return profiles;
     },
-    get profileFile() {
-      return profileFile;
+    /** The owner: receives the alerts until per-user alerts exist. */
+    get ownerId(): number {
+      return ownerId;
     },
-    reloadProfile,
+    /** Profile driving the aggregator search queries: the owner's for now. */
+    get searchProfile(): Profile {
+      return profiles.find((p) => p.userId === ownerId)?.profile ?? emptyProfile;
+    },
+    reloadProfiles,
     llm,
     quotaFor,
   };

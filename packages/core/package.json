@@ -10,7 +10,8 @@
     "./discovery": "./src/discovery/index.ts",
     "./score": "./src/score/index.ts",
     "./config": "./src/config.ts",
-    "./alerts/keys": "./src/alerts/keys.ts"
+    "./alerts/keys": "./src/alerts/keys.ts",
+    "./users": "./src/users.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

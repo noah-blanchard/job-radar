@@ -1,4 +1,4 @@
-import { and, companies, gte, jobs, or, sql } from "@jobradar/db";
+import { and, gte, jobs, jobScores, or, sql } from "@jobradar/db";
 import type { AlertMessage } from "./channels";
 import { selectAlertJobs } from "./digest";
 import { sendOnce, type AlertDeps, type ChannelResult } from "./dispatch";
@@ -63,11 +63,16 @@ export async function runInstantAlerts(
   const since = new Date(now.getTime() - INSTANT_WINDOW_HOURS * 3_600_000);
   const list = await selectAlertJobs(
     deps.db,
+    deps.userId,
     and(
       gte(jobs.firstSeenAt, since),
       or(
-        gte(jobs.score, o.minScore),
-        and(sql`${companies.priority} = 'high'`, gte(jobs.score, o.highPriorityMinScore)),
+        gte(jobScores.score, o.minScore),
+        and(
+          sql`exists (select 1 from company_prefs cp where cp.user_id = ${deps.userId}
+            and cp.company_id = ${jobs.companyId} and cp.priority = 'high')`,
+          gte(jobScores.score, o.highPriorityMinScore),
+        ),
       ),
     ),
     200,

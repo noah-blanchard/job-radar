@@ -2,6 +2,7 @@ import { queryRows, sql } from "@jobradar/db";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageFrame, PageHeader, PageScroll } from "@/components/placeholder";
+import { currentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +18,7 @@ interface DayCount {
   n: number;
 }
 
-async function loadStats() {
+async function loadStats(userId: number) {
   const db = getDb();
   // Days are calendar days in America/Toronto; first_seen_at is the "new job" truth.
   const days = await queryRows<{ day: string }>(
@@ -67,9 +68,11 @@ async function loadStats() {
     db,
     sql`select company_name, count(*)::int as open,
           count(*) filter (where is_new_grad)::int as new_grad,
-          count(*) filter (where score >= 50)::int as good,
-          max(score)::int as best
-        from jobs where closed_at is null
+          count(*) filter (where sc.score >= 50)::int as good,
+          max(sc.score)::int as best
+        from jobs j
+        left join job_scores sc on sc.job_id = j.id and sc.user_id = ${userId}
+        where j.closed_at is null
         group by company_name
         order by good desc, new_grad desc, open desc
         limit 20`,
@@ -198,7 +201,8 @@ function Fact({ n, label }: { n: string; label: string }) {
 }
 
 export default async function StatsPage() {
-  const { days, bySource, byCountry, share, companies } = await loadStats();
+  const user = await currentUser();
+  const { days, bySource, byCountry, share, companies } = await loadStats(user.id);
   const sources = series(bySource, days);
   const countriesAll = series(byCountry, days);
   const countries = countriesAll.slice(0, TOP_COUNTRIES);

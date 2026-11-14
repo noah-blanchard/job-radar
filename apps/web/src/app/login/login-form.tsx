@@ -10,6 +10,18 @@ export function LoginForm({ next }: { next: string }) {
   return (
     <form action={action} className="grid gap-3">
       <input type="hidden" name="next" value={next} />
+      <label htmlFor="email" className="text-muted-foreground text-xs">
+        E-mail
+      </label>
+      <Input
+        id="email"
+        name="email"
+        type="email"
+        autoComplete="username"
+        autoFocus
+        required
+        className="h-9"
+      />
       <label htmlFor="password" className="text-muted-foreground text-xs">
         Mot de passe
       </label>
@@ -18,7 +30,6 @@ export function LoginForm({ next }: { next: string }) {
         name="password"
         type="password"
         autoComplete="current-password"
-        autoFocus
         required
         className="h-9"
         aria-invalid={state.error ? true : undefined}

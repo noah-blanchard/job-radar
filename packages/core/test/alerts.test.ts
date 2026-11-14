@@ -2,8 +2,11 @@ import {
   alertsSent,
   apiUsage,
   companies,
+  companyPrefs,
   jobs,
+  jobScores,
   jobStatus,
+  users,
   kvSet,
   sourceRuns,
   type AnyDb,
@@ -58,8 +61,13 @@ function fakeChannel(id: ChannelId, opts: { fail?: boolean } = {}) {
   return ch;
 }
 
+const OWNER = 1;
 let seq = 0;
-async function addJob(over: Partial<typeof jobs.$inferInsert> = {}) {
+/** A job and the owner's score for it (`score` goes to job_scores). */
+async function addJob({
+  score = 60,
+  ...over
+}: Partial<typeof jobs.$inferInsert> & { score?: number } = {}) {
   seq++;
   const [row] = await db
     .insert(jobs)
@@ -73,16 +81,24 @@ async function addJob(over: Partial<typeof jobs.$inferInsert> = {}) {
       region: "ON",
       country: "CA",
       url: `https://boards.example.test/${seq}`,
-      score: 60,
       isNewGrad: true,
       firstSeenAt: new Date(NOW.getTime() - 2 * H),
       ...over,
     })
     .returning({ id: jobs.id });
+  await db
+    .insert(jobScores)
+    .values({ userId: OWNER, jobId: row!.id, score, scoreBreakdown: { total: score } });
   return row!.id;
 }
 
-const deps = (channels: AlertChannel[]) => ({ db, channels, log: silentLog, now: () => NOW });
+const deps = (channels: AlertChannel[], userId = OWNER) => ({
+  db,
+  userId,
+  channels,
+  log: silentLog,
+  now: () => NOW,
+});
 const digestOpts = { anchor: NOW, minScore: 40, publicBaseUrl: BASE };
 
 describe("digest", () => {
@@ -100,7 +116,7 @@ describe("digest", () => {
     });
     await addJob({ title: "Closed", score: 80, closedAt: NOW });
     const ignored = await addJob({ title: "Ignored", score: 80 });
-    await db.insert(jobStatus).values({ jobId: ignored, status: "ignored" });
+    await db.insert(jobStatus).values({ userId: OWNER, jobId: ignored, status: "ignored" });
 
     const ch = fakeChannel("email");
     const res = await runDigest(deps([ch]), digestOpts);
@@ -212,8 +228,9 @@ describe("instant alerts", () => {
   it("alerts high scores and high-priority companies once, new jobs only", async () => {
     const [hp] = await db
       .insert(companies)
-      .values({ name: "Stripe", nameKey: "stripe", priority: "high" })
+      .values({ name: "Stripe", nameKey: "stripe" })
       .returning();
+    await db.insert(companyPrefs).values({ userId: OWNER, companyId: hp!.id, priority: "high" });
     const a = await addJob({ title: "Great", score: 80 });
     const b = await addJob({ title: "Priority", score: 50, companyId: hp!.id });
     await addJob({ title: "Priority but excluded", score: 0, companyId: hp!.id });
@@ -237,6 +254,29 @@ describe("instant alerts", () => {
     expect(ch.sent[1]!.url).toBe(`${BASE}/jobs/${c}`);
     const rows = await db.select().from(alertsSent);
     expect(rows.map((r) => r.jobId).sort()).toEqual([a, b, c].sort());
+  });
+});
+
+describe("per-user selection", () => {
+  it("uses the recipient's scores and statuses only", async () => {
+    const [other] = await db.insert(users).values({ email: "b@example.com" }).returning();
+    const mine = await addJob({ title: "Mine", score: 80 });
+    // Same job, scored low for the other user and ignored by them: no effect on the owner.
+    await db
+      .insert(jobScores)
+      .values({ userId: other!.id, jobId: mine, score: 10, scoreBreakdown: { total: 10 } });
+    await db.insert(jobStatus).values({ userId: other!.id, jobId: mine, status: "ignored" });
+
+    const own = fakeChannel("ntfy");
+    await runDigest(deps([own]), digestOpts);
+    expect(own.sent[0]!.text).toContain("Mine");
+
+    const theirs = fakeChannel("ntfy");
+    await runDigest(deps([theirs], other!.id), {
+      ...digestOpts,
+      anchor: new Date(NOW.getTime() + 1),
+    });
+    expect(theirs.sent[0]!.text).not.toContain("Mine");
   });
 });
 

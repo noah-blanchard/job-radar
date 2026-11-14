@@ -13,6 +13,10 @@ export default tseslint.config(
       "**/next-env.d.ts",
       "packages/db/migrations/**",
       "packages/core/test/fixtures/**",
+      // Vendored agent skills and design-tool state: not project code.
+      ".claude/**",
+      ".impeccable/**",
+      "**/.impeccable/**",
     ],
   },
   js.configs.recommended,

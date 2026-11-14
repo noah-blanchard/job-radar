@@ -3,15 +3,18 @@ import {
   ALERT_TEST_RESULT_KEY,
   type AlertTestResult,
 } from "@jobradar/core/alerts/keys";
-import { PROFILE_KV_KEY, type AppliedProfile } from "@jobradar/core/score";
+import { profileHash } from "@jobradar/core/score";
+import { listUsers } from "@jobradar/core/users";
 import { kvGet } from "@jobradar/db";
 import type { Metadata } from "next";
 import { PageFrame, PageHeader, PageScroll } from "@/components/placeholder";
 import { Badge } from "@/components/ui/badge";
 import { AppearanceSettings } from "@/components/theme-controls";
+import { currentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { readProfile } from "@/lib/profile";
-import { formatDateTime, formatDuration } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
+import { DeleteUserButton, InviteForm, PasswordForm } from "./account-forms";
 import { TestChannelsButton } from "./test-button";
 
 export const metadata: Metadata = { title: "Réglages" };
@@ -43,15 +46,26 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
+/** Scoring state of an account, as a badge. */
+function ScoreState({ text, scoredHash }: { text: string; scoredHash: string | null }) {
+  if (!text.trim()) return <Badge variant="outline">sans profil</Badge>;
+  return scoredHash === profileHash(text) ? (
+    <Badge variant="success">scores à jour</Badge>
+  ) : (
+    <Badge variant="warning">recalcul en attente</Badge>
+  );
+}
+
 export default async function SettingsPage() {
-  const file = readProfile();
+  const me = await currentUser();
+  const admin = me.role === "admin";
   const db = getDb();
-  const [applied, testRequest, testResult] = await Promise.all([
-    kvGet<AppliedProfile>(db, PROFILE_KV_KEY),
+  const [file, testRequest, testResult, accounts] = await Promise.all([
+    readProfile(me.id),
     kvGet<{ requestedAt?: string }>(db, ALERT_TEST_REQUEST_KEY),
     kvGet<AlertTestResult>(db, ALERT_TEST_RESULT_KEY),
+    admin ? listUsers(db) : Promise.resolve([]),
   ]);
-  const inSync = "hash" in file && applied?.hash === file.hash;
 
   const channels = [
     { id: "ntfy", name: "ntfy", ok: isSet("NTFY_TOPIC") },
@@ -64,7 +78,7 @@ export default async function SettingsPage() {
     <PageFrame>
       <PageHeader
         title="Réglages"
-        description="Lecture seule : modifie config/profile.yaml et .env, puis redéploie."
+        description={`Connecté${me.name ? ` en tant que ${me.name}` : ""} · ${me.email ?? ""}`}
       />
       <PageScroll>
         <div className="max-w-4xl px-4 md:px-6">
@@ -74,105 +88,145 @@ export default async function SettingsPage() {
 
           <Section title="Profil de matching">
             <div className="flex flex-wrap items-center gap-2 text-[13px]">
-              <code className="text-xs">config/profile.yaml</code>
               {"hash" in file ? (
                 <code className="text-muted-foreground text-xs">{file.hash}</code>
               ) : null}
-              {"hash" in file ? (
-                inSync ? (
-                  <Badge variant="success">scores à jour</Badge>
-                ) : (
-                  <Badge variant="warning">recalcul en attente</Badge>
-                )
+              {file.state === "ok" ? (
+                <Badge variant="success">scores à jour</Badge>
+              ) : file.state === "pending" ? (
+                <Badge variant="warning">recalcul en cours</Badge>
+              ) : file.state === "invalid" ? (
+                <Badge variant="destructive">invalide</Badge>
               ) : (
-                <Badge variant="destructive">illisible</Badge>
+                <Badge variant="outline">aucun profil</Badge>
               )}
             </div>
-            {"error" in file && file.error ? (
+            {file.state === "invalid" ? (
               <p className="text-destructive mt-2 text-[13px]">{file.error}</p>
             ) : null}
             <p className="text-muted-foreground mt-2 text-xs">
-              {applied
-                ? `Scores calculés avec le profil ${applied.hash} le ${formatDateTime(new Date(applied.appliedAt))} (${applied.jobs.toLocaleString("fr-CA")} offres en ${formatDuration(applied.ms)}).`
-                : "Aucun recalcul complet enregistré pour l'instant."}{" "}
-              {"hash" in file && !inSync
-                ? "Le worker recalcule tout au prochain balayage (ou : cli rescore)."
+              {file.scoredAt
+                ? `Scores calculés le ${formatDateTime(file.scoredAt)}.`
+                : "Aucun score calculé pour l'instant."}{" "}
+              {file.state === "pending"
+                ? "Le worker recalcule tes scores dans la minute (environ 1 min pour 100 000 offres)."
                 : ""}
             </p>
-            <details className="mt-3">
-              <summary className="text-muted-foreground hover:text-foreground cursor-pointer text-xs">
-                Voir le profil effectif
-              </summary>
-              <pre className="mt-2 max-h-[32rem] overflow-auto rounded-md border bg-code p-3 text-xs leading-relaxed">
-                {"text" in file ? file.text : (applied?.text ?? "")}
-              </pre>
-            </details>
-          </Section>
-
-          <Section title="Alertes">
-            <Row label="Digest quotidien">{env("DIGEST_CRON", "0 8 * * *")} (Toronto)</Row>
-            <Row label="Score minimum du digest">{env("DIGEST_MIN_SCORE", "40")}</Row>
-            <Row label="Alertes instantanées">
-              {env("INSTANT_ALERTS_ENABLED", "true") === "true" ? "activées" : "désactivées"}
-            </Row>
-            <Row label="Score minimum instantané">{env("INSTANT_MIN_SCORE", "75")}</Row>
-            <Row label="Worker silencieux après">{env("HEALTH_SILENCE_HOURS", "12")} h</Row>
-          </Section>
-
-          <Section title="Canaux">
-            {channels.map((c) => (
-              <Row key={c.name} label={c.name}>
-                {c.ok ? (
-                  <span className="text-success">configuré</span>
-                ) : (
-                  <span className="text-muted-foreground">non configuré</span>
-                )}
-              </Row>
-            ))}
-            <TestChannelsButton
-              disabled={!channels.some((c) => c.ok)}
-              pendingSince={testRequest?.requestedAt}
-            />
-            {testResult ? (
-              <div className="mt-3 text-xs">
-                <p className="text-muted-foreground mb-1">
-                  Dernier test : {formatDateTime(new Date(testResult.finishedAt))}
-                </p>
-                {testResult.results.length === 0 ? (
-                  <p className="text-muted-foreground">
-                    aucun canal configuré côté worker (variables du .env du worker)
-                  </p>
-                ) : (
-                  <ul className="space-y-1">
-                    {testResult.results.map((r) => (
-                      <li key={r.channel} className="flex items-baseline justify-between gap-2">
-                        <span>{channels.find((c) => c.id === r.channel)?.name ?? r.channel}</span>
-                        {r.ok ? (
-                          <span className="text-success">envoyé</span>
-                        ) : (
-                          <span className="text-destructive text-right break-all">
-                            {r.error ?? "échec"}
-                          </span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+            {file.text ? (
+              <details className="mt-3">
+                <summary className="text-muted-foreground hover:text-foreground cursor-pointer text-xs">
+                  Voir le profil
+                </summary>
+                <pre className="mt-2 max-h-[32rem] overflow-auto rounded-md border bg-code p-3 text-xs leading-relaxed">
+                  {file.text}
+                </pre>
+              </details>
             ) : null}
           </Section>
 
-          <Section title="Classification">
-            <Row label="Règles new grad">toujours actives</Row>
-            <Row label="LLM (offres ambiguës)">
-              {env("LLM_ENABLED", "false") === "true"
-                ? isSet("ANTHROPIC_API_KEY")
-                  ? `activé (${env("LLM_MODEL", "claude-haiku-5-5")})`
-                  : "activé mais clé absente"
-                : "désactivé"}
-            </Row>
-            <Row label="Plafond LLM / jour">{env("LLM_DAILY_MAX_CALLS", "200")}</Row>
+          <Section title="Mot de passe">
+            <PasswordForm />
           </Section>
+
+          {admin ? (
+            <Section title="Comptes">
+              <ul className="text-[13px]">
+                {accounts.map((u) => (
+                  <li
+                    key={u.id}
+                    className="border-border-soft flex items-center justify-between gap-3 border-b py-2 last:border-0"
+                  >
+                    <span className="min-w-0 truncate">
+                      {u.name ? <span className="font-medium">{u.name} · </span> : null}
+                      <span className={u.name ? "text-muted-foreground" : undefined}>
+                        {u.email ?? "(sans e-mail)"}
+                      </span>
+                    </span>
+                    <span className="flex shrink-0 items-center gap-2">
+                      {u.role === "admin" ? <Badge variant="outline">admin</Badge> : null}
+                      {u.passwordHash ? null : <Badge variant="outline">sans mot de passe</Badge>}
+                      <ScoreState text={u.profileYaml} scoredHash={u.scoredHash} />
+                      {u.id !== me.id && u.role !== "admin" ? (
+                        <DeleteUserButton id={u.id} email={u.email ?? String(u.id)} />
+                      ) : null}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <InviteForm />
+            </Section>
+          ) : null}
+
+          {admin ? (
+            <>
+              <Section title="Alertes">
+                <Row label="Digest quotidien">{env("DIGEST_CRON", "0 8 * * *")} (Toronto)</Row>
+                <Row label="Score minimum du digest">{env("DIGEST_MIN_SCORE", "40")}</Row>
+                <Row label="Alertes instantanées">
+                  {env("INSTANT_ALERTS_ENABLED", "true") === "true" ? "activées" : "désactivées"}
+                </Row>
+                <Row label="Score minimum instantané">{env("INSTANT_MIN_SCORE", "75")}</Row>
+                <Row label="Worker silencieux après">{env("HEALTH_SILENCE_HOURS", "12")} h</Row>
+              </Section>
+
+              <Section title="Canaux">
+                {channels.map((c) => (
+                  <Row key={c.name} label={c.name}>
+                    {c.ok ? (
+                      <span className="text-success">configuré</span>
+                    ) : (
+                      <span className="text-muted-foreground">non configuré</span>
+                    )}
+                  </Row>
+                ))}
+                <TestChannelsButton
+                  disabled={!channels.some((c) => c.ok)}
+                  pendingSince={testRequest?.requestedAt}
+                />
+                {testResult ? (
+                  <div className="mt-3 text-xs">
+                    <p className="text-muted-foreground mb-1">
+                      Dernier test : {formatDateTime(new Date(testResult.finishedAt))}
+                    </p>
+                    {testResult.results.length === 0 ? (
+                      <p className="text-muted-foreground">
+                        aucun canal configuré côté worker (variables du .env du worker)
+                      </p>
+                    ) : (
+                      <ul className="space-y-1">
+                        {testResult.results.map((r) => (
+                          <li key={r.channel} className="flex items-baseline justify-between gap-2">
+                            <span>
+                              {channels.find((c) => c.id === r.channel)?.name ?? r.channel}
+                            </span>
+                            {r.ok ? (
+                              <span className="text-success">envoyé</span>
+                            ) : (
+                              <span className="text-destructive text-right break-all">
+                                {r.error ?? "échec"}
+                              </span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ) : null}
+              </Section>
+
+              <Section title="Classification">
+                <Row label="Règles new grad">toujours actives</Row>
+                <Row label="LLM (offres ambiguës)">
+                  {env("LLM_ENABLED", "false") === "true"
+                    ? isSet("ANTHROPIC_API_KEY")
+                      ? `activé (${env("LLM_MODEL", "claude-haiku-5-5")})`
+                      : "activé mais clé absente"
+                    : "désactivé"}
+                </Row>
+                <Row label="Plafond LLM / jour">{env("LLM_DAILY_MAX_CALLS", "200")}</Row>
+              </Section>
+            </>
+          ) : null}
         </div>
       </PageScroll>
     </PageFrame>

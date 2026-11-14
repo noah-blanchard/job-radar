@@ -44,12 +44,14 @@ function quotaMap(rt: Runtime): Record<string, number> {
  */
 export function createAlerts(rt: Runtime, opts: { channels?: AlertChannel[] } = {}) {
   const channels = opts.channels ?? createChannels(rt.env);
-  const deps: AlertDeps = {
+  const base0: Omit<AlertDeps, "userId"> = {
     db: rt.db,
     channels,
     log: rt.log,
     secrets: alertSecrets(rt.env),
   };
+  // The env channels belong to the owner: their scores and statuses pick the jobs.
+  const ownerDeps = (): AlertDeps => ({ ...base0, userId: rt.ownerId });
   const env = rt.env;
   const base = env.PUBLIC_BASE_URL;
 
@@ -69,7 +71,7 @@ export function createAlerts(rt: Runtime, opts: { channels?: AlertChannel[] } = 
   };
 
   async function digestFor(anchor: Date) {
-    const results = await runDigest(deps, {
+    const results = await runDigest(ownerDeps(), {
       anchor,
       minScore: env.DIGEST_MIN_SCORE,
       publicBaseUrl: base,
@@ -106,7 +108,7 @@ export function createAlerts(rt: Runtime, opts: { channels?: AlertChannel[] } = 
       instantPending = true;
       return serial("instant", async () => {
         instantPending = false;
-        const results = await runInstantAlerts(deps, {
+        const results = await runInstantAlerts(ownerDeps(), {
           minScore: env.INSTANT_MIN_SCORE,
           highPriorityMinScore: env.DIGEST_MIN_SCORE,
           publicBaseUrl: base,
@@ -118,7 +120,7 @@ export function createAlerts(rt: Runtime, opts: { channels?: AlertChannel[] } = 
 
     health: (previousTick?: Date) =>
       serial("health", async () => {
-        const r = await runHealthChecks(deps, {
+        const r = await runHealthChecks(ownerDeps(), {
           silenceHours: env.HEALTH_SILENCE_HOURS,
           previousTick,
           publicBaseUrl: base,
@@ -147,7 +149,7 @@ export function createAlerts(rt: Runtime, opts: { channels?: AlertChannel[] } = 
     const results =
       channels.length === 0
         ? []
-        : await sendTestAlerts(deps, {
+        : await sendTestAlerts(ownerDeps(), {
             minScore: env.DIGEST_MIN_SCORE,
             publicBaseUrl: base,
             quotas: quotaMap(rt),
