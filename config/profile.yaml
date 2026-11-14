@@ -1,144 +1,187 @@
-# job-radar : profil de scoring de Noah Blanchard
-# Score = localisation (0-30) + new grad (0-25) + domaines (0-25) + langue (+5/-10) + bonus
+# job-radar: Noah Blanchard's scoring profile
+# Score = location (0-30) + new grad (0-25) + domains (0-25) + language (+5/-10) + bonuses
+#
+# Offers come in English AND French: each keyword gives both forms in ONE pattern
+# ("english|français"), so a bilingual posting (common in Québec) counts the concept once.
+# Matching is case-insensitive and whole-word: French job nouns take an ending class so every
+# inclusive form matches ("Ingénieur(e)", "Ingénieure", "Développeur·euse", "Développeuse"):
+#   ing[ée]nieur[(.·e)]*      d[ée]veloppeu[rs][(.·eus)]*
 
-grad_date: 2027-05            # B.Eng. génie logiciel, Polytechnique Montréal (référence)
-seniority: new_grad           # référence, non scoré
+grad_date: 2027-05            # B.Eng. software engineering, Polytechnique Montréal (reference only)
+seniority: new_grad           # reference only, not scored
+target_seniority: [entry]     # new grad / junior; any other known level is capped at 20
+require_domain: false         # generic "Software Engineer, New Grad" titles must stay visible
 
-# --- Localisation : la PREMIÈRE règle qui matche gagne ---
+# --- Location: the FIRST matching rule wins ---
 locations:
-  # Canada : pas de préférence entre villes
+  # Canada: no preference between cities
   - { remote: true, country: CA, weight: 30 }
   - { country: CA, weight: 30 }
-  - { match: "Canada|Montreal|Toronto|Vancouver|Ottawa|Quebec|Calgary|Waterloo", weight: 30 }  # filet si le pays n'est pas parsé
+  # Safety net when the country isn't parsed (accents are ignored: Montreal = Montréal)
+  - { match: "Canada|Montreal|Laval|Longueuil|Quebec|Gatineau|Sherbrooke|Toronto|Ottawa|Waterloo|Kitchener|Mississauga|Vancouver|Calgary|Edmonton", weight: 30 }
 
-  # UE en remote (droit de travail via nationalité française), France exclue
-  - { remote: true, match: "Europe|EMEA|European Union", weight: 26 }
+  # EU / EEA / Switzerland remote: work rights through French citizenship (France is lower, below)
+  - { remote: true, match: "Europe|EMEA|European Union|Union europeenne", weight: 26 }
   - { remote: true, country: IE, weight: 26 }
   - { remote: true, country: NL, weight: 26 }
   - { remote: true, country: DE, weight: 26 }
   - { remote: true, country: BE, weight: 26 }
   - { remote: true, country: LU, weight: 26 }
+  - { remote: true, country: CH, weight: 26 }
   - { remote: true, country: ES, weight: 26 }
   - { remote: true, country: PT, weight: 26 }
   - { remote: true, country: IT, weight: 26 }
   - { remote: true, country: AT, weight: 26 }
   - { remote: true, country: DK, weight: 26 }
   - { remote: true, country: SE, weight: 26 }
+  - { remote: true, country: NO, weight: 26 }
   - { remote: true, country: FI, weight: 26 }
   - { remote: true, country: PL, weight: 26 }
+  - { remote: true, country: CZ, weight: 26 }
+  - { remote: true, country: EE, weight: 26 }
 
-  # UE sur site (déménagement)
+  # EU / EEA / Switzerland on site (relocation)
   - { country: IE, weight: 24 }
   - { country: NL, weight: 24 }
   - { country: DE, weight: 24 }
   - { country: BE, weight: 24 }
   - { country: LU, weight: 24 }
+  - { country: CH, weight: 24 }
   - { country: ES, weight: 24 }
   - { country: PT, weight: 24 }
   - { country: IT, weight: 24 }
   - { country: AT, weight: 24 }
   - { country: DK, weight: 24 }
   - { country: SE, weight: 24 }
+  - { country: NO, weight: 24 }
   - { country: FI, weight: 24 }
   - { country: PL, weight: 24 }
+  - { country: CZ, weight: 24 }
+  - { country: EE, weight: 24 }
 
-  # Remote ailleurs : souvent "US only" sans permis, donc sous le Canada sur site
+  # Remote elsewhere: often "US only" without a permit, so below Canada on site
   - { remote: true, weight: 15 }
 
-  # Acceptables mais bas
+  # Acceptable but low
   - { country: FR, weight: 10 }
-  - { country: GB, weight: 10 }   # hors UE, visa requis
+  - { country: GB, weight: 10 }   # outside the EU, visa required
   - { country: CN, weight: 8 }
-  # US et reste du monde : 0 (pas de permis)
+  # US and rest of the world: 0 (no work permit)
 
-# --- Domaines : +3 par mot-clé (x2 dans le titre), plafond 25 ---
-# Classement : audio > data > ML > fullstack > .NET > gamedev > infra
+# --- Domains: +3 per keyword (x2 in the title), capped at 25 ---
+# Ranking: audio > data > ML > fullstack > .NET > gamedev > C++ > infra
+# The first alternative of each domain's first keyword is also an aggregator search ("junior juce").
 domains:
   audio_dsp:
+    - 'audio software|audio (plugins?|engine|processing|programming|developer|engineer)|(logiciel|moteur|traitement|programmation|plugiciel|plug-?in) audio|(d[ée]veloppeu[rs]|programmeu[rs]|ing[ée]nieur)[(.·eus)]* audio'
     - juce
-    - dsp
-    - "signal processing"
-    - 'audio (software|plugins?|engine|processing|programming|developer|engineer)'
-    - 'vst3?'
-    - daw
-    - 'real[- ]time audio'
-    - 'synthesi[sz]ers?|sound synthesis'
+    - 'dsp|digital signal processing|signal processing|traitement (num[ée]rique )?du signal'
+    - 'vst3?|aax|audio units?'
+    - 'daw|digital audio workstation|station audio[- ]num[ée]rique'
+    - 'real[- ]time audio|audio (en )?temps r[ée]el'
+    - 'synthesi[sz]ers?|sound synthesis|synth[ée]ti[sz]eurs?|synth[èe]se sonore'
     - midi
-    - "music technology"
+    - 'music (technology|tech|software)|technologies? musicales?|logiciels? de musique'
+    - 'spatial audio|ambisonics?|audio spatial|audio spatialis[ée]e?'
+    - 'wwise|fmod|game audio|audio (de|pour) jeux?'
 
   data_engineering:
-    - 'data engineer(ing)?'
+    - 'data engineer(ing)?|ing[ée]nieur[(.·e)]* (de|des) donn[ée]es|ing[ée]nierie (de|des) donn[ée]es'
     - dbt
     - iceberg
     - duckdb
     - '(py)?spark'
     - lakehouse
-    - 'data pipelines?'
+    - 'data pipelines?|pipelines? de donn[ée]es'
     - 'etl|elt'
-    - 'data warehous(e|ing)'
+    - 'data warehous(e|ing)|entrep[ôo]ts? de donn[ée]es'
     - parquet
     - hadoop
+    - 'airflow|dagster'
+    - 'snowflake|bigquery|databricks'
 
   ml_recsys:
-    - 'machine learning'
-    - 'ml engineer'
-    - 'recommend(er|ation) (systems?|engines?)'
-    - 'collaborative filtering'
+    - 'machine learning|apprentissage (automatique|machine)'
+    - 'ml engineer|ing[ée]nieur[(.·e)]* (en )?(ml|apprentissage automatique)'
+    - 'recommend(er|ation) (systems?|engines?)|syst[èe]mes? de recommandation|moteurs? de recommandation'
+    - 'collaborative filtering|filtrage collaboratif'
     - mlflow
-    - lightgbm
-    - 'scikit[- ]learn'
+    - 'lightgbm|xgboost'
+    - 'scikit[- ]learn|sklearn'
     - mlops
-    - 'r (programming|language)|rstudio|tidyverse'   # "R" seul matcherait "R&D"
+    - 'pytorch|tensorflow'
+    - 'data scien(ce|tist)|science des donn[ée]es|scientifique des donn[ée]es'
+    - 'r (programming|language)|langage r|rstudio|tidyverse'   # "R" alone would match "R&D"
 
   fullstack_web:
     - 'full[- ]?stack'
-    - 'next\.js'
+    - 'next\.?js'
     - typescript
-    - react
-    - 'node\.js'
-    - express
-    - nestjs
+    - 'react(\.?js)?'
+    - 'node\.?js'
+    - 'express\.?js|node(\.?js)?/express'   # bare "express" is an everyday word in both languages
+    - 'nest\.?js'
     - fastapi
     - graphql
     - 'postgres(ql)?'
     - 'socket\.io|websockets?'
+    - 'web developer|d[ée]veloppeu[rs][(.·eus)]* web'
 
-  backend_dotnet:               # accepté : peu de mots-clés, très spécifiques
+  backend_dotnet:               # accepted: few, very specific keywords
     - 'c#'
-    - '\.net'
+    - '\.net( core)?'
     - 'asp\.net'
     - 'entity framework'
+    - blazor
 
-  gamedev:                      # accepté
+  gamedev:                      # accepted
     - unity
     - gameplay
-    - 'game (developer|programmer|engine)'
-    - 'netcode|multiplayer networking'
+    - 'game (developer|programmer|engine)|(d[ée]veloppeu[rs]|programmeu[rs])[(.·eus)]* (de )?jeux?( vid[ée]o)?|moteur de jeu'
+    - 'video games?|jeux? vid[ée]o'
+    - 'netcode|multiplayer networking|r[ée]seau(tage)? multijoueur'
+    - 'unreal engine'
 
-  infra_cloud:                  # bas : vu en cours (Kubernetes, INF8480)
-    - kubernetes
-    - k8s
+  cpp_systems:                  # JUCE, game engines and audio code are C++
+    - 'c\+\+'
+
+  infra_cloud:                  # low: seen in class (Kubernetes, INF8480)
+    - 'kubernetes|k8s'
     - 'github actions'
     - 'docker compose'
 
+# Aggregator searches (Jooble, JSearch), in English and French
+search_titles:
+  - new grad software engineer
+  - junior software developer
+  - développeur logiciel junior
+  - audio software engineer
+  - junior data engineer
+  - ingénieur de données junior
+  - développeur full stack junior
+
 languages: [fr, en]
 
-work_auth_note: "Autorisé à travailler au Canada et dans l'UE (nationalité française). Pas d'autorisation US."
+work_auth_note: "Authorized to work in Canada and the EU (French citizen). No US work authorization."
 
 exclude_companies: []
 
-# Mots rédhibitoires dans N'IMPORTE quel titre -> score 0
-# Pas de "lead", "senior", "manager" : le plafond new grad s'en charge
+# +10 on their offers (same bonus as a "high" priority). Fill in yourself, e.g. Audiokinetic
+# (Wwise, Montréal), Ubisoft, Behaviour Interactive, Eidos-Montréal, Spotify.
+priority_companies: []
+
+# Deal-breaker words in ANY title -> score 0, English and French forms
+# No "lead", "senior", "manager": the new-grad cap already handles them
 exclude_title:
-  - sales
-  - 'ventes?'
-  - 'recruit(er|ing)|recruteur|recruteuse'
-  - 'talent acquisition'
-  - 'account (executive|manager)'
-  - 'business development'
+  - 'sales|ventes?|vendeu[rs][(.·eus)]*'
+  - 'repr[ée]sentant[(.·e)]* commercia(l|ux)'
+  - 'recruit(er|ing|ment)|recruteu[rs][(.·eus)]*|recrutement'
+  - 'talent acquisition|acquisition de talents'
+  - 'account (executive|manager)|charg[ée][(.·e)]* de (client[èe]le|comptes?)'
+  - 'business development|d[ée]veloppement des affaires'
   - marketing
-  - 'customer support|support (specialist|analyst|technician|agent)'
-  - 'help ?desk'
-  - technician
-  - 'manual (qa|tester)|qa tester'
-  - 'intern(ship)?|stagiaire|co-?op'   # diplômé en mai 2027 : stages hors cible
+  - 'customer (support|service|success)|support (specialist|analyst|technician|agent)|service (à la )?client[èe]le|service client|soutien technique|support technique'
+  - 'help ?desk|centre d.appels?|call cent(er|re)'
+  - 'technician|technicien[(.·ne)]*'
+  - 'manual (qa|tester)|qa tester|testeu[rs][(.·eus)]* manuel[(.·le)]*'
+  - 'intern(ship)?|co-?op|stagiaire|stage (en|de|d.\p{L}+)|^stage|alternan(ce|t)|apprenti(e|ssage)?'   # graduating May 2027: internships out of scope
