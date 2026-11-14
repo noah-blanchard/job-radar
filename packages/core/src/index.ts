@@ -13,3 +13,6 @@ export * from "./pipeline/ingest";
 export * from "./pipeline/run";
 export * from "./pipeline/quota";
 export * from "./pipeline/validators";
+export * from "./connectors/queries";
+export * from "./discovery/detectAts";
+export * from "./discovery/companies";

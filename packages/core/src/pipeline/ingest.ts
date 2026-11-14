@@ -48,18 +48,35 @@ export function normalizeJob(raw: RawJob, companyId: number | null, seenAt: Date
   };
 }
 
-/** Marks an existing job as seen (reopens it if it had been closed). */
-async function touchJob(db: AnyDb, jobId: number, n: NormalizedJob, seenAt: Date) {
+export interface IngestOptions {
+  /**
+   * True for ATS sources: a sighting reopens a closed job and resets its missed-run counter.
+   * Aggregators and feeds only refresh last_seen_at, so they never undo an ATS closure.
+   */
+  reopen: boolean;
+}
+
+/** Marks an existing job as seen (reopens it if it had been closed and `reopen` is set). */
+async function touchJob(
+  db: AnyDb,
+  jobId: number,
+  n: NormalizedJob,
+  seenAt: Date,
+  opts: IngestOptions,
+) {
+  const longer = sql`length(coalesce(${n.values.descriptionText ?? null}::text, '')) > length(coalesce(${jobs.descriptionText}, ''))`;
   await db
     .update(jobs)
     .set({
       lastSeenAt: seenAt,
-      closedAt: null,
-      missedRuns: 0,
-      // Fill the description when an earlier sighting had none (e.g. list-only pass).
-      descriptionHtml: sql`coalesce(${jobs.descriptionHtml}, ${n.values.descriptionHtml})`,
-      descriptionText: sql`coalesce(${jobs.descriptionText}, ${n.values.descriptionText})`,
-      lang: sql`coalesce(${jobs.lang}, ${n.values.lang})`,
+      ...(opts.reopen ? { closedAt: null, missedRuns: 0 } : {}),
+      // Attach the company when an earlier sighting could not (e.g. discovered since).
+      companyId: sql`coalesce(${jobs.companyId}, ${n.values.companyId ?? null})`,
+      // Keep the richest description: a list-only pass or an aggregator snippet seen first
+      // must not hide the full ATS description seen later.
+      descriptionHtml: sql`case when ${longer} then ${n.values.descriptionHtml} else ${jobs.descriptionHtml} end`,
+      descriptionText: sql`case when ${longer} then ${n.values.descriptionText} else ${jobs.descriptionText} end`,
+      lang: sql`case when ${longer} then coalesce(${n.values.lang}, ${jobs.lang}) else coalesce(${jobs.lang}, ${n.values.lang}) end`,
     })
     .where(eq(jobs.id, jobId));
 }
@@ -78,6 +95,7 @@ export async function ingestJob(
   raw: RawJob,
   companyId: number | null,
   seenAt: Date,
+  opts: IngestOptions = { reopen: true },
 ): Promise<IngestResult> {
   const n = normalizeJob(raw, companyId, seenAt);
 
@@ -87,7 +105,7 @@ export async function ingestJob(
     .where(and(eq(jobSources.source, raw.source), eq(jobSources.sourceJobId, raw.sourceJobId)))
     .limit(1);
   if (linked) {
-    await touchJob(db, linked.jobId, n, seenAt);
+    await touchJob(db, linked.jobId, n, seenAt, opts);
     await db
       .update(jobSources)
       .set({ lastSeenAt: seenAt, url: raw.url })
@@ -105,20 +123,19 @@ export async function ingestJob(
       .limit(1);
     if (byUrl) {
       jobId = byUrl.id;
-      await touchJob(db, jobId, n, seenAt);
+      await touchJob(db, jobId, n, seenAt, opts);
     }
   }
   if (jobId === undefined) {
     const [row] = await db
       .insert(jobs)
       .values(n.values)
-      .onConflictDoUpdate({
-        target: jobs.fingerprint,
-        set: { lastSeenAt: seenAt, closedAt: null, missedRuns: 0 },
-      })
+      .onConflictDoUpdate({ target: jobs.fingerprint, set: { lastSeenAt: seenAt } })
       .returning({ id: jobs.id, inserted: sql<boolean>`(xmax = 0)` });
     jobId = row!.id;
     isNew = row!.inserted;
+    // Same offer already stored from another source: same touch rules as the other paths.
+    if (!isNew) await touchJob(db, jobId, n, seenAt, opts);
   }
 
   await db

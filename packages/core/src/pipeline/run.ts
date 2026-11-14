@@ -13,6 +13,10 @@ import {
   type AnyDb,
 } from "@jobradar/db";
 import { isClearlyNotNewGrad } from "../classify/rules";
+import { parseProfile, type Profile } from "../config";
+import { listConnectors } from "../connectors/registry";
+import { CompanyResolver } from "../discovery/companies";
+import { getEnv, type Env } from "../env";
 import type { Company, Connector, FetchCtx, QuotaCounter } from "../connectors/types";
 import type { HttpShared } from "../http/client";
 import { PoliteHttpClient } from "../http/client";
@@ -30,6 +34,10 @@ export interface RunDeps {
   now?: () => Date;
   /** Hard cap for one source/company run. */
   timeoutMs?: number;
+  /** Defaults to the process env. */
+  env?: Env;
+  /** Defaults to an empty profile (no aggregator queries). */
+  profile?: Profile;
 }
 
 export interface RunSummary {
@@ -41,6 +49,8 @@ export interface RunSummary {
   nbNew: number;
   closed: number;
   unchanged: boolean;
+  /** Companies created or given an ATS by discovery during this run. */
+  discovered: number;
   error?: string;
   /** True when this failure flipped the company to `broken` (health alert). */
   becameBroken?: boolean;
@@ -174,6 +184,15 @@ export async function runSource(
   let fetched = 0;
   let nbNew = 0;
   let closed = 0;
+  const resolver = new CompanyResolver(
+    db,
+    log,
+    new Set(
+      listConnectors()
+        .filter((c) => c.kind === "ats")
+        .map((c) => c.id),
+    ),
+  );
 
   try {
     const ctx: FetchCtx = {
@@ -187,11 +206,23 @@ export async function runSource(
       markUnchanged: () => {
         unchanged = true;
       },
+      env: deps.env ?? getEnv(),
+      profile: deps.profile ?? parseProfile({}),
     };
 
     for await (const raw of connector.fetch(ctx, company)) {
       fetched++;
-      const r = await ingestJob(db, raw, companyId, now());
+      // Discovery: every URL of every job may reveal an ATS board (snowball effect).
+      let jobCompanyId = companyId;
+      try {
+        const found = await resolver.resolveJob(raw);
+        jobCompanyId ??= found;
+      } catch (err) {
+        log.warn({ err: String(err), url: raw.url }, "discovery failed for job");
+      }
+      const r = await ingestJob(db, raw, jobCompanyId, now(), {
+        reopen: connector.needsCompany,
+      });
       if (r.isNew) nbNew++;
     }
 
@@ -211,8 +242,9 @@ export async function runSource(
         .set({ consecutiveFailures: 0, atsStatus: "ok", lastOkAt: now() })
         .where(eq(companies.id, companyId));
     }
+    const discovered = resolver.discovered.length;
     log.info(
-      { fetched, nbNew, closed, unchanged, ms: now().getTime() - startedAt.getTime() },
+      { fetched, nbNew, closed, unchanged, discovered, ms: now().getTime() - startedAt.getTime() },
       "run ok",
     );
     return {
@@ -224,6 +256,7 @@ export async function runSource(
       nbNew,
       closed,
       unchanged,
+      discovered,
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -263,6 +296,7 @@ export async function runSource(
       nbNew,
       closed,
       unchanged,
+      discovered: resolver.discovered.length,
       error: message,
       becameBroken,
     };
