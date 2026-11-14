@@ -3,61 +3,85 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* shadcn/ui tokens (zinc). The app is dark by default (<html class="dark">). */
+/*
+ * Relevé: registrar ink ground, security-paper green rail, paper-white text.
+ * Two text tones only (foreground / muted-foreground). Status colours are flat and committed:
+ * one colour per status, used everywhere that status appears.
+ */
 :root {
-  --radius: 0.5rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.21 0.006 285.885);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.705 0.015 286.067);
-  --success: oklch(0.6 0.15 150);
-  --warning: oklch(0.75 0.15 75);
-  /* Single-hue chart series (bars on /stats). */
-  --chart-1: oklch(0.55 0.14 250);
-  --chart-1-hover: oklch(0.45 0.14 250);
-}
+  --radius: 0.4375rem;
 
-.dark {
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.18 0.006 285.885);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.18 0.006 285.885);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.92 0.004 286.32);
-  --primary-foreground: oklch(0.21 0.006 285.885);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.552 0.016 285.938);
-  --success: oklch(0.72 0.17 150);
-  --warning: oklch(0.8 0.15 75);
-  --chart-1: oklch(0.7 0.12 250);
-  --chart-1-hover: oklch(0.82 0.1 250);
+  /* Grounds */
+  --background: #10161d; /* ink */
+  --surface: #141c24; /* reading pane, popovers */
+  --raised: #182630; /* selected row */
+  --raised-hover: #131d26; /* hovered row: solid, so overlays can match it */
+  --rail: #13201c; /* security-paper green */
+  --rail-active: #1c2f28;
+  --border: #24303a;
+  --border-soft: #1a242d;
+
+  /* Text: two tones, nothing in between */
+  --foreground: #e8e3d4;
+  --muted-foreground: #a0aaa2;
+
+  /* Accent: positive points, selection, primary action */
+  --primary: #8fc7a0;
+  --primary-foreground: #0d1912;
+
+  /* Controls */
+  --secondary: #1b2730;
+  --secondary-foreground: #e8e3d4;
+  --input: #2a3742;
+  --ring: #8fc7a0;
+
+  /* State */
+  --success: #8fc7a0;
+  --warning: #e3b45c;
+  --destructive: #e8735f;
+  --info: #7aa5e0;
+
+  /* Status roles (flat, committed) */
+  --st-new: #a0aaa2;
+  --st-saved: #7aa5e0;
+  --st-applied: #8fc7a0;
+  --st-interview: #e3b45c;
+  --st-rejected: #e8735f;
+  --st-ignored: #808b83;
+
+  /* Score ledger: positive parts on a green ramp, penalties in red */
+  --ledger-1: #8fc7a0;
+  --ledger-2: #6ead84;
+  --ledger-3: #4f8d66;
+  --ledger-4: #3b6e4f;
+  --ledger-track: #1e2a33;
+
+  /* Charts (/stats) */
+  --chart-1: #6ead84;
+  --chart-1-hover: #a9dbb7;
+
+  /* shadcn aliases kept for the remaining primitives */
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
+  --popover: var(--surface);
+  --popover-foreground: var(--foreground);
+  --muted: var(--secondary);
+  --accent: var(--secondary);
+  --accent-foreground: var(--foreground);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 120ms;
+  --dur: 180ms;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-raised-hover: var(--raised-hover);
+  --color-rail: var(--rail);
+  --color-rail-active: var(--rail-active);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -73,36 +97,119 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-border: var(--border);
+  --color-border-soft: var(--border-soft);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-st-new: var(--st-new);
+  --color-st-saved: var(--st-saved);
+  --color-st-applied: var(--st-applied);
+  --color-st-interview: var(--st-interview);
+  --color-st-rejected: var(--st-rejected);
+  --color-st-ignored: var(--st-ignored);
+  --color-ledger-track: var(--ledger-track);
   --color-chart-1: var(--chart-1);
   --color-chart-1-hover: var(--chart-1-hover);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --radius-sm: calc(var(--radius) - 3px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, monospace;
+  --ease-out: var(--ease-out);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
   html {
     color-scheme: dark;
+    scrollbar-color: #2e3c47 transparent;
   }
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "tnum";
+    font-feature-settings: "tnum", "cv11";
+    caret-color: var(--primary);
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 32%, transparent);
+    color: var(--foreground);
+  }
+  :focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--ring) 75%, transparent);
+    outline-offset: 2px;
+  }
+  a {
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+  ::placeholder {
+    color: var(--muted-foreground);
+    opacity: 0.85;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2a3742;
+    border-radius: 999px;
+    border: 3px solid var(--background);
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  kbd {
+    font-family: var(--font-sans);
   }
 }
 
-/* Job descriptions rendered by <SafeHtml>: readable, compact, no external styles. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 @layer components {
+  /* Section label: small uppercase, the registrar's column heads. */
+  .label-caps {
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  /* Row that leaves the triage queue: collapses its height, then unmounts. */
+  .row-leave {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition:
+      grid-template-rows var(--dur) var(--ease-out),
+      opacity var(--dur-fast) var(--ease-out);
+  }
+  .row-leave[data-leaving] {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+  .row-leave > * {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* Job descriptions rendered by <SafeNodes>: readable, compact, no external styles. */
   .prose-job {
     overflow-wrap: anywhere;
+    max-width: 72ch;
+    color: color-mix(in oklab, var(--foreground) 88%, var(--background));
   }
   .prose-job p,
   .prose-job ul,
@@ -110,7 +217,7 @@
   .prose-job table,
   .prose-job pre,
   .prose-job blockquote {
-    margin-block: 0.6em;
+    margin-block: 0.65em;
   }
   .prose-job ul {
     list-style: disc;
@@ -121,28 +228,33 @@
     padding-left: 1.25rem;
   }
   .prose-job li {
-    margin-block: 0.15em;
+    margin-block: 0.2em;
+  }
+  .prose-job li::marker {
+    color: var(--muted-foreground);
   }
   .prose-job h3,
   .prose-job h4,
   .prose-job h5,
   .prose-job h6 {
-    margin-top: 1.1em;
-    margin-bottom: 0.4em;
+    margin-top: 1.3em;
+    margin-bottom: 0.35em;
     font-weight: 600;
+    color: var(--foreground);
   }
   .prose-job h3 {
-    font-size: 1rem;
+    font-size: 0.9375rem;
   }
   .prose-job a {
+    color: var(--info);
     text-decoration: underline;
-    text-underline-offset: 2px;
   }
   .prose-job strong {
     font-weight: 600;
+    color: var(--foreground);
   }
   .prose-job blockquote {
-    border-left: 2px solid var(--border);
+    border-left: 1px solid var(--border);
     padding-left: 0.75rem;
     color: var(--muted-foreground);
   }

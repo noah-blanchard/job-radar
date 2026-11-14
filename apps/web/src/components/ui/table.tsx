@@ -4,17 +4,19 @@ import { cn } from "@/lib/utils";
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div data-slot="table-container" className="relative w-full overflow-x-auto">
-      <table
-        data-slot="table"
-        className={cn("w-full caption-bottom text-sm", className)}
-        {...props}
-      />
+      <table data-slot="table" className={cn("w-full text-[13px]", className)} {...props} />
     </div>
   );
 }
 
 function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
-  return <thead data-slot="table-header" className={cn("[&_tr]:border-b", className)} {...props} />;
+  return (
+    <thead
+      data-slot="table-header"
+      className={cn("[&_tr]:border-b [&_tr]:border-border", className)}
+      {...props}
+    />
+  );
 }
 
 function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
@@ -32,7 +34,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors",
+        "border-border-soft border-b transition-colors duration-[var(--dur-fast)] hover:bg-raised/60",
         className,
       )}
       {...props}
@@ -45,7 +47,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "text-muted-foreground h-8 px-2 text-left align-middle text-xs font-medium whitespace-nowrap",
+        "label-caps h-8 px-3 text-left align-middle font-medium whitespace-nowrap first:pl-0 last:pr-0",
         className,
       )}
       {...props}
@@ -57,7 +59,10 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   return (
     <td
       data-slot="table-cell"
-      className={cn("px-2 py-1.5 align-middle whitespace-nowrap", className)}
+      className={cn(
+        "h-10 px-3 py-1.5 align-middle whitespace-nowrap first:pl-0 last:pr-0",
+        className,
+      )}
       {...props}
     />
   );

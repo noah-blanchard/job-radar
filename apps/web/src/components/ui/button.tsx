@@ -4,22 +4,26 @@ import type * as React from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+  "inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium select-none outline-none transition-[background-color,color,border-color,opacity] duration-[var(--dur-fast)] ease-[var(--ease-out)] disabled:pointer-events-none disabled:opacity-45 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
-        destructive: "bg-destructive text-white shadow-xs hover:bg-destructive/90",
-        outline: "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+        default:
+          "bg-primary text-primary-foreground hover:bg-[color-mix(in_oklab,var(--primary)_88%,white)] active:bg-[color-mix(in_oklab,var(--primary)_85%,black)]",
+        outline:
+          "border border-input bg-transparent text-foreground hover:bg-secondary hover:border-[#384754] active:bg-raised",
+        secondary: "bg-secondary text-foreground hover:bg-[#223039] active:bg-raised",
+        ghost: "text-muted-foreground hover:bg-secondary hover:text-foreground active:bg-raised",
+        destructive:
+          "border border-[color-mix(in_oklab,var(--destructive)_45%,transparent)] text-destructive hover:bg-[color-mix(in_oklab,var(--destructive)_14%,transparent)]",
+        link: "text-info underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-9 px-4 py-2 has-[>svg]:px-3",
-        sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
-        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
-        icon: "size-9",
+        default: "h-8 px-3 text-[13px]",
+        sm: "h-7 px-2.5 text-xs",
+        lg: "h-9 px-4 text-sm",
+        icon: "size-8",
+        "icon-sm": "size-7 [&_svg:not([class*='size-'])]:size-3.5",
       },
     },
     defaultVariants: { variant: "default", size: "default" },

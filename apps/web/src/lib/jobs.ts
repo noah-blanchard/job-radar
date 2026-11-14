@@ -20,6 +20,8 @@ export interface InboxRow extends Record<string, unknown> {
   domains: string[];
   closed_at: string | null;
   status: JobStatus;
+  /** Score parts as [key, points], in breakdown order (the row's score ledger). */
+  ledger: [string, number][];
 }
 
 /** WHERE clause of the Inbox, built only from bound parameters. */
@@ -64,7 +66,9 @@ export async function loadInbox(f: InboxFilters): Promise<{ rows: InboxRow[]; to
       sql`
       select j.id, j.title, j.company_name, j.city, j.region, j.country, j.remote, j.score,
         j.is_new_grad, j.first_seen_at, j.url, j.apply_url, j.source, j.domains, j.closed_at,
-        coalesce(s.status, 'new') as status
+        coalesce(s.status, 'new') as status,
+        coalesce((select jsonb_agg(jsonb_build_array(p->>'key', (p->>'points')::int))
+          from jsonb_array_elements(j.score_breakdown->'parts') p), '[]'::jsonb) as ledger
       from jobs j left join job_status s on s.job_id = j.id
       where ${w}
       order by ${orderBy(f)}

@@ -1,6 +1,5 @@
 import { queryRows, sql } from "@jobradar/db";
 import type { Metadata } from "next";
-import { PageHeader } from "@/components/placeholder";
 import { getDb } from "@/lib/db";
 import { PIPELINE_STATUSES } from "@/lib/filters";
 import { Kanban, type PipelineCard } from "./kanban";
@@ -8,31 +7,46 @@ import { Kanban, type PipelineCard } from "./kanban";
 export const metadata: Metadata = { title: "Pipeline" };
 export const dynamic = "force-dynamic";
 
+type Row = Omit<PipelineCard, "updated_at" | "next_action_at" | "ledger"> & {
+  updated_at: Date | string;
+  next_action_at: Date | string | null;
+  ledger: [string, number][] | null;
+};
+
 export default async function PipelinePage() {
-  const rows = await queryRows<Omit<PipelineCard, "updated_at"> & { updated_at: Date }>(
+  const rows = await queryRows<Row>(
     getDb(),
     sql`
     select j.id, j.title, j.company_name, j.city, j.country, j.remote, j.score, j.url,
-      j.apply_url, j.closed_at is not null as closed, s.status, s.notes, s.updated_at
+      j.apply_url, j.closed_at is not null as closed, s.status, s.notes, s.updated_at,
+      s.next_action_at,
+      (select jsonb_agg(jsonb_build_array(p->>'key', (p->>'points')::int))
+        from jsonb_array_elements(j.score_breakdown->'parts') p) as ledger
     from job_status s join jobs j on j.id = s.job_id
     where s.status in (${sql.join(
       PIPELINE_STATUSES.map((s) => sql`${s}::job_status_kind`),
       sql`, `,
     )})
-    order by s.updated_at desc`,
+    order by s.next_action_at asc nulls last, s.updated_at desc`,
   );
   const cards = rows.map((r) => ({
     ...r,
     id: Number(r.id),
+    ledger: r.ledger ?? [],
     updated_at: new Date(r.updated_at).toISOString(),
+    next_action_at: r.next_action_at ? new Date(r.next_action_at).toISOString() : null,
   }));
   return (
-    <>
-      <PageHeader
-        title="Pipeline"
-        description="Candidatures par statut. Glisse une carte vers une autre colonne (ou utilise son menu) pour changer son statut."
-      />
+    <div className="flex min-h-0 flex-1 flex-col">
+      <header className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b px-4 pt-4 pb-3 md:px-6">
+        <h1 className="text-[15px] font-semibold">Pipeline</h1>
+        <p className="text-muted-foreground text-[13px]">
+          Glisse une carte vers une colonne, ou <kbd className="text-foreground">1</kbd>–
+          <kbd className="text-foreground">4</kbd> sur la carte sélectionnée. Les relances dues
+          passent en tête.
+        </p>
+      </header>
       <Kanban cards={cards} />
-    </>
+    </div>
   );
 }

@@ -46,7 +46,7 @@ describe("Inbox filters in the URL", () => {
       minScore: 100,
       page: 1,
       since: "all",
-      status: "active",
+      status: "todo",
       newGrad: "",
       country: "CA",
     });

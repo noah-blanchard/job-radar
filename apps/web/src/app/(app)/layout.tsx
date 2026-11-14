@@ -1,32 +1,38 @@
-import { LogOut } from "lucide-react";
-import Link from "next/link";
-import { Nav } from "@/components/nav";
-import { Button } from "@/components/ui/button";
+import { Suspense } from "react";
+import { Rail, TopBar, type NavCounts } from "@/components/nav";
+import { ShellKeys } from "@/components/shell-keys";
+import { loadToday } from "@/lib/today";
 import { logout } from "../login/actions";
+
+async function counts(): Promise<NavCounts | null> {
+  try {
+    const t = await loadToday();
+    return { triage: t.triage, due: t.dueCount, problems: t.problems.length };
+  } catch {
+    return null; // the shell never fails a page because a count query did
+  }
+}
+
+async function RailWithCounts() {
+  return <Rail counts={await counts()} logout={logout} />;
+}
+async function TopBarWithCounts() {
+  return <TopBar counts={await counts()} logout={logout} />;
+}
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-dvh flex-col">
-      <header className="bg-background/95 sticky top-0 z-10 border-b backdrop-blur">
-        <div className="mx-auto flex h-12 max-w-7xl items-center gap-3 px-4">
-          <Link href="/" className="text-sm font-semibold tracking-tight whitespace-nowrap">
-            JobRadar
-          </Link>
-          <Nav />
-          <form action={logout} className="ml-auto">
-            <Button
-              variant="ghost"
-              size="icon"
-              type="submit"
-              aria-label="Se déconnecter"
-              title="Se déconnecter"
-            >
-              <LogOut />
-            </Button>
-          </form>
-        </div>
-      </header>
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-4">{children}</main>
+    <div className="flex min-h-dvh">
+      <Suspense fallback={<Rail counts={null} logout={logout} />}>
+        <RailWithCounts />
+      </Suspense>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Suspense fallback={<TopBar counts={null} logout={logout} />}>
+          <TopBarWithCounts />
+        </Suspense>
+        <main className="flex min-w-0 flex-1 flex-col">{children}</main>
+      </div>
+      <ShellKeys />
     </div>
   );
 }

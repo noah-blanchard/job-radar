@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { FilterBar } from "@/components/inbox/filter-bar";
-import { InboxTable } from "@/components/inbox/inbox-table";
-import { parseFilters } from "@/lib/filters";
+import { Inbox } from "@/components/inbox/inbox";
+import { TodayStrip } from "@/components/inbox/today-strip";
+import { DEFAULT_FILTERS, inboxHref, parseFilters } from "@/lib/filters";
 import { loadFilterOptions, loadInbox } from "@/lib/jobs";
 import { profileDomains } from "@/lib/profile";
+import { loadToday } from "@/lib/today";
 
-export const metadata: Metadata = { title: "Inbox" };
+export const metadata: Metadata = { title: "Trier" };
 export const dynamic = "force-dynamic";
 
 export default async function InboxPage({
@@ -13,18 +14,29 @@ export default async function InboxPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const filters = parseFilters(await searchParams);
-  const [{ rows, total }, options] = await Promise.all([loadInbox(filters), loadFilterOptions()]);
+  const sp = await searchParams;
+  const filters = parseFilters(sp);
+  const job = Number(Array.isArray(sp.job) ? sp.job[0] : sp.job);
+  const [{ rows, total }, options, today] = await Promise.all([
+    loadInbox(filters),
+    loadFilterOptions(),
+    loadToday(),
+  ]);
   return (
-    <>
-      <h1 className="sr-only">Inbox</h1>
-      <FilterBar
-        filters={filters}
-        countries={options.countries}
-        sources={options.sources}
-        domains={profileDomains()}
+    <div className="flex min-h-0 flex-1 flex-col lg:h-dvh">
+      <TodayStrip
+        today={today}
+        triageHref={inboxHref({ ...DEFAULT_FILTERS, minScore: today.minScore })}
       />
-      <InboxTable rows={rows} total={total} filters={filters} />
-    </>
+      <Inbox
+        rows={rows}
+        total={total}
+        filters={filters}
+        options={{ ...options, domains: profileDomains() }}
+        counts={{}}
+        minScore={today.minScore}
+        initialJob={Number.isSafeInteger(job) && job > 0 ? job : null}
+      />
+    </div>
   );
 }

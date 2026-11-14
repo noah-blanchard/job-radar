@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { RadarMark } from "@/components/nav";
 import { safeNextPath } from "@/lib/session";
 import { LoginForm } from "./login-form";
 
@@ -13,16 +13,19 @@ export default async function LoginPage({
   const { next } = await searchParams;
   const nextPath = safeNextPath(Array.isArray(next) ? next[0] : next);
   return (
-    <main className="flex min-h-dvh items-center justify-center px-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle className="text-lg">JobRadar</CardTitle>
-          <CardDescription>Accès réservé.</CardDescription>
-        </CardHeader>
-        <CardContent>
+    <main className="flex min-h-dvh">
+      <div
+        className="bg-rail hidden w-[208px] shrink-0 border-r border-[#1e3029] md:block"
+        aria-hidden
+      />
+      <div className="flex flex-1 items-center justify-center px-4">
+        <div className="w-full max-w-[300px]">
+          <p className="mb-6 flex items-center gap-2 text-sm font-semibold">
+            <RadarMark /> JobRadar
+          </p>
           <LoginForm next={nextPath} />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </main>
   );
 }

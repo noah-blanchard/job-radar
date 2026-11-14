@@ -30,7 +30,7 @@ export function TestChannelsButton({
       variant="secondary"
       size="sm"
       disabled={disabled || pending || queued}
-      className="mt-3 w-full"
+      className="mt-3"
       title={
         disabled
           ? "Aucun canal configuré (variables NTFY_*, SMTP_*, DISCORD_*, TELEGRAM_* du .env)"
