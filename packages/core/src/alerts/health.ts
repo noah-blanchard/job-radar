@@ -1,10 +1,22 @@
-import { queryRows, sql, type AnyDb } from "@jobradar/db";
+import { kvGet, queryRows, sql, type AnyDb } from "@jobradar/db";
 import { BROKEN_AFTER_FAILURES } from "../pipeline/run";
 import type { AlertMessage } from "./channels";
 import { sendOnce, type AlertDeps, type ChannelResult } from "./dispatch";
 import { baseUrl, formatDateTime } from "./format";
 
 export const NO_NEW_JOBS_HOURS = 48;
+/** Daily backups: older than this = the backup service stopped. */
+export const BACKUP_STALE_HOURS = 30;
+/** Written by the backup service (scripts/backup/backup.sh). */
+export const BACKUP_STATUS_KEY = "backup_status";
+
+export interface BackupStatus {
+  ok: boolean;
+  at: string;
+  file?: string;
+  bytes?: number;
+  error?: string | null;
+}
 /** A broken company / failing source is only reported if it failed this recently. */
 const RECENT_FAILURE_HOURS = 48;
 const MAX_LISTED = 15;
@@ -33,7 +45,8 @@ const short = (s: string | null | undefined) =>
  *  - a company ATS `broken` (3 consecutive failures), or a non-ATS source failing 3 runs in a row;
  *  - the worker silent for more than HEALTH_SILENCE_HOURS (previous process heartbeat at startup,
  *    or no run finished for that long while it ticks);
- *  - zero new jobs across all sources for 48 h.
+ *  - zero new jobs across all sources for 48 h;
+ *  - the last backup failed, or is older than 30 h (only once a backup ran: none locally).
  * Exhausted quotas are not instant alerts: capped sources (Adzuna, JSearch) use their whole
  * quota every day by design, so they are reported once a day in the digest.
  */
@@ -123,6 +136,21 @@ export async function findHealthIssues(
       key: `no-new:${lastNew.toISOString()}`,
       text: `Aucune nouvelle offre depuis ${hours(now.getTime() - lastNew.getTime())} h, toutes sources confondues (dernière : ${formatDateTime(lastNew)})`,
     });
+  }
+
+  const backup = await kvGet<BackupStatus>(db, BACKUP_STATUS_KEY);
+  if (backup?.at) {
+    const at = new Date(backup.at);
+    if (!backup.ok)
+      issues.push({
+        key: `backup:failed:${at.toISOString()}`,
+        text: `Backup en échec (${formatDateTime(at)})${short(backup.error)}`,
+      });
+    else if (now.getTime() - at.getTime() > BACKUP_STALE_HOURS * 3_600_000)
+      issues.push({
+        key: `backup:stale:${at.toISOString()}`,
+        text: `Aucun backup depuis ${hours(now.getTime() - at.getTime())} h (dernier : ${formatDateTime(at)})`,
+      });
   }
   return issues;
 }

@@ -4,11 +4,13 @@ import {
   companies,
   jobs,
   jobStatus,
+  kvSet,
   sourceRuns,
   type AnyDb,
 } from "@jobradar/db";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
+  BACKUP_STATUS_KEY,
   buildDigestMessage,
   createChannels,
   emailChannel,
@@ -310,6 +312,30 @@ describe("health", () => {
     for (const h of [5, 4, 3]) await run("jooble", "error", h);
     await runHealthChecks(d, opts);
     expect(ch.sent).toHaveLength(2);
+  });
+
+  it("reports a failed or stale backup, never a missing one", async () => {
+    await run("remotive", "ok", 1);
+    await addJob();
+    expect(await findHealthIssues(db, opts, NOW)).toEqual([]);
+
+    await kvSet(db, BACKUP_STATUS_KEY, {
+      ok: true,
+      at: new Date(NOW.getTime() - 31 * H).toISOString(),
+    });
+    expect((await findHealthIssues(db, opts, NOW)).map((i) => i.text)).toEqual([
+      expect.stringMatching(/^Aucun backup depuis 31 h/),
+    ]);
+    await kvSet(db, BACKUP_STATUS_KEY, { ok: true, at: new Date(NOW.getTime() - H).toISOString() });
+    expect(await findHealthIssues(db, opts, NOW)).toEqual([]);
+    await kvSet(db, BACKUP_STATUS_KEY, {
+      ok: false,
+      at: new Date(NOW.getTime() - H).toISOString(),
+      error: "pg_dump: connection refused",
+    });
+    expect((await findHealthIssues(db, opts, NOW)).map((i) => i.text)).toEqual([
+      expect.stringMatching(/^Backup en échec .* : pg_dump: connection refused$/),
+    ]);
   });
 
   it("is quiet when everything is fine", async () => {
