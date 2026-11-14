@@ -6,7 +6,16 @@ import { Input } from "@/components/ui/input";
 import { useT } from "@/i18n/client";
 import { acceptInviteAction, type InviteState } from "../../login/actions";
 
-export function InviteForm({ token, reset }: { token: string; reset: boolean }) {
+export function InviteForm({
+  token,
+  reset,
+  minLength,
+}: {
+  token: string;
+  reset: boolean;
+  /** The server's minimum password length. */
+  minLength: number;
+}) {
   const [state, action, pending] = useActionState<InviteState, FormData>(acceptInviteAction, {});
   const t = useT();
   return (
@@ -21,14 +30,14 @@ export function InviteForm({ token, reset }: { token: string; reset: boolean }) 
         </>
       )}
       <label htmlFor="password" className="text-muted-foreground text-xs">
-        {t("invite.password", { min: 8 })}
+        {t("invite.password", { min: minLength })}
       </label>
       <Input
         id="password"
         name="password"
         type="password"
         autoComplete="new-password"
-        minLength={8}
+        minLength={minLength}
         required
         autoFocus={reset}
         className="h-9"
@@ -41,7 +50,7 @@ export function InviteForm({ token, reset }: { token: string; reset: boolean }) 
         name="confirm"
         type="password"
         autoComplete="new-password"
-        minLength={8}
+        minLength={minLength}
         required
         className="h-9"
         aria-invalid={state.error ? true : undefined}

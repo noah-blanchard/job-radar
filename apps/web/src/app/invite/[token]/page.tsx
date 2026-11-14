@@ -1,4 +1,4 @@
-import { findInvite } from "@jobradar/core/users";
+import { findInvite, MIN_PASSWORD_LENGTH } from "@jobradar/core/users";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GuestLanguage } from "@/components/language-select";
@@ -34,7 +34,11 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
                 {invite.userId ? t("invite.newPassword") : t("invite.createAccount")}
               </h1>
               <p className="text-muted-foreground mb-5 text-[13px]">{invite.email}</p>
-              <InviteForm token={token} reset={invite.userId !== null} />
+              <InviteForm
+                token={token}
+                reset={invite.userId !== null}
+                minLength={MIN_PASSWORD_LENGTH}
+              />
             </>
           ) : (
             <>

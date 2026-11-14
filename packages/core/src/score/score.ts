@@ -164,30 +164,42 @@ export function compileProfile(profile: Profile): CompiledProfile {
   };
 }
 
+/** A pattern of a profile that is not a valid regular expression; the interface words it. */
+export interface ProfileProblem {
+  /** Where the pattern sits: the n-th location (from 1), a named domain, or `exclude_title`. */
+  where:
+    | { field: "locations"; position: number }
+    | { field: "domains"; name: string }
+    | { field: "exclude_title" };
+  pattern: string;
+  /** The regex engine's own explanation (English). */
+  reason: string;
+}
+
 /**
  * Patterns of a profile that are not valid regular expressions. compileProfile skips them
  * silently (a bad keyword must never stop the scoring of everyone); the profile editor refuses
  * them with this list.
  */
-export function profileProblems(profile: Profile): string[] {
-  const out: string[] = [];
-  const check = (where: string, pattern: string, wrap: (p: string) => string) => {
+export function profileProblems(profile: Profile): ProfileProblem[] {
+  const out: ProfileProblem[] = [];
+  const check = (where: ProfileProblem["where"], pattern: string, wrap: (p: string) => string) => {
     try {
       // Alone first: an unclosed "[" would swallow the wrapper and look valid.
       new RegExp(pattern, "iu");
       new RegExp(wrap(pattern), "iu");
     } catch (err) {
-      const why =
+      const reason =
         err instanceof Error ? err.message.replace(/^Invalid regular expression: /, "") : "";
-      out.push(`${where} : « ${pattern} » n'est pas valide (${why})`);
+      out.push({ where, pattern, reason });
     }
   };
   profile.locations.forEach((l, i) => {
-    if (l.match) check(`lieu ${i + 1}`, l.match, stripAccents);
+    if (l.match) check({ field: "locations", position: i + 1 }, l.match, stripAccents);
   });
   for (const [name, kws] of Object.entries(profile.domains))
-    for (const k of kws) check(`domaine ${name}`, k, bounded);
-  for (const k of profile.exclude_title) check("exclude_title", k, bounded);
+    for (const k of kws) check({ field: "domains", name }, k, bounded);
+  for (const k of profile.exclude_title) check({ field: "exclude_title" }, k, bounded);
   return out;
 }
 

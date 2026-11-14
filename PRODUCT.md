@@ -34,7 +34,7 @@ Ce n'est pas un job board : c'est un radar personnel. Il interroge directement l
 ## Capabilities and Constraints
 
 - Monorepo TypeScript : `apps/web` (Next.js App Router, Tailwind, shadcn/ui, TanStack Table, server actions), `apps/worker`, `packages/core`, `packages/db` (Drizzle, Postgres 16). Auto-hébergé sur Dokploy (`jobs.sonomusa.tech`), ressources modestes (web limité à 512 Mo).
-- Auth mono-utilisateur par mot de passe (`DASHBOARD_PASSWORD`), cookie signé ; site non indexé.
+- Comptes par e-mail et mot de passe, créés sur invitation de l'administrateur ; le propriétaire est créé au premier démarrage (`ADMIN_EMAIL`, `DASHBOARD_PASSWORD`). Cookie signé ; site non indexé.
 - Sources : uniquement publiques et autorisées. Jamais de scraping HTML, de navigateur headless, ni de LinkedIn/Indeed/Glassdoor/Wellfound.
 - Classification new grad par règles ; `is_new_grad = null` pour les cas ambigus, raison affichée. LLM optionnel et désactivé par défaut : tout doit fonctionner sans.
 - Volume réel : de l'ordre de 100 000 offres en base ; l'interface doit rester rapide sur ce volume.
