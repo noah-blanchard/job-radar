@@ -469,6 +469,11 @@ export const fr = {
       pendingHelp:
         "Le worker recalcule tes scores dans la minute (environ 1 min pour 100 000 offres).",
       emptyHelp: "Sans profil, aucune offre n'est scorée : pars d'un modèle ci-dessous.",
+      promptHelp:
+        "Le plus simple : colle ce prompt dans un assistant IA (Claude, ChatGPT…). Il te pose quelques questions sur ta recherche, puis écrit ton profil. Colle le résultat ci-dessous.",
+      copyPrompt: "Copier le prompt",
+      promptCopied: "Prompt copié : colle-le dans ton assistant IA",
+      promptCopyFailed: "Copie impossible depuis ce navigateur",
       fromTemplate: "Partir d'un modèle",
       replaceConfirm: "Remplacer le profil affiché par ce modèle ?",
       choose: "choisir…",

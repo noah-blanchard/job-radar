@@ -52,6 +52,15 @@ export async function loadUserProfiles(db: AnyDb): Promise<UserProfiles> {
   return out;
 }
 
+/**
+ * config/profile-prompt.md: the interview prompt a user pastes into an AI assistant to get their
+ * profile written for them. Null when the file is not shipped.
+ */
+export function loadProfilePrompt(dir = findConfigDir()): string | null {
+  const file = join(dir, "profile-prompt.md");
+  return existsSync(file) ? readFileSync(file, "utf8") : null;
+}
+
 /** A starter profile shipped in config/profile-templates/. */
 export interface ProfileTemplate {
   /** File name without extension. */

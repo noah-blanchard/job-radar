@@ -5,7 +5,12 @@ import {
   alertTestResultKey,
   type AlertTestResult,
 } from "@jobradar/core/alerts/keys";
-import { listProfileTemplates, profileHash, type ProfileTemplate } from "@jobradar/core/score";
+import {
+  listProfileTemplates,
+  loadProfilePrompt,
+  profileHash,
+  type ProfileTemplate,
+} from "@jobradar/core/score";
 import { getUser, listUsers, ownerUser } from "@jobradar/core/users";
 import { randomBytes } from "node:crypto";
 import { kvGet } from "@jobradar/db";
@@ -72,6 +77,15 @@ function templates(): ProfileTemplate[] {
     return listProfileTemplates();
   } catch {
     return [];
+  }
+}
+
+/** The interview prompt (config/profile-prompt.md); null when config/ is not readable. */
+function interviewPrompt(): string | null {
+  try {
+    return loadProfilePrompt();
+  } catch {
+    return null;
   }
 }
 
@@ -191,6 +205,7 @@ export default async function SettingsPage() {
               key={file.text}
               initial={file.text}
               templates={templates()}
+              prompt={interviewPrompt()}
               rescoring={file.state === "pending"}
             />
             <ProfileHelp t={t} />

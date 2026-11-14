@@ -464,6 +464,11 @@ export const en: Messages = {
       pendingHelp:
         "The worker recomputes your scores within a minute (about 1 min for 100,000 offers).",
       emptyHelp: "Without a profile no offer is scored: start from a template below.",
+      promptHelp:
+        "The easy way: paste this prompt into an AI assistant (Claude, ChatGPT…). It asks a few questions about your search, then writes your profile. Paste the result below.",
+      copyPrompt: "Copy the prompt",
+      promptCopied: "Prompt copied: paste it into your AI assistant",
+      promptCopyFailed: "This browser could not copy the prompt",
       fromTemplate: "Start from a template",
       replaceConfirm: "Replace the profile shown with this template?",
       choose: "choose…",
