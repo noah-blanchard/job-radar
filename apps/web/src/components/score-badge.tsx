@@ -15,7 +15,7 @@ const RAMP = ["var(--ledger-1)", "var(--ledger-2)", "var(--ledger-3)", "var(--le
 
 /**
  * The score ledger: one fixed scale (the full bar is 100 points) everywhere it appears. Positive
- * parts fill in breakdown order on the green ramp up to the score; points lost to penalties
+ * parts fill in breakdown order on the ink ramp up to the score; points lost to penalties
  * follow in red. The fill does the ranking, so the figure next to it stays one weight.
  */
 export function Ledger({

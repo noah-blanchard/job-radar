@@ -17,14 +17,28 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f7f8fa" },
-    { media: "(prefers-color-scheme: dark)", color: "#0f141b" },
-  ],
-  width: "device-width",
-  initialScale: 1,
-};
+const CHROME = {
+  bleu: { light: "#f7f8fa", dark: "#0f141b" },
+  violet: { light: "#f8f7fb", dark: "#121219" },
+} as const;
+
+/** Browser chrome follows the chosen ink and mode. */
+export async function generateViewport(): Promise<Viewport> {
+  const jar = await cookies();
+  const c = CHROME[parsePalette(jar.get(PALETTE_COOKIE)?.value)];
+  const mode = parseMode(jar.get(MODE_COOKIE)?.value);
+  return {
+    themeColor:
+      mode === "auto"
+        ? [
+            { media: "(prefers-color-scheme: light)", color: c.light },
+            { media: "(prefers-color-scheme: dark)", color: c.dark },
+          ]
+        : c[mode],
+    width: "device-width",
+    initialScale: 1,
+  };
+}
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const jar = await cookies();

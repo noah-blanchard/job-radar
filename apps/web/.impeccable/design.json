@@ -1,60 +1,1473 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-14T00:00:00Z",
+  "generatedAt": "2026-11-14T12:39:51.819Z",
   "title": "Design System: JobRadar",
   "extensions": {
     "colorMeta": {
-      "registrar-ink": { "role": "neutral", "displayName": "Registrar Ink", "canonical": "#10161d", "tonalRamp": ["#050709", "#080b0f", "#0b0f14", "#0e131a", "#2d3238", "#64686c", "#9fa2a5", "#dbdcdd"] },
-      "reading-surface": { "role": "neutral", "displayName": "Reading Surface", "canonical": "#141c24", "tonalRamp": ["#06080b", "#0a0e12", "#0e1419", "#121920", "#30373e", "#666b71", "#a1a4a7", "#dcddde"] },
-      "raised-ground": { "role": "neutral", "displayName": "Raised Ground", "canonical": "#182630", "tonalRamp": ["#070b0e", "#0c1318", "#111b22", "#15212a", "#344049", "#697278", "#a3a8ac", "#dcdee0"] },
-      "raised-hover": { "role": "neutral", "displayName": "Raised Hover", "canonical": "#131d26" },
-      "field-ground": { "role": "neutral", "displayName": "Field Ground", "canonical": "#121a22" },
-      "card-ground": { "role": "neutral", "displayName": "Card Ground", "canonical": "#131b23" },
-      "security-paper-rail": { "role": "neutral", "displayName": "Security-Paper Rail", "canonical": "#13201c", "tonalRamp": ["#060a08", "#0a100e", "#0d1614", "#111c19", "#2f3b37", "#666e6b", "#a1a6a4", "#dcdedd"] },
-      "rail-active": { "role": "neutral", "displayName": "Rail Active", "canonical": "#1c2f28" },
-      "rail-hover": { "role": "neutral", "displayName": "Rail Hover", "canonical": "#182a23" },
-      "rail-border": { "role": "neutral", "displayName": "Rail Border", "canonical": "#1e3029" },
-      "hairline": { "role": "neutral", "displayName": "Hairline", "canonical": "#24303a", "tonalRamp": ["#0b0e11", "#12181d", "#192229", "#202a33", "#3e4952", "#71787f", "#a7acb0", "#dee0e1"] },
-      "hairline-soft": { "role": "neutral", "displayName": "Hairline Soft", "canonical": "#1a242d" },
-      "control-stroke": { "role": "neutral", "displayName": "Control Stroke", "canonical": "#2a3742" },
-      "control-stroke-hover": { "role": "neutral", "displayName": "Control Stroke Hover", "canonical": "#384754" },
-      "control-ground": { "role": "neutral", "displayName": "Control Ground", "canonical": "#1b2730" },
-      "control-ground-hover": { "role": "neutral", "displayName": "Control Ground Hover", "canonical": "#223039" },
-      "paper-white": { "role": "neutral", "displayName": "Paper White", "canonical": "#e8e3d4", "tonalRamp": ["#464440", "#74726a", "#a29f94", "#ccc8bb", "#ebe6d9", "#f0ede3", "#f6f4ee", "#fcfbf9"] },
-      "metadata-grey": { "role": "neutral", "displayName": "Metadata Grey", "canonical": "#a0aaa2", "tonalRamp": ["#303331", "#505551", "#707771", "#8d968f", "#abb4ad", "#c1c8c3", "#d9ddda", "#f1f2f1"] },
-      "ledger-green": { "role": "primary", "displayName": "Ledger Green", "canonical": "#8fc7a0", "tonalRamp": ["#2b3c30", "#486450", "#648b70", "#7eaf8d", "#9cceab", "#b6dbc1", "#d2e9d9", "#eef7f1"] },
-      "ledger-green-ink": { "role": "primary", "displayName": "Ledger Green Ink", "canonical": "#0d1912" },
-      "ledger-green-2": { "role": "primary", "displayName": "Ledger Ramp 2", "canonical": "#6ead84" },
-      "ledger-green-3": { "role": "primary", "displayName": "Ledger Ramp 3", "canonical": "#4f8d66" },
-      "ledger-green-4": { "role": "primary", "displayName": "Ledger Ramp 4", "canonical": "#3b6e4f" },
-      "ledger-track": { "role": "neutral", "displayName": "Ledger Track", "canonical": "#1e2a33" },
-      "chart-green-hover": { "role": "primary", "displayName": "Chart Green Hover", "canonical": "#a9dbb7" },
-      "due-amber": { "role": "secondary", "displayName": "Due Amber", "canonical": "#e3b45c", "tonalRamp": ["#44361c", "#725a2e", "#9f7e40", "#c89e51", "#e6bd70", "#edce95", "#f4e1be", "#fbf4e7"] },
-      "penalty-red": { "role": "secondary", "displayName": "Penalty Red", "canonical": "#e8735f", "tonalRamp": ["#46231d", "#743a30", "#a25143", "#cc6554", "#eb8472", "#f0a497", "#f6c7bf", "#fceae7"] },
-      "saved-blue": { "role": "secondary", "displayName": "Saved Blue", "canonical": "#7aa5e0", "tonalRamp": ["#253243", "#3d5370", "#55739d", "#6b91c5", "#8ab0e4", "#a9c5eb", "#cadbf3", "#ebf2fa"] },
-      "ignored-grey": { "role": "secondary", "displayName": "Ignored Grey", "canonical": "#808b83", "tonalRamp": ["#262a27", "#404642", "#5a615c", "#717a73", "#8f9992", "#acb4ae", "#ccd1cd", "#eceeec"] }
+      "bleu-light-background": {
+        "role": "neutral",
+        "displayName": "Page Ground · Encre bleue clair",
+        "canonical": "#f7f8fa",
+        "cssVar": "--background",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242425",
+          "#3f4041",
+          "#5d5e5f",
+          "#7f8082",
+          "#a4a4a6",
+          "#cacacb",
+          "#eeeeef"
+        ]
+      },
+      "bleu-light-surface": {
+        "role": "neutral",
+        "displayName": "Reading Surface · Encre bleue clair",
+        "canonical": "#ffffff",
+        "cssVar": "--surface",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "bleu-light-raised": {
+        "role": "neutral",
+        "displayName": "Raised Ground · Encre bleue clair",
+        "canonical": "#e8eef9",
+        "cssVar": "--raised"
+      },
+      "bleu-light-raised-hover": {
+        "role": "neutral",
+        "displayName": "Raised Hover · Encre bleue clair",
+        "canonical": "#f0f3f8",
+        "cssVar": "--raised-hover"
+      },
+      "bleu-light-rail": {
+        "role": "neutral",
+        "displayName": "Rail · Encre bleue clair",
+        "canonical": "#eef1f6",
+        "cssVar": "--rail",
+        "tonalRamp": [
+          "#0b0b0c",
+          "#232426",
+          "#3e4043",
+          "#5b5e62",
+          "#7e8085",
+          "#a2a5a9",
+          "#c9cacd",
+          "#eeeeef"
+        ]
+      },
+      "bleu-light-rail-active": {
+        "role": "neutral",
+        "displayName": "Rail Active · Encre bleue clair",
+        "canonical": "#dfe6f2",
+        "cssVar": "--rail-active"
+      },
+      "bleu-light-rail-hover": {
+        "role": "neutral",
+        "displayName": "Rail Hover · Encre bleue clair",
+        "canonical": "#e6ebf3",
+        "cssVar": "--rail-hover"
+      },
+      "bleu-light-rail-border": {
+        "role": "neutral",
+        "displayName": "Rail Border · Encre bleue clair",
+        "canonical": "#dfe4ec",
+        "cssVar": "--rail-border"
+      },
+      "bleu-light-border": {
+        "role": "neutral",
+        "displayName": "Hairline · Encre bleue clair",
+        "canonical": "#dde2ea",
+        "cssVar": "--border"
+      },
+      "bleu-light-border-soft": {
+        "role": "neutral",
+        "displayName": "Hairline Soft · Encre bleue clair",
+        "canonical": "#e9ecf1",
+        "cssVar": "--border-soft"
+      },
+      "bleu-light-foreground": {
+        "role": "neutral",
+        "displayName": "Record Text · Encre bleue clair",
+        "canonical": "#161b23",
+        "cssVar": "--foreground",
+        "tonalRamp": [
+          "#0a0b0c",
+          "#222428",
+          "#3b4048",
+          "#585e68",
+          "#7a818b",
+          "#9fa5ae",
+          "#c7cbd0",
+          "#edeef0"
+        ]
+      },
+      "bleu-light-muted-foreground": {
+        "role": "neutral",
+        "displayName": "Metadata Text · Encre bleue clair",
+        "canonical": "#5b6574",
+        "cssVar": "--muted-foreground",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#20242b",
+          "#38404c",
+          "#545e6d",
+          "#778191",
+          "#9ca5b4",
+          "#c5cbd3",
+          "#edeef1"
+        ]
+      },
+      "bleu-light-primary": {
+        "role": "primary",
+        "displayName": "Ink Accent · Encre bleue clair",
+        "canonical": "#2f5fd0",
+        "cssVar": "--primary",
+        "tonalRamp": [
+          "#060b17",
+          "#0c204f",
+          "#12368f",
+          "#2453c3",
+          "#4578ec",
+          "#76a2fe",
+          "#b0cbff",
+          "#e7effd"
+        ]
+      },
+      "bleu-light-primary-foreground": {
+        "role": "primary",
+        "displayName": "Text on Accent · Encre bleue clair",
+        "canonical": "#ffffff",
+        "cssVar": "--primary-foreground"
+      },
+      "bleu-light-secondary": {
+        "role": "neutral",
+        "displayName": "Control Ground · Encre bleue clair",
+        "canonical": "#eef1f5",
+        "cssVar": "--secondary"
+      },
+      "bleu-light-secondary-hover": {
+        "role": "neutral",
+        "displayName": "Control Ground Hover · Encre bleue clair",
+        "canonical": "#e4e8ee",
+        "cssVar": "--secondary-hover"
+      },
+      "bleu-light-input": {
+        "role": "neutral",
+        "displayName": "Control Stroke · Encre bleue clair",
+        "canonical": "#cfd6e0",
+        "cssVar": "--input"
+      },
+      "bleu-light-input-hover": {
+        "role": "neutral",
+        "displayName": "Control Stroke Hover · Encre bleue clair",
+        "canonical": "#b9c2cf",
+        "cssVar": "--input-hover"
+      },
+      "bleu-light-field": {
+        "role": "neutral",
+        "displayName": "Field Ground · Encre bleue clair",
+        "canonical": "#ffffff",
+        "cssVar": "--field"
+      },
+      "bleu-light-card-ground": {
+        "role": "neutral",
+        "displayName": "Card Ground · Encre bleue clair",
+        "canonical": "#ffffff",
+        "cssVar": "--card-ground"
+      },
+      "bleu-light-drop": {
+        "role": "neutral",
+        "displayName": "Drop Target · Encre bleue clair",
+        "canonical": "#e9eff9",
+        "cssVar": "--drop"
+      },
+      "bleu-light-overlay": {
+        "role": "neutral",
+        "displayName": "Scrim · Encre bleue clair",
+        "canonical": "rgb(15 20 30 / 0.35)",
+        "cssVar": "--overlay"
+      },
+      "bleu-light-code": {
+        "role": "neutral",
+        "displayName": "Code Ground · Encre bleue clair",
+        "canonical": "#f1f3f6",
+        "cssVar": "--code"
+      },
+      "bleu-light-mark": {
+        "role": "neutral",
+        "displayName": "Radar Rings · Encre bleue clair",
+        "canonical": "#8c98aa",
+        "cssVar": "--mark"
+      },
+      "bleu-light-scrollbar": {
+        "role": "neutral",
+        "displayName": "Scrollbar Thumb · Encre bleue clair",
+        "canonical": "#c9d0da",
+        "cssVar": "--scrollbar"
+      },
+      "bleu-light-st-saved": {
+        "role": "secondary",
+        "displayName": "Saved · Encre bleue clair",
+        "canonical": "#6d4fd6",
+        "cssVar": "--st-saved",
+        "tonalRamp": [
+          "#0b0917",
+          "#241750",
+          "#412390",
+          "#5e3dc3",
+          "#7f64ec",
+          "#a193fd",
+          "#c7c3fe",
+          "#edecfd"
+        ]
+      },
+      "bleu-light-st-applied": {
+        "role": "secondary",
+        "displayName": "Applied Green · Encre bleue clair",
+        "canonical": "#1d8a5c",
+        "cssVar": "--st-applied",
+        "tonalRamp": [
+          "#050e08",
+          "#002c1a",
+          "#014d30",
+          "#086f48",
+          "#2d9567",
+          "#66b98e",
+          "#aad7bd",
+          "#e5f3ea"
+        ]
+      },
+      "bleu-light-st-interview": {
+        "role": "secondary",
+        "displayName": "Due Amber · Encre bleue clair",
+        "canonical": "#a8670f",
+        "cssVar": "--st-interview",
+        "tonalRamp": [
+          "#110904",
+          "#361d01",
+          "#5d3500",
+          "#854f00",
+          "#b16f1d",
+          "#d29758",
+          "#e7c3a1",
+          "#f8ece1"
+        ]
+      },
+      "bleu-light-st-rejected": {
+        "role": "secondary",
+        "displayName": "Penalty Red · Encre bleue clair",
+        "canonical": "#c23b2a",
+        "cssVar": "--st-rejected",
+        "tonalRamp": [
+          "#150705",
+          "#450d06",
+          "#7b0800",
+          "#aa2112",
+          "#d44c3a",
+          "#f57c69",
+          "#feb6a9",
+          "#fee9e5"
+        ]
+      },
+      "bleu-light-st-ignored": {
+        "role": "secondary",
+        "displayName": "Ignored Grey · Encre bleue clair",
+        "canonical": "#6b7380",
+        "cssVar": "--st-ignored",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#21242a",
+          "#3a404a",
+          "#565e6b",
+          "#79818e",
+          "#9ea5b1",
+          "#c6cbd2",
+          "#edeef1"
+        ]
+      },
+      "bleu-light-ledger-1": {
+        "role": "primary",
+        "displayName": "Ledger 1 (accent) · Encre bleue clair",
+        "canonical": "#2f5fd0",
+        "cssVar": "--ledger-1"
+      },
+      "bleu-light-ledger-2": {
+        "role": "primary",
+        "displayName": "Ledger 2 · Encre bleue clair",
+        "canonical": "#4f7be0",
+        "cssVar": "--ledger-2"
+      },
+      "bleu-light-ledger-3": {
+        "role": "primary",
+        "displayName": "Ledger 3 (identity) · Encre bleue clair",
+        "canonical": "#7598ea",
+        "cssVar": "--ledger-3"
+      },
+      "bleu-light-ledger-4": {
+        "role": "primary",
+        "displayName": "Ledger 4 · Encre bleue clair",
+        "canonical": "#9fb7f1",
+        "cssVar": "--ledger-4"
+      },
+      "bleu-light-ledger-track": {
+        "role": "neutral",
+        "displayName": "Ledger Track · Encre bleue clair",
+        "canonical": "#e2e7ef",
+        "cssVar": "--ledger-track"
+      },
+      "bleu-light-chart-1-hover": {
+        "role": "primary",
+        "displayName": "Chart Hover · Encre bleue clair",
+        "canonical": "#2f5fd0",
+        "cssVar": "--chart-1-hover"
+      },
+      "bleu-dark-background": {
+        "role": "neutral",
+        "displayName": "Page Ground · Encre bleue sombre",
+        "canonical": "#0f141b",
+        "cssVar": "--background",
+        "tonalRamp": [
+          "#0a0b0c",
+          "#222428",
+          "#3b4047",
+          "#585e67",
+          "#7a818a",
+          "#9fa5ae",
+          "#c7cbd0",
+          "#edeef0"
+        ]
+      },
+      "bleu-dark-surface": {
+        "role": "neutral",
+        "displayName": "Reading Surface · Encre bleue sombre",
+        "canonical": "#131a23",
+        "cssVar": "--surface",
+        "tonalRamp": [
+          "#0a0b0c",
+          "#212429",
+          "#3a4049",
+          "#565e69",
+          "#78818d",
+          "#9da5b0",
+          "#c6cbd1",
+          "#edeef1"
+        ]
+      },
+      "bleu-dark-raised": {
+        "role": "neutral",
+        "displayName": "Raised Ground · Encre bleue sombre",
+        "canonical": "#18222e",
+        "cssVar": "--raised"
+      },
+      "bleu-dark-raised-hover": {
+        "role": "neutral",
+        "displayName": "Raised Hover · Encre bleue sombre",
+        "canonical": "#141b25",
+        "cssVar": "--raised-hover"
+      },
+      "bleu-dark-rail": {
+        "role": "neutral",
+        "displayName": "Rail · Encre bleue sombre",
+        "canonical": "#121a24",
+        "cssVar": "--rail",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#20242a",
+          "#39404a",
+          "#555f6b",
+          "#77818e",
+          "#9ca6b1",
+          "#c6cbd2",
+          "#edeff1"
+        ]
+      },
+      "bleu-dark-rail-active": {
+        "role": "neutral",
+        "displayName": "Rail Active · Encre bleue sombre",
+        "canonical": "#1a2636",
+        "cssVar": "--rail-active"
+      },
+      "bleu-dark-rail-hover": {
+        "role": "neutral",
+        "displayName": "Rail Hover · Encre bleue sombre",
+        "canonical": "#16202c",
+        "cssVar": "--rail-hover"
+      },
+      "bleu-dark-rail-border": {
+        "role": "neutral",
+        "displayName": "Rail Border · Encre bleue sombre",
+        "canonical": "#1c2633",
+        "cssVar": "--rail-border"
+      },
+      "bleu-dark-border": {
+        "role": "neutral",
+        "displayName": "Hairline · Encre bleue sombre",
+        "canonical": "#232d3a",
+        "cssVar": "--border"
+      },
+      "bleu-dark-border-soft": {
+        "role": "neutral",
+        "displayName": "Hairline Soft · Encre bleue sombre",
+        "canonical": "#19222d",
+        "cssVar": "--border-soft"
+      },
+      "bleu-dark-foreground": {
+        "role": "neutral",
+        "displayName": "Record Text · Encre bleue sombre",
+        "canonical": "#e6e9ee",
+        "cssVar": "--foreground",
+        "tonalRamp": [
+          "#0b0b0c",
+          "#232426",
+          "#3e4043",
+          "#5b5e62",
+          "#7e8085",
+          "#a2a5a9",
+          "#c9cacd",
+          "#eeeeef"
+        ]
+      },
+      "bleu-dark-muted-foreground": {
+        "role": "neutral",
+        "displayName": "Metadata Text · Encre bleue sombre",
+        "canonical": "#9aa4b2",
+        "cssVar": "--muted-foreground",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#20242a",
+          "#39404a",
+          "#555e6b",
+          "#77818e",
+          "#9da5b2",
+          "#c6cbd2",
+          "#edeef1"
+        ]
+      },
+      "bleu-dark-primary": {
+        "role": "primary",
+        "displayName": "Ink Accent · Encre bleue sombre",
+        "canonical": "#7ea6ff",
+        "cssVar": "--primary",
+        "tonalRamp": [
+          "#070b14",
+          "#132245",
+          "#213b7c",
+          "#3658aa",
+          "#577cd2",
+          "#80a3f0",
+          "#b5cbf8",
+          "#e7effd"
+        ]
+      },
+      "bleu-dark-primary-foreground": {
+        "role": "primary",
+        "displayName": "Text on Accent · Encre bleue sombre",
+        "canonical": "#0b1220",
+        "cssVar": "--primary-foreground"
+      },
+      "bleu-dark-secondary": {
+        "role": "neutral",
+        "displayName": "Control Ground · Encre bleue sombre",
+        "canonical": "#1a2330",
+        "cssVar": "--secondary"
+      },
+      "bleu-dark-secondary-hover": {
+        "role": "neutral",
+        "displayName": "Control Ground Hover · Encre bleue sombre",
+        "canonical": "#212c3a",
+        "cssVar": "--secondary-hover"
+      },
+      "bleu-dark-input": {
+        "role": "neutral",
+        "displayName": "Control Stroke · Encre bleue sombre",
+        "canonical": "#2b3645",
+        "cssVar": "--input"
+      },
+      "bleu-dark-input-hover": {
+        "role": "neutral",
+        "displayName": "Control Stroke Hover · Encre bleue sombre",
+        "canonical": "#3a4657",
+        "cssVar": "--input-hover"
+      },
+      "bleu-dark-field": {
+        "role": "neutral",
+        "displayName": "Field Ground · Encre bleue sombre",
+        "canonical": "#121922",
+        "cssVar": "--field"
+      },
+      "bleu-dark-card-ground": {
+        "role": "neutral",
+        "displayName": "Card Ground · Encre bleue sombre",
+        "canonical": "#131a24",
+        "cssVar": "--card-ground"
+      },
+      "bleu-dark-drop": {
+        "role": "neutral",
+        "displayName": "Drop Target · Encre bleue sombre",
+        "canonical": "#152030",
+        "cssVar": "--drop"
+      },
+      "bleu-dark-overlay": {
+        "role": "neutral",
+        "displayName": "Scrim · Encre bleue sombre",
+        "canonical": "rgb(4 7 12 / 0.6)",
+        "cssVar": "--overlay"
+      },
+      "bleu-dark-code": {
+        "role": "neutral",
+        "displayName": "Code Ground · Encre bleue sombre",
+        "canonical": "#0b1016",
+        "cssVar": "--code"
+      },
+      "bleu-dark-mark": {
+        "role": "neutral",
+        "displayName": "Radar Rings · Encre bleue sombre",
+        "canonical": "#6d7f99",
+        "cssVar": "--mark"
+      },
+      "bleu-dark-scrollbar": {
+        "role": "neutral",
+        "displayName": "Scrollbar Thumb · Encre bleue sombre",
+        "canonical": "#2b3645",
+        "cssVar": "--scrollbar"
+      },
+      "bleu-dark-st-saved": {
+        "role": "secondary",
+        "displayName": "Saved · Encre bleue sombre",
+        "canonical": "#b29cff",
+        "cssVar": "--st-saved",
+        "tonalRamp": [
+          "#0b0914",
+          "#261c42",
+          "#442f77",
+          "#624aa4",
+          "#846dcc",
+          "#a895ea",
+          "#ccc3f5",
+          "#efecfc"
+        ]
+      },
+      "bleu-dark-st-applied": {
+        "role": "secondary",
+        "displayName": "Applied Green · Encre bleue sombre",
+        "canonical": "#5fc59a",
+        "cssVar": "--st-applied",
+        "tonalRamp": [
+          "#050e09",
+          "#022c1d",
+          "#054c34",
+          "#0b6f4e",
+          "#28956d",
+          "#63b993",
+          "#a9d7c0",
+          "#e4f3eb"
+        ]
+      },
+      "bleu-dark-st-interview": {
+        "role": "secondary",
+        "displayName": "Due Amber · Encre bleue sombre",
+        "canonical": "#e6b45a",
+        "cssVar": "--st-interview",
+        "tonalRamp": [
+          "#0f0a03",
+          "#312101",
+          "#543b03",
+          "#7a5603",
+          "#a67708",
+          "#c79d51",
+          "#e0c79e",
+          "#f5ede1"
+        ]
+      },
+      "bleu-dark-st-rejected": {
+        "role": "secondary",
+        "displayName": "Penalty Red · Encre bleue sombre",
+        "canonical": "#ef7a68",
+        "cssVar": "--st-rejected",
+        "tonalRamp": [
+          "#140806",
+          "#41120c",
+          "#731b11",
+          "#a03225",
+          "#c95848",
+          "#ea8473",
+          "#f7b9ae",
+          "#fee9e5"
+        ]
+      },
+      "bleu-dark-st-ignored": {
+        "role": "secondary",
+        "displayName": "Ignored Grey · Encre bleue sombre",
+        "canonical": "#7d8796",
+        "cssVar": "--st-ignored",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#20242a",
+          "#39404b",
+          "#555e6c",
+          "#778190",
+          "#9ca5b3",
+          "#c6cbd3",
+          "#edeef1"
+        ]
+      },
+      "bleu-dark-ledger-1": {
+        "role": "primary",
+        "displayName": "Ledger 1 (accent) · Encre bleue sombre",
+        "canonical": "#7ea6ff",
+        "cssVar": "--ledger-1"
+      },
+      "bleu-dark-ledger-2": {
+        "role": "primary",
+        "displayName": "Ledger 2 · Encre bleue sombre",
+        "canonical": "#5f8be8",
+        "cssVar": "--ledger-2"
+      },
+      "bleu-dark-ledger-3": {
+        "role": "primary",
+        "displayName": "Ledger 3 (identity) · Encre bleue sombre",
+        "canonical": "#4670c9",
+        "cssVar": "--ledger-3"
+      },
+      "bleu-dark-ledger-4": {
+        "role": "primary",
+        "displayName": "Ledger 4 · Encre bleue sombre",
+        "canonical": "#3459a6",
+        "cssVar": "--ledger-4"
+      },
+      "bleu-dark-ledger-track": {
+        "role": "neutral",
+        "displayName": "Ledger Track · Encre bleue sombre",
+        "canonical": "#1e2733",
+        "cssVar": "--ledger-track"
+      },
+      "bleu-dark-chart-1-hover": {
+        "role": "primary",
+        "displayName": "Chart Hover · Encre bleue sombre",
+        "canonical": "#a9c3ff",
+        "cssVar": "--chart-1-hover"
+      },
+      "violet-light-background": {
+        "role": "neutral",
+        "displayName": "Page Ground · Encre violette clair",
+        "canonical": "#f8f7fb",
+        "cssVar": "--background",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242425",
+          "#403f42",
+          "#5e5d60",
+          "#807f83",
+          "#a5a4a7",
+          "#cacacc",
+          "#eeeeef"
+        ]
+      },
+      "violet-light-surface": {
+        "role": "neutral",
+        "displayName": "Reading Surface · Encre violette clair",
+        "canonical": "#ffffff",
+        "cssVar": "--surface",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "violet-light-raised": {
+        "role": "neutral",
+        "displayName": "Raised Ground · Encre violette clair",
+        "canonical": "#ece8fa",
+        "cssVar": "--raised"
+      },
+      "violet-light-raised-hover": {
+        "role": "neutral",
+        "displayName": "Raised Hover · Encre violette clair",
+        "canonical": "#f2f0f8",
+        "cssVar": "--raised-hover"
+      },
+      "violet-light-rail": {
+        "role": "neutral",
+        "displayName": "Rail · Encre violette clair",
+        "canonical": "#f0eef8",
+        "cssVar": "--rail",
+        "tonalRamp": [
+          "#0b0b0c",
+          "#242327",
+          "#403f45",
+          "#5e5c65",
+          "#817f88",
+          "#a5a3ab",
+          "#cbcace",
+          "#eeeef0"
+        ]
+      },
+      "violet-light-rail-active": {
+        "role": "neutral",
+        "displayName": "Rail Active · Encre violette clair",
+        "canonical": "#e4dff7",
+        "cssVar": "--rail-active"
+      },
+      "violet-light-rail-hover": {
+        "role": "neutral",
+        "displayName": "Rail Hover · Encre violette clair",
+        "canonical": "#e9e5f6",
+        "cssVar": "--rail-hover"
+      },
+      "violet-light-rail-border": {
+        "role": "neutral",
+        "displayName": "Rail Border · Encre violette clair",
+        "canonical": "#e3dff0",
+        "cssVar": "--rail-border"
+      },
+      "violet-light-border": {
+        "role": "neutral",
+        "displayName": "Hairline · Encre violette clair",
+        "canonical": "#e0dcea",
+        "cssVar": "--border"
+      },
+      "violet-light-border-soft": {
+        "role": "neutral",
+        "displayName": "Hairline Soft · Encre violette clair",
+        "canonical": "#ebe8f2",
+        "cssVar": "--border-soft"
+      },
+      "violet-light-foreground": {
+        "role": "neutral",
+        "displayName": "Record Text · Encre violette clair",
+        "canonical": "#1a1724",
+        "cssVar": "--foreground",
+        "tonalRamp": [
+          "#0b0b0d",
+          "#24232a",
+          "#403e4a",
+          "#5e5b6b",
+          "#817d8e",
+          "#a5a2b2",
+          "#cbc9d2",
+          "#eeeef1"
+        ]
+      },
+      "violet-light-muted-foreground": {
+        "role": "neutral",
+        "displayName": "Metadata Text · Encre violette clair",
+        "canonical": "#615b74",
+        "cssVar": "--muted-foreground",
+        "tonalRamp": [
+          "#0b0b0e",
+          "#25222d",
+          "#413c50",
+          "#5f5972",
+          "#827c96",
+          "#a6a1b9",
+          "#cbc8d6",
+          "#efeef2"
+        ]
+      },
+      "violet-light-primary": {
+        "role": "primary",
+        "displayName": "Ink Accent · Encre violette clair",
+        "canonical": "#5b3fd0",
+        "cssVar": "--primary",
+        "tonalRamp": [
+          "#0a0918",
+          "#211753",
+          "#3d2197",
+          "#583bcc",
+          "#7863f6",
+          "#9b95ff",
+          "#c4c4fe",
+          "#ecedfc"
+        ]
+      },
+      "violet-light-primary-foreground": {
+        "role": "primary",
+        "displayName": "Text on Accent · Encre violette clair",
+        "canonical": "#ffffff",
+        "cssVar": "--primary-foreground"
+      },
+      "violet-light-secondary": {
+        "role": "neutral",
+        "displayName": "Control Ground · Encre violette clair",
+        "canonical": "#f0eef6",
+        "cssVar": "--secondary"
+      },
+      "violet-light-secondary-hover": {
+        "role": "neutral",
+        "displayName": "Control Ground Hover · Encre violette clair",
+        "canonical": "#e7e3f0",
+        "cssVar": "--secondary-hover"
+      },
+      "violet-light-input": {
+        "role": "neutral",
+        "displayName": "Control Stroke · Encre violette clair",
+        "canonical": "#d2cde2",
+        "cssVar": "--input"
+      },
+      "violet-light-input-hover": {
+        "role": "neutral",
+        "displayName": "Control Stroke Hover · Encre violette clair",
+        "canonical": "#bdb6d3",
+        "cssVar": "--input-hover"
+      },
+      "violet-light-field": {
+        "role": "neutral",
+        "displayName": "Field Ground · Encre violette clair",
+        "canonical": "#ffffff",
+        "cssVar": "--field"
+      },
+      "violet-light-card-ground": {
+        "role": "neutral",
+        "displayName": "Card Ground · Encre violette clair",
+        "canonical": "#ffffff",
+        "cssVar": "--card-ground"
+      },
+      "violet-light-drop": {
+        "role": "neutral",
+        "displayName": "Drop Target · Encre violette clair",
+        "canonical": "#eeeafb",
+        "cssVar": "--drop"
+      },
+      "violet-light-overlay": {
+        "role": "neutral",
+        "displayName": "Scrim · Encre violette clair",
+        "canonical": "rgb(20 15 35 / 0.35)",
+        "cssVar": "--overlay"
+      },
+      "violet-light-code": {
+        "role": "neutral",
+        "displayName": "Code Ground · Encre violette clair",
+        "canonical": "#f3f1f8",
+        "cssVar": "--code"
+      },
+      "violet-light-mark": {
+        "role": "neutral",
+        "displayName": "Radar Rings · Encre violette clair",
+        "canonical": "#9a93b3",
+        "cssVar": "--mark"
+      },
+      "violet-light-scrollbar": {
+        "role": "neutral",
+        "displayName": "Scrollbar Thumb · Encre violette clair",
+        "canonical": "#cfc9de",
+        "cssVar": "--scrollbar"
+      },
+      "violet-light-st-saved": {
+        "role": "secondary",
+        "displayName": "Saved · Encre violette clair",
+        "canonical": "#2a72c4",
+        "cssVar": "--st-saved",
+        "tonalRamp": [
+          "#050c15",
+          "#062446",
+          "#013f7c",
+          "#0f5dad",
+          "#3a81d5",
+          "#6aa7f2",
+          "#abcefa",
+          "#e4f0fe"
+        ]
+      },
+      "violet-light-st-applied": {
+        "role": "secondary",
+        "displayName": "Applied Green · Encre violette clair",
+        "canonical": "#1d8a5c",
+        "cssVar": "--st-applied",
+        "tonalRamp": [
+          "#050e08",
+          "#002c1a",
+          "#014d30",
+          "#086f48",
+          "#2d9567",
+          "#66b98e",
+          "#aad7bd",
+          "#e5f3ea"
+        ]
+      },
+      "violet-light-st-interview": {
+        "role": "secondary",
+        "displayName": "Due Amber · Encre violette clair",
+        "canonical": "#a8670f",
+        "cssVar": "--st-interview",
+        "tonalRamp": [
+          "#110904",
+          "#361d01",
+          "#5d3500",
+          "#854f00",
+          "#b16f1d",
+          "#d29758",
+          "#e7c3a1",
+          "#f8ece1"
+        ]
+      },
+      "violet-light-st-rejected": {
+        "role": "secondary",
+        "displayName": "Penalty Red · Encre violette clair",
+        "canonical": "#c23b3b",
+        "cssVar": "--st-rejected",
+        "tonalRamp": [
+          "#150706",
+          "#450c0d",
+          "#7a0713",
+          "#a92127",
+          "#d34b49",
+          "#f47b74",
+          "#feb5af",
+          "#fee9e7"
+        ]
+      },
+      "violet-light-st-ignored": {
+        "role": "secondary",
+        "displayName": "Ignored Grey · Encre violette clair",
+        "canonical": "#6f6a80",
+        "cssVar": "--st-ignored",
+        "tonalRamp": [
+          "#0b0b0d",
+          "#25222c",
+          "#413d4e",
+          "#5f5a6f",
+          "#817c93",
+          "#a6a1b6",
+          "#cbc8d5",
+          "#efeef2"
+        ]
+      },
+      "violet-light-ledger-1": {
+        "role": "primary",
+        "displayName": "Ledger 1 (accent) · Encre violette clair",
+        "canonical": "#5b3fd0",
+        "cssVar": "--ledger-1"
+      },
+      "violet-light-ledger-2": {
+        "role": "primary",
+        "displayName": "Ledger 2 · Encre violette clair",
+        "canonical": "#7a61e0",
+        "cssVar": "--ledger-2"
+      },
+      "violet-light-ledger-3": {
+        "role": "primary",
+        "displayName": "Ledger 3 (identity) · Encre violette clair",
+        "canonical": "#9a86ea",
+        "cssVar": "--ledger-3"
+      },
+      "violet-light-ledger-4": {
+        "role": "primary",
+        "displayName": "Ledger 4 · Encre violette clair",
+        "canonical": "#bbaef2",
+        "cssVar": "--ledger-4"
+      },
+      "violet-light-ledger-track": {
+        "role": "neutral",
+        "displayName": "Ledger Track · Encre violette clair",
+        "canonical": "#e6e2f2",
+        "cssVar": "--ledger-track"
+      },
+      "violet-light-chart-1-hover": {
+        "role": "primary",
+        "displayName": "Chart Hover · Encre violette clair",
+        "canonical": "#5b3fd0",
+        "cssVar": "--chart-1-hover"
+      },
+      "violet-dark-background": {
+        "role": "neutral",
+        "displayName": "Page Ground · Encre violette sombre",
+        "canonical": "#121219",
+        "cssVar": "--background",
+        "tonalRamp": [
+          "#0b0b0c",
+          "#232427",
+          "#3f3f46",
+          "#5c5d66",
+          "#7f7f89",
+          "#a3a4ac",
+          "#cacacf",
+          "#eeeef0"
+        ]
+      },
+      "violet-dark-surface": {
+        "role": "neutral",
+        "displayName": "Reading Surface · Encre violette sombre",
+        "canonical": "#16151f",
+        "cssVar": "--surface",
+        "tonalRamp": [
+          "#0b0b0c",
+          "#242329",
+          "#3f3e48",
+          "#5d5c68",
+          "#7f7e8c",
+          "#a4a3af",
+          "#cacad1",
+          "#eeeef0"
+        ]
+      },
+      "violet-dark-raised": {
+        "role": "neutral",
+        "displayName": "Raised Ground · Encre violette sombre",
+        "canonical": "#1d1b2b",
+        "cssVar": "--raised"
+      },
+      "violet-dark-raised-hover": {
+        "role": "neutral",
+        "displayName": "Raised Hover · Encre violette sombre",
+        "canonical": "#17161f",
+        "cssVar": "--raised-hover"
+      },
+      "violet-dark-rail": {
+        "role": "neutral",
+        "displayName": "Rail · Encre violette sombre",
+        "canonical": "#17162a",
+        "cssVar": "--rail",
+        "tonalRamp": [
+          "#0b0b0e",
+          "#23232d",
+          "#3e3e51",
+          "#5b5b73",
+          "#7d7d97",
+          "#a2a2ba",
+          "#c9c9d7",
+          "#eeeef2"
+        ]
+      },
+      "violet-dark-rail-active": {
+        "role": "neutral",
+        "displayName": "Rail Active · Encre violette sombre",
+        "canonical": "#221f3d",
+        "cssVar": "--rail-active"
+      },
+      "violet-dark-rail-hover": {
+        "role": "neutral",
+        "displayName": "Rail Hover · Encre violette sombre",
+        "canonical": "#1c1a33",
+        "cssVar": "--rail-hover"
+      },
+      "violet-dark-rail-border": {
+        "role": "neutral",
+        "displayName": "Rail Border · Encre violette sombre",
+        "canonical": "#211f36",
+        "cssVar": "--rail-border"
+      },
+      "violet-dark-border": {
+        "role": "neutral",
+        "displayName": "Hairline · Encre violette sombre",
+        "canonical": "#29273a",
+        "cssVar": "--border"
+      },
+      "violet-dark-border-soft": {
+        "role": "neutral",
+        "displayName": "Hairline Soft · Encre violette sombre",
+        "canonical": "#1e1d2a",
+        "cssVar": "--border-soft"
+      },
+      "violet-dark-foreground": {
+        "role": "neutral",
+        "displayName": "Record Text · Encre violette sombre",
+        "canonical": "#e9e7f1",
+        "cssVar": "--foreground",
+        "tonalRamp": [
+          "#0b0b0c",
+          "#242327",
+          "#403f45",
+          "#5e5c65",
+          "#817f88",
+          "#a5a3ab",
+          "#cbcace",
+          "#eeeef0"
+        ]
+      },
+      "violet-dark-muted-foreground": {
+        "role": "neutral",
+        "displayName": "Metadata Text · Encre violette sombre",
+        "canonical": "#a19db4",
+        "cssVar": "--muted-foreground",
+        "tonalRamp": [
+          "#0b0b0d",
+          "#24232b",
+          "#403d4d",
+          "#5e5a6f",
+          "#817d93",
+          "#a5a2b6",
+          "#cbc9d5",
+          "#eeeef2"
+        ]
+      },
+      "violet-dark-primary": {
+        "role": "primary",
+        "displayName": "Ink Accent · Encre violette sombre",
+        "canonical": "#a693ff",
+        "cssVar": "--primary",
+        "tonalRamp": [
+          "#0b0915",
+          "#251b46",
+          "#422e7e",
+          "#5f48ac",
+          "#816cd4",
+          "#a495f2",
+          "#c9c3fa",
+          "#eeecfe"
+        ]
+      },
+      "violet-dark-primary-foreground": {
+        "role": "primary",
+        "displayName": "Text on Accent · Encre violette sombre",
+        "canonical": "#120e24",
+        "cssVar": "--primary-foreground"
+      },
+      "violet-dark-secondary": {
+        "role": "neutral",
+        "displayName": "Control Ground · Encre violette sombre",
+        "canonical": "#1c1a28",
+        "cssVar": "--secondary"
+      },
+      "violet-dark-secondary-hover": {
+        "role": "neutral",
+        "displayName": "Control Ground Hover · Encre violette sombre",
+        "canonical": "#242233",
+        "cssVar": "--secondary-hover"
+      },
+      "violet-dark-input": {
+        "role": "neutral",
+        "displayName": "Control Stroke · Encre violette sombre",
+        "canonical": "#332f48",
+        "cssVar": "--input"
+      },
+      "violet-dark-input-hover": {
+        "role": "neutral",
+        "displayName": "Control Stroke Hover · Encre violette sombre",
+        "canonical": "#423d5b",
+        "cssVar": "--input-hover"
+      },
+      "violet-dark-field": {
+        "role": "neutral",
+        "displayName": "Field Ground · Encre violette sombre",
+        "canonical": "#15141d",
+        "cssVar": "--field"
+      },
+      "violet-dark-card-ground": {
+        "role": "neutral",
+        "displayName": "Card Ground · Encre violette sombre",
+        "canonical": "#17161f",
+        "cssVar": "--card-ground"
+      },
+      "violet-dark-drop": {
+        "role": "neutral",
+        "displayName": "Drop Target · Encre violette sombre",
+        "canonical": "#1e1b30",
+        "cssVar": "--drop"
+      },
+      "violet-dark-overlay": {
+        "role": "neutral",
+        "displayName": "Scrim · Encre violette sombre",
+        "canonical": "rgb(6 5 12 / 0.6)",
+        "cssVar": "--overlay"
+      },
+      "violet-dark-code": {
+        "role": "neutral",
+        "displayName": "Code Ground · Encre violette sombre",
+        "canonical": "#0e0d14",
+        "cssVar": "--code"
+      },
+      "violet-dark-mark": {
+        "role": "neutral",
+        "displayName": "Radar Rings · Encre violette sombre",
+        "canonical": "#8a84a8",
+        "cssVar": "--mark"
+      },
+      "violet-dark-scrollbar": {
+        "role": "neutral",
+        "displayName": "Scrollbar Thumb · Encre violette sombre",
+        "canonical": "#332f48",
+        "cssVar": "--scrollbar"
+      },
+      "violet-dark-st-saved": {
+        "role": "secondary",
+        "displayName": "Saved · Encre violette sombre",
+        "canonical": "#6fb4f0",
+        "cssVar": "--st-saved",
+        "tonalRamp": [
+          "#060c12",
+          "#09263d",
+          "#02436e",
+          "#186298",
+          "#4186bf",
+          "#70abde",
+          "#aecfed",
+          "#e5f0fa"
+        ]
+      },
+      "violet-dark-st-applied": {
+        "role": "secondary",
+        "displayName": "Applied Green · Encre violette sombre",
+        "canonical": "#5fc59a",
+        "cssVar": "--st-applied",
+        "tonalRamp": [
+          "#050e09",
+          "#022c1d",
+          "#054c34",
+          "#0b6f4e",
+          "#28956d",
+          "#63b993",
+          "#a9d7c0",
+          "#e4f3eb"
+        ]
+      },
+      "violet-dark-st-interview": {
+        "role": "secondary",
+        "displayName": "Due Amber · Encre violette sombre",
+        "canonical": "#e6b45a",
+        "cssVar": "--st-interview",
+        "tonalRamp": [
+          "#0f0a03",
+          "#312101",
+          "#543b03",
+          "#7a5603",
+          "#a67708",
+          "#c79d51",
+          "#e0c79e",
+          "#f5ede1"
+        ]
+      },
+      "violet-dark-st-rejected": {
+        "role": "secondary",
+        "displayName": "Penalty Red · Encre violette sombre",
+        "canonical": "#f07a7a",
+        "cssVar": "--st-rejected",
+        "tonalRamp": [
+          "#140707",
+          "#401214",
+          "#731a21",
+          "#9f3137",
+          "#c85659",
+          "#e98281",
+          "#f7b8b6",
+          "#fee9e8"
+        ]
+      },
+      "violet-dark-st-ignored": {
+        "role": "secondary",
+        "displayName": "Ignored Grey · Encre violette sombre",
+        "canonical": "#827d96",
+        "cssVar": "--st-ignored",
+        "tonalRamp": [
+          "#0b0b0d",
+          "#24222c",
+          "#413d4f",
+          "#5f5a71",
+          "#817c95",
+          "#a5a1b8",
+          "#cbc8d6",
+          "#eeeef2"
+        ]
+      },
+      "violet-dark-ledger-1": {
+        "role": "primary",
+        "displayName": "Ledger 1 (accent) · Encre violette sombre",
+        "canonical": "#a693ff",
+        "cssVar": "--ledger-1"
+      },
+      "violet-dark-ledger-2": {
+        "role": "primary",
+        "displayName": "Ledger 2 · Encre violette sombre",
+        "canonical": "#8a74f0",
+        "cssVar": "--ledger-2"
+      },
+      "violet-dark-ledger-3": {
+        "role": "primary",
+        "displayName": "Ledger 3 (identity) · Encre violette sombre",
+        "canonical": "#6f58d6",
+        "cssVar": "--ledger-3"
+      },
+      "violet-dark-ledger-4": {
+        "role": "primary",
+        "displayName": "Ledger 4 · Encre violette sombre",
+        "canonical": "#5844b3",
+        "cssVar": "--ledger-4"
+      },
+      "violet-dark-ledger-track": {
+        "role": "neutral",
+        "displayName": "Ledger Track · Encre violette sombre",
+        "canonical": "#221f30",
+        "cssVar": "--ledger-track"
+      },
+      "violet-dark-chart-1-hover": {
+        "role": "primary",
+        "displayName": "Chart Hover · Encre violette sombre",
+        "canonical": "#c4b8ff",
+        "cssVar": "--chart-1-hover"
+      },
+      "identity-bleu": {
+        "role": "primary",
+        "displayName": "Identity · Encre bleue",
+        "canonical": "#4670c9",
+        "tonalRamp": [
+          "#070b15",
+          "#112247",
+          "#1c3a7f",
+          "#3058af",
+          "#517cd6",
+          "#7ba3f4",
+          "#b2cbfb",
+          "#e7effe"
+        ]
+      },
+      "identity-violet": {
+        "role": "primary",
+        "displayName": "Identity · Encre violette",
+        "canonical": "#6f58d6",
+        "tonalRamp": [
+          "#0a0917",
+          "#23194d",
+          "#3f278b",
+          "#5c41be",
+          "#7d67e7",
+          "#9f93ff",
+          "#c6c3fd",
+          "#edecff"
+        ]
+      }
+    },
+    "themes": {
+      "selector": {
+        "palette": "html[data-palette=\"bleu\" | \"violet\"] (default bleu)",
+        "mode": "html.dark (absent = light)"
+      },
+      "palettes": [
+        {
+          "id": "bleu",
+          "label": "Encre bleue",
+          "default": true,
+          "identity": "#4670c9"
+        },
+        {
+          "id": "violet",
+          "label": "Encre violette",
+          "identity": "#6f58d6"
+        }
+      ],
+      "modes": [
+        {
+          "id": "auto",
+          "label": "Auto",
+          "default": true,
+          "behaviour": "Follows prefers-color-scheme, resolved before paint by an inline script and kept in sync while open."
+        },
+        {
+          "id": "light",
+          "label": "Clair"
+        },
+        {
+          "id": "dark",
+          "label": "Sombre"
+        }
+      ],
+      "storage": "Cookies jr-palette and jr-mode (1 year, SameSite=Lax); the server renders data-palette, data-mode and .dark on <html>.",
+      "tokenKeys": "Frontmatter color keys are <palette>-<mode>-<css var>; every block defines the same roles.",
+      "aliases": {
+        "--positive": "--primary",
+        "--info": "--primary",
+        "--ring": "--primary",
+        "--success": "--st-applied",
+        "--warning": "--st-interview",
+        "--destructive": "--st-rejected",
+        "--st-new": "--muted-foreground",
+        "--chart-1": "--ledger-2",
+        "--card": "--surface",
+        "--popover": "--surface",
+        "--muted": "--secondary",
+        "--accent": "--secondary"
+      }
     },
     "typographyMeta": {
-      "display": { "displayName": "Display", "purpose": "Large figures in the Aujourd'hui record and stats facts; numbers, not prose." },
-      "headline": { "displayName": "Headline", "purpose": "Job title in the reading pane (19px) or on the full page (22px)." },
-      "title": { "displayName": "Title", "purpose": "Page titles and the ScoreMark figure." },
-      "row-title": { "displayName": "Row Title", "purpose": "Offer title in list rows and pipeline cards." },
-      "body": { "displayName": "Body", "purpose": "Default text; description prose at 13.5px, max 72ch." },
-      "meta": { "displayName": "Meta", "purpose": "Company, place, age, counts, secondary actions." },
-      "label": { "displayName": "Label", "purpose": "Uppercase column heads for real sections only." }
+      "display": {
+        "displayName": "Display",
+        "purpose": "Large figures in the Aujourd'hui record and stats facts; numbers, not prose."
+      },
+      "headline-page": {
+        "displayName": "Headline Page",
+        "purpose": "Job title on the full job page (20px)."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Job title in the reading pane (19px)."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Page titles and the ScoreMark figure."
+      },
+      "row-title": {
+        "displayName": "Row Title",
+        "purpose": "Offer title in list rows and pipeline cards."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default text; description prose at 13.5px, max 72ch."
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Company, place, age, counts, list footer, secondary actions."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Uppercase column heads for real sections only."
+      }
     },
     "shadows": [],
     "motion": [
-      { "name": "ease-out", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "The only easing; every state change." },
-      { "name": "dur-fast", "value": "120ms", "purpose": "Colour and border transitions on controls, rows, rail links; row fade on triage." },
-      { "name": "dur", "value": "180ms", "purpose": "Triaged row height collapse (grid-template-rows 1fr to 0fr), disclosure chevron, notes save hint." },
-      { "name": "layer-in", "value": "150ms fade (+ zoom 0.98 popover, slide 1 step dialog/toast)", "purpose": "Floating layers and the reading-pane crossfade." },
-      { "name": "reduced-motion", "value": "all durations 0.01ms", "purpose": "prefers-reduced-motion: reduce." }
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "The only easing; every state change."
+      },
+      {
+        "name": "dur-fast",
+        "value": "120ms",
+        "purpose": "Colour and border transitions on controls, rows, rail links; row fade on triage; divider handle."
+      },
+      {
+        "name": "dur",
+        "value": "180ms",
+        "purpose": "Triaged row height collapse (grid-template-rows 1fr to 0fr), list dim while a filter applies, disclosure chevron, notes save hint."
+      },
+      {
+        "name": "layer-in",
+        "value": "150ms fade (+ zoom 0.98 popover, slide 1 step dialog/toast)",
+        "purpose": "Floating layers and the reading-pane crossfade."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "all durations 0.01ms",
+        "purpose": "prefers-reduced-motion: reduce."
+      }
     ],
     "breakpoints": [
-      { "name": "md", "value": "768px", "purpose": "Rail replaces top bar; 24px gutters; pipeline 2 columns." },
-      { "name": "lg", "value": "1024px", "purpose": "Reading pane appears (420-520px); place and age columns." },
-      { "name": "xl", "value": "1280px", "purpose": "Pane 560px; pipeline 3 + narrow fourth column." }
+      {
+        "name": "md",
+        "value": "768px",
+        "purpose": "App becomes the viewport; rail replaces top bar; areas scroll on their own; 24px gutters; pipeline 2 columns."
+      },
+      {
+        "name": "lg",
+        "value": "1024px",
+        "purpose": "Reading pane and draggable divider appear (pane default 520px, min 360px, list min 380px); place and age columns."
+      },
+      {
+        "name": "xl",
+        "value": "1280px",
+        "purpose": "Pipeline 3 + narrow fourth column."
+      }
     ]
   },
   "components": [
@@ -62,25 +1475,25 @@
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "The one primary action per view (Postuler).",
+      "description": "The one primary action per view (Postuler), in the ink accent.",
       "html": "<button class=\"ds-btn-primary\">Postuler <svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7 7h10v10\"/><path d=\"M7 17 17 7\"/></svg></button>",
-      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 0; border-radius: 7px; background: #8fc7a0; color: #0d1912; font: 500 13px/1 'Public Sans', system-ui, sans-serif; transition: background-color 120ms cubic-bezier(0.22,1,0.36,1); cursor: pointer; } .ds-btn-primary:hover { background: color-mix(in oklab, #8fc7a0 88%, white); } .ds-btn-primary:active { background: color-mix(in oklab, #8fc7a0 85%, black); } .ds-btn-primary:focus-visible { outline: 2px solid color-mix(in oklab, #8fc7a0 75%, transparent); outline-offset: 2px; }"
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 0; border-radius: 7px; background: var(--primary, #2f5fd0); color: var(--primary-foreground, #ffffff); font: 500 13px/1 'Public Sans', system-ui, sans-serif; transition: background-color 120ms cubic-bezier(0.22,1,0.36,1); cursor: pointer; } .ds-btn-primary:hover { background: color-mix(in oklab, var(--primary, #2f5fd0) 88%, white); } .ds-btn-primary:active { background: color-mix(in oklab, var(--primary, #2f5fd0) 85%, black); } .ds-btn-primary:focus-visible { outline: 2px solid color-mix(in oklab, var(--primary, #2f5fd0) 75%, transparent); outline-offset: 2px; }"
     },
     {
       "name": "Outline Button",
       "kind": "button",
       "refersTo": "button-outline",
-      "description": "Secondary actions beside the primary; hairline stroke, no fill.",
-      "html": "<button class=\"ds-btn-outline\">Fait · +7 j</button>",
-      "css": ".ds-btn-outline { height: 32px; padding: 0 12px; border: 1px solid #2a3742; border-radius: 7px; background: transparent; color: #e8e3d4; font: 500 13px/1 'Public Sans', system-ui, sans-serif; transition: background-color 120ms cubic-bezier(0.22,1,0.36,1), border-color 120ms cubic-bezier(0.22,1,0.36,1); cursor: pointer; } .ds-btn-outline:hover { background: #1b2730; border-color: #384754; } .ds-btn-outline:active { background: #182630; } .ds-btn-outline:focus-visible { outline: 2px solid color-mix(in oklab, #8fc7a0 75%, transparent); outline-offset: 2px; }"
+      "description": "Secondary actions beside the primary, and the pane bar's Ouvrir en grand; hairline stroke, no fill.",
+      "html": "<button class=\"ds-btn-outline\">Ouvrir en grand <kbd>↵</kbd></button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 1px solid var(--input, #cfd6e0); border-radius: 7px; background: transparent; color: var(--foreground, #161b23); font: 500 13px/1 'Public Sans', system-ui, sans-serif; transition: background-color 120ms cubic-bezier(0.22,1,0.36,1), border-color 120ms cubic-bezier(0.22,1,0.36,1); cursor: pointer; } .ds-btn-outline:hover { background: var(--secondary, #eef1f5); border-color: var(--input-hover, #b9c2cf); } .ds-btn-outline:active { background: var(--raised, #e8eef9); } .ds-btn-outline:focus-visible { outline: 2px solid color-mix(in oklab, var(--primary, #2f5fd0) 75%, transparent); outline-offset: 2px; } .ds-btn-outline kbd { padding: 0 4px; border: 1px solid var(--input, #cfd6e0); border-radius: 4px; color: var(--muted-foreground, #5b6574); font: 500 11px/16px 'Public Sans', system-ui, sans-serif; }"
     },
     {
       "name": "Ghost Button",
       "kind": "button",
       "refersTo": "button-ghost",
-      "description": "Quiet tertiary actions (Reporter, Retirer); grey until hovered.",
+      "description": "Quiet tertiary actions (Reporter, Retirer); metadata text until hovered.",
       "html": "<button class=\"ds-btn-ghost\">Reporter 2 j</button>",
-      "css": ".ds-btn-ghost { height: 32px; padding: 0 12px; border: 0; border-radius: 7px; background: transparent; color: #a0aaa2; font: 500 13px/1 'Public Sans', system-ui, sans-serif; transition: background-color 120ms cubic-bezier(0.22,1,0.36,1), color 120ms cubic-bezier(0.22,1,0.36,1); cursor: pointer; } .ds-btn-ghost:hover { background: #1b2730; color: #e8e3d4; } .ds-btn-ghost:focus-visible { outline: 2px solid color-mix(in oklab, #8fc7a0 75%, transparent); outline-offset: 2px; }"
+      "css": ".ds-btn-ghost { height: 32px; padding: 0 12px; border: 0; border-radius: 7px; background: transparent; color: var(--muted-foreground, #5b6574); font: 500 13px/1 'Public Sans', system-ui, sans-serif; transition: background-color 120ms cubic-bezier(0.22,1,0.36,1), color 120ms cubic-bezier(0.22,1,0.36,1); cursor: pointer; } .ds-btn-ghost:hover { background: var(--secondary, #eef1f5); color: var(--foreground, #161b23); } .ds-btn-ghost:focus-visible { outline: 2px solid color-mix(in oklab, var(--primary, #2f5fd0) 75%, transparent); outline-offset: 2px; }"
     },
     {
       "name": "Field",
@@ -88,31 +1501,47 @@
       "refersTo": "input",
       "description": "Search, filters, dates; native select shares the class.",
       "html": "<input class=\"ds-input\" placeholder=\"Rechercher un titre, une entreprise\" />",
-      "css": ".ds-input { height: 32px; width: 280px; padding: 0 10px; border: 1px solid #2a3742; border-radius: 7px; background: #121a22; color: #e8e3d4; font: 400 13px/1 'Public Sans', system-ui, sans-serif; outline: none; transition: border-color 120ms, background-color 120ms; } .ds-input::placeholder { color: #a0aaa2; opacity: 0.85; } .ds-input:hover { border-color: #384754; } .ds-input:focus-visible { border-color: color-mix(in oklab, #8fc7a0 70%, transparent); background: #10161d; }"
+      "css": ".ds-input { height: 32px; width: 280px; padding: 0 10px; border: 1px solid var(--input, #cfd6e0); border-radius: 7px; background: var(--field, #ffffff); color: var(--foreground, #161b23); font: 400 13px/1 'Public Sans', system-ui, sans-serif; outline: none; transition: border-color 120ms, background-color 120ms; } .ds-input::placeholder { color: var(--muted-foreground, #5b6574); opacity: 0.85; } .ds-input:hover { border-color: var(--input-hover, #b9c2cf); } .ds-input:focus-visible { border-color: color-mix(in oklab, var(--primary, #2f5fd0) 70%, transparent); background: var(--background, #f7f8fa); }"
     },
     {
       "name": "Segmented Control",
       "kind": "chip",
       "refersTo": "segmented-on",
-      "description": "Mutually exclusive views with counts; pressed segment on raised ground, count in green.",
+      "description": "Mutually exclusive values with counts (views, sort, mode); pressed segment on raised ground, count in the accent.",
       "html": "<div class=\"ds-seg\" role=\"group\"><button aria-pressed=\"true\">À trier <span>128</span></button><button aria-pressed=\"false\">Sauvegardées <span>14</span></button><button aria-pressed=\"false\">Toutes</button></div>",
-      "css": ".ds-seg { display: inline-flex; height: 32px; border: 1px solid #2a3742; border-radius: 7px; overflow: hidden; font: 400 13px/1 'Public Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums; } .ds-seg button { display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 0; background: transparent; color: #a0aaa2; cursor: pointer; transition: background-color 120ms, color 120ms; } .ds-seg button + button { border-left: 1px solid #2a3742; } .ds-seg button span { color: #a0aaa2; } .ds-seg button:hover { background: #1b2730; color: #e8e3d4; } .ds-seg button[aria-pressed=true] { background: #182630; color: #e8e3d4; } .ds-seg button[aria-pressed=true] span { color: #8fc7a0; } .ds-seg button:focus-visible { outline: 2px solid color-mix(in oklab, #8fc7a0 75%, transparent); outline-offset: -2px; }"
+      "css": ".ds-seg { display: inline-flex; height: 32px; border: 1px solid var(--input, #cfd6e0); border-radius: 7px; overflow: hidden; font: 400 13px/1 'Public Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums; } .ds-seg button { display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 0; background: transparent; color: var(--muted-foreground, #5b6574); cursor: pointer; transition: background-color 120ms, color 120ms; } .ds-seg button + button { border-left: 1px solid var(--input, #cfd6e0); } .ds-seg button span { color: var(--muted-foreground, #5b6574); } .ds-seg button:hover { background: var(--secondary, #eef1f5); color: var(--foreground, #161b23); } .ds-seg button[aria-pressed=true] { background: var(--raised, #e8eef9); color: var(--foreground, #161b23); } .ds-seg button[aria-pressed=true] span { color: var(--primary, #2f5fd0); } .ds-seg button:focus-visible { outline: 2px solid color-mix(in oklab, var(--primary, #2f5fd0) 75%, transparent); outline-offset: -2px; }"
+    },
+    {
+      "name": "Ink Choice",
+      "kind": "chip",
+      "refersTo": "ink-choice-on",
+      "description": "Réglages > Apparence: each ink as an outlined button with its identity swatch; the chosen one takes an accent border.",
+      "html": "<div class=\"ds-ink\"><button aria-pressed=\"true\"><i style=\"background:#4670c9\"></i>Encre bleue</button><button aria-pressed=\"false\"><i style=\"background:#6f58d6\"></i>Encre violette</button></div>",
+      "css": ".ds-ink { display: flex; gap: 8px; } .ds-ink button { display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border: 1px solid var(--input, #cfd6e0); border-radius: 7px; background: transparent; color: var(--muted-foreground, #5b6574); font: 400 13px/1 'Public Sans', system-ui, sans-serif; cursor: pointer; transition: border-color 120ms, color 120ms; } .ds-ink button:hover { border-color: var(--input-hover, #b9c2cf); color: var(--foreground, #161b23); } .ds-ink button[aria-pressed=true] { border-color: var(--primary, #2f5fd0); color: var(--foreground, #161b23); } .ds-ink i { width: 12px; height: 12px; border-radius: 999px; } .ds-ink button:focus-visible { outline: 2px solid color-mix(in oklab, var(--primary, #2f5fd0) 75%, transparent); outline-offset: 2px; }"
     },
     {
       "name": "Rail Navigation",
       "kind": "nav",
       "refersTo": "rail-link-active",
-      "description": "208px security-paper green rail: work first, Machine group second.",
-      "html": "<nav class=\"ds-rail\"><a class=\"on\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M22 12h-6l-2 3h-4l-2-3H2\"/><path d=\"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z\"/></svg>Trier<em>128</em></a><a href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M8 7v7M12 7v4M16 7v9\"/></svg>Pipeline<em class=\"due\">2 dues</em></a><p>Machine</p><a href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"2\"/><path d=\"M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4\"/></svg>Sources<i></i></a></nav>",
-      "css": ".ds-rail { width: 208px; padding: 16px 10px; background: #13201c; border-right: 1px solid #1e3029; display: flex; flex-direction: column; gap: 2px; font: 400 13px/1 'Public Sans', system-ui, sans-serif; } .ds-rail a { display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 10px; border-radius: 7px; color: #a0aaa2; text-decoration: none; transition: background-color 120ms, color 120ms; } .ds-rail a:hover { background: #182a23; color: #e8e3d4; } .ds-rail a.on { background: #1c2f28; color: #e8e3d4; font-weight: 500; } .ds-rail a.on svg { color: #8fc7a0; } .ds-rail em { margin-left: auto; font-style: normal; font-size: 12px; color: #a0aaa2; font-variant-numeric: tabular-nums; } .ds-rail em.due { color: #e3b45c; } .ds-rail i { margin-left: auto; width: 6px; height: 6px; border-radius: 999px; background: #e8735f; } .ds-rail p { margin: 20px 0 4px; padding: 0 10px; font-size: 11px; line-height: 16px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: #a0aaa2; } .ds-rail a:focus-visible { outline: 2px solid color-mix(in oklab, #8fc7a0 75%, transparent); outline-offset: 2px; }"
+      "description": "208px ink-tinted rail: work first, Machine group second, mode toggle at the foot.",
+      "html": "<nav class=\"ds-rail\"><a class=\"on\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M22 12h-6l-2 3h-4l-2-3H2\"/><path d=\"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z\"/></svg>Trier<em>128</em></a><a href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M8 7v7M12 7v4M16 7v9\"/></svg>Pipeline<em class=\"due\">2 dues</em></a><p>Machine</p><a href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"2\"/><path d=\"M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4\"/></svg>Sources<i></i></a><a class=\"foot\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"2\" y=\"3\" width=\"20\" height=\"14\" rx=\"2\"/><path d=\"M8 21h8M12 17v4\"/></svg>Auto</a></nav>",
+      "css": ".ds-rail { width: 208px; padding: 16px 10px; background: var(--rail, #eef1f6); border-right: 1px solid var(--rail-border, #dfe4ec); display: flex; flex-direction: column; gap: 2px; font: 400 13px/1 'Public Sans', system-ui, sans-serif; } .ds-rail a { display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 10px; border-radius: 7px; color: var(--muted-foreground, #5b6574); text-decoration: none; transition: background-color 120ms, color 120ms; } .ds-rail a:hover { background: var(--rail-hover, #e6ebf3); color: var(--foreground, #161b23); } .ds-rail a.on { background: var(--rail-active, #dfe6f2); color: var(--foreground, #161b23); font-weight: 500; } .ds-rail a.on svg { color: var(--primary, #2f5fd0); } .ds-rail a.foot { margin-top: 24px; } .ds-rail em { margin-left: auto; font-style: normal; font-size: 12px; color: var(--muted-foreground, #5b6574); font-variant-numeric: tabular-nums; } .ds-rail em.due { color: var(--st-interview, #a8670f); } .ds-rail i { margin-left: auto; width: 6px; height: 6px; border-radius: 999px; background: var(--st-rejected, #c23b2a); } .ds-rail p { margin: 20px 0 4px; padding: 0 10px; font-size: 11px; line-height: 16px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-foreground, #5b6574); } .ds-rail a:focus-visible { outline: 2px solid color-mix(in oklab, var(--primary, #2f5fd0) 75%, transparent); outline-offset: 2px; }"
     },
     {
       "name": "Job Row with Score Ledger",
       "kind": "custom",
       "refersTo": "job-row-selected",
-      "description": "Signature record line: ScoreMark (figure over 72px ledger bar), title, company and status; selected row shown.",
-      "html": "<div class=\"ds-row\" aria-current=\"true\"><span class=\"ds-score\"><b>84</b><span class=\"ds-ledger\"><i style=\"width:38%;background:#8fc7a0\"></i><i style=\"width:26%;background:#6ead84\"></i><i style=\"width:20%;background:#4f8d66\"></i><i style=\"width:6%;background:#e8735f;opacity:.8\"></i></span></span><span class=\"ds-main\"><strong>Développeur logiciel junior</strong><small>Acme Inc. <span class=\"ds-pill\">Sauvegardée</span></small></span><span class=\"ds-meta\">Montréal</span><span class=\"ds-meta\">2 h</span></div><div class=\"ds-row\"><span class=\"ds-score\"><b>61</b><span class=\"ds-ledger\"><i style=\"width:35%;background:#8fc7a0\"></i><i style=\"width:26%;background:#6ead84\"></i></span></span><span class=\"ds-main\"><strong>New grad software engineer</strong><small>Globex</small></span><span class=\"ds-meta\">Remote</span><span class=\"ds-meta\">1 j</span></div>",
-      "css": ".ds-row { position: relative; display: grid; grid-template-columns: 72px minmax(0,1fr) 9.5rem 2.5rem; align-items: center; column-gap: 16px; height: 58px; padding: 0 24px; background: #10161d; border-bottom: 1px solid #1a242d; color: #e8e3d4; font: 400 13px/1.45 'Public Sans', system-ui, sans-serif; font-feature-settings: 'tnum', 'cv11'; transition: background-color 120ms cubic-bezier(0.22,1,0.36,1); } .ds-row:hover { background: #131d26; } .ds-row[aria-current=true] { background: #182630; } .ds-row[aria-current=true]::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 1px; background: #8fc7a0; } .ds-score { display: inline-flex; flex-direction: column; gap: 5px; width: 72px; } .ds-score b { font-size: 15px; line-height: 1; font-weight: 600; letter-spacing: -0.01em; } .ds-ledger { display: flex; width: 72px; height: 5px; border-radius: 1px; overflow: hidden; background: #1e2a33; } .ds-ledger i { height: 100%; } .ds-main { min-width: 0; display: flex; flex-direction: column; } .ds-main strong { font-size: 13.5px; line-height: 20px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ds-main small { display: flex; gap: 8px; align-items: center; font-size: 12px; line-height: 16px; color: #a0aaa2; } .ds-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; color: #7aa5e0; } .ds-pill::before { content: ''; width: 6px; height: 6px; border-radius: 999px; background: currentColor; } .ds-meta { font-size: 12px; color: #a0aaa2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ds-meta:last-child { text-align: right; }"
+      "description": "Signature record line: ScoreMark (figure over 72px ledger bar on the ink ramp), title, company and status; selected row shown.",
+      "html": "<div class=\"ds-row\" aria-current=\"true\"><span class=\"ds-score\"><b>84</b><span class=\"ds-ledger\"><i style=\"width:38%;background:var(--ledger-1,#2f5fd0)\"></i><i style=\"width:26%;background:var(--ledger-2,#4f7be0)\"></i><i style=\"width:20%;background:var(--ledger-3,#7598ea)\"></i><i style=\"width:6%;background:var(--st-rejected,#c23b2a);opacity:.8\"></i></span></span><span class=\"ds-main\"><strong>Développeur logiciel junior</strong><small>Acme Inc. <span class=\"ds-pill\">Sauvegardée</span></small></span><span class=\"ds-meta\">Montréal</span><span class=\"ds-meta\">2 h</span></div><div class=\"ds-row\"><span class=\"ds-score\"><b>61</b><span class=\"ds-ledger\"><i style=\"width:35%;background:var(--ledger-1,#2f5fd0)\"></i><i style=\"width:26%;background:var(--ledger-2,#4f7be0)\"></i></span></span><span class=\"ds-main\"><strong>New grad software engineer</strong><small>Globex</small></span><span class=\"ds-meta\">Remote</span><span class=\"ds-meta\">1 j</span></div>",
+      "css": ".ds-row { position: relative; display: grid; grid-template-columns: 72px minmax(0,1fr) 9.5rem 2.5rem; align-items: center; column-gap: 16px; height: 58px; padding: 0 24px; background: var(--background, #f7f8fa); border-bottom: 1px solid var(--border-soft, #e9ecf1); color: var(--foreground, #161b23); font: 400 13px/1.45 'Public Sans', system-ui, sans-serif; font-feature-settings: 'tnum', 'cv11'; transition: background-color 120ms cubic-bezier(0.22,1,0.36,1); } .ds-row:hover { background: var(--raised-hover, #f0f3f8); } .ds-row[aria-current=true] { background: var(--raised, #e8eef9); } .ds-row[aria-current=true]::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 1px; background: var(--primary, #2f5fd0); } .ds-score { display: inline-flex; flex-direction: column; gap: 5px; width: 72px; } .ds-score b { font-size: 15px; line-height: 1; font-weight: 600; letter-spacing: -0.01em; } .ds-ledger { display: flex; width: 72px; height: 5px; border-radius: 1px; overflow: hidden; background: var(--ledger-track, #e2e7ef); } .ds-ledger i { height: 100%; } .ds-main { min-width: 0; display: flex; flex-direction: column; } .ds-main strong { font-size: 13.5px; line-height: 20px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ds-main small { display: flex; gap: 8px; align-items: center; font-size: 12px; line-height: 16px; color: var(--muted-foreground, #5b6574); } .ds-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; color: var(--st-saved, #6d4fd6); } .ds-pill::before { content: ''; width: 6px; height: 6px; border-radius: 999px; background: currentColor; } .ds-meta { font-size: 12px; color: var(--muted-foreground, #5b6574); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ds-meta:last-child { text-align: right; }"
+    },
+    {
+      "name": "List Footer",
+      "kind": "custom",
+      "refersTo": "list-footer",
+      "description": "Fixed under the triage list: count, a loading tick in the accent, and the sort.",
+      "html": "<div class=\"ds-foot\"><span>1 284 offres · 50 affichées</span><i></i><div class=\"ds-foot-seg\"><button aria-pressed=\"true\">Score</button><button aria-pressed=\"false\">Récentes</button></div></div>",
+      "css": ".ds-foot { display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 24px; border-top: 1px solid var(--border, #dde2ea); background: var(--background, #f7f8fa); color: var(--muted-foreground, #5b6574); font: 400 12px/16px 'Public Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums; } .ds-foot i { width: 32px; height: 1px; background: var(--primary, #2f5fd0); } .ds-foot-seg { margin-left: auto; display: inline-flex; height: 28px; border: 1px solid var(--input, #cfd6e0); border-radius: 7px; overflow: hidden; } .ds-foot-seg button { padding: 0 10px; border: 0; background: transparent; color: var(--muted-foreground, #5b6574); font: inherit; cursor: pointer; } .ds-foot-seg button + button { border-left: 1px solid var(--input, #cfd6e0); } .ds-foot-seg button[aria-pressed=true] { background: var(--raised, #e8eef9); color: var(--foreground, #161b23); }"
     },
     {
       "name": "Status Badge",
@@ -120,7 +1549,7 @@
       "refersTo": "badge",
       "description": "Flat tinted tag, same-hue text; one shape for every status-like label.",
       "html": "<span class=\"ds-badge ds-badge-warning\">Entretien</span> <span class=\"ds-badge ds-badge-destructive\">Refusée</span> <span class=\"ds-badge\">Junior</span>",
-      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px; border-radius: 4px; background: #1b2730; color: #e8e3d4; font: 500 11px/16px 'Public Sans', system-ui, sans-serif; white-space: nowrap; } .ds-badge-warning { background: color-mix(in oklab, #e3b45c 16%, transparent); color: #e3b45c; } .ds-badge-destructive { background: color-mix(in oklab, #e8735f 16%, transparent); color: #e8735f; }"
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px; border-radius: 4px; background: var(--secondary, #eef1f5); color: var(--foreground, #161b23); font: 500 11px/16px 'Public Sans', system-ui, sans-serif; white-space: nowrap; } .ds-badge-warning { background: color-mix(in oklab, var(--st-interview, #a8670f) 16%, transparent); color: var(--st-interview, #a8670f); } .ds-badge-destructive { background: color-mix(in oklab, var(--st-rejected, #c23b2a) 16%, transparent); color: var(--st-rejected, #c23b2a); }"
     },
     {
       "name": "Undo Toast",
@@ -128,35 +1557,77 @@
       "refersTo": "toast",
       "description": "One quiet toast, bottom-right, hairline only; carries the undo with its z key cap.",
       "html": "<div class=\"ds-toast\"><span>Ignorée · Développeur logiciel junior</span><button>Annuler <kbd>z</kbd></button></div>",
-      "css": ".ds-toast { display: inline-flex; align-items: center; gap: 12px; max-width: 420px; padding: 8px 8px 8px 12px; background: #141c24; border: 1px solid #2a3742; border-radius: 7px; color: #e8e3d4; font: 400 13px/1.45 'Public Sans', system-ui, sans-serif; } .ds-toast span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ds-toast button { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border: 0; border-radius: 4px; background: transparent; color: #8fc7a0; font: inherit; font-weight: 500; cursor: pointer; } .ds-toast button:hover { background: #1b2730; } .ds-toast kbd { padding: 0 4px; border: 1px solid #2a3742; border-radius: 4px; color: #a0aaa2; font: 500 11px/16px 'Public Sans', system-ui, sans-serif; }"
+      "css": ".ds-toast { display: inline-flex; align-items: center; gap: 12px; max-width: 420px; padding: 8px 8px 8px 12px; background: var(--surface, #ffffff); border: 1px solid var(--input, #cfd6e0); border-radius: 7px; color: var(--foreground, #161b23); font: 400 13px/1.45 'Public Sans', system-ui, sans-serif; } .ds-toast span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ds-toast button { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border: 0; border-radius: 4px; background: transparent; color: var(--primary, #2f5fd0); font: inherit; font-weight: 500; cursor: pointer; } .ds-toast button:hover { background: var(--secondary, #eef1f5); } .ds-toast kbd { padding: 0 4px; border: 1px solid var(--input, #cfd6e0); border-radius: 4px; color: var(--muted-foreground, #5b6574); font: 500 11px/16px 'Public Sans', system-ui, sans-serif; }"
     }
   ],
   "narrative": {
     "northStar": "The Relevé",
-    "overview": "JobRadar reads like a university transcript or a registrar's ledger. Every offer is a record line, and its score is itemized rather than given as a bare figure: a fixed-scale ledger bar in the list that expands into the \"Relevé du score\" in the reading pane. The ground is registrar ink, the navigation sits on a security-paper green rail, and text is paper-white with a single metadata grey below it.\n\nThe density is that of a working instrument for one person at a desktop keyboard, phone second. Body copy is 13px, rows are 58px, and controls are 32px. Depth comes from tone and hairlines, never shadows or elevation. Status colours are flat and committed: each status has one colour that it carries everywhere it appears. Motion exists only to confirm a change of state, and every write is instant, optimistic and undoable.\n\nThe direction refuses the category default: a grey table with a coloured score pill beside a separate stats dashboard.",
+    "overview": "JobRadar reads like a university transcript or a registrar's ledger. Every offer is a record line, and its score is itemized rather than given as a bare figure: a fixed-scale ledger bar in the list that expands into the \"Relevé du score\" in the reading pane. The record is written in one of two inks, Encre bleue (the default) or Encre violette, on paper by day or on ink by night. Text is one record tone with a single metadata tone below it.\n\nThe density is that of a working instrument for one person at a desktop keyboard, phone second. Body copy is 13px, rows are 58px, and controls are 32px. From md up the app is the viewport: the rail stays put and each work area scrolls on its own, so the list, the reading pane and their footers never leave the screen. Depth comes from tone and hairlines, never shadows or elevation. Status colours are flat and committed, and they never share the ink's hue. Motion exists only to confirm a change of state, and every write is instant, optimistic and undoable.\n\nThe direction refuses the category default: a grey table with a coloured score pill beside a separate stats dashboard.",
     "keyCharacteristics": [
-      "Dark only (`color-scheme: dark`), ink ground with a green rail.",
+      "Two inks (`data-palette`: bleu, violet), each with a light and a dark mode (`.dark`); mode is Auto, Clair or Sombre.",
+      "One accent per ink; the ledger ramp starts at it and fades toward the ground.",
       "Two text tones, nothing in between.",
       "The score ledger bar: one 100-point scale, same size and baseline everywhere.",
       "Hairline borders for all separation, including floating layers.",
       "Tabular figures throughout (`tnum`, `cv11` on body).",
+      "The viewport is the app from md up; work areas scroll independently.",
       "Keyboard-first, optimistic, undoable."
     ],
     "rules": [
-      { "name": "The Two-Tone Rule", "body": "Text is paper-white or metadata grey. There is no third grey, and opacity tints of text are not allowed. Job description prose is the one documented exception, mixed at 88% foreground.", "section": "colors" },
-      { "name": "The Committed Status Rule", "body": "Each status has one colour, used for its pill, dot, column rule and due-list label. A status colour never decorates anything that is not that status.", "section": "colors" },
-      { "name": "The One Accent Rule", "body": "Ledger green is the only accent. Selection, the primary action and positive points share it, which is why it stays scarce.", "section": "colors" },
-      { "name": "The Tabular Rule", "body": "Every figure is set tabular (`tnum` on body, plus `tabular-nums` on counts, scores and dates). Columns of numbers have to align like a ledger.", "section": "typography" },
-      { "name": "The Column-Head Rule", "body": "Uppercase labels head a real section or column whose content follows directly below. They are never placed above a headline as decoration.", "section": "typography" },
-      { "name": "The Hairline Rule", "body": "Separation is always a 1px border or a 1px gap, never a shadow, glow or blur.", "section": "elevation" },
-      { "name": "The Selection Rule", "body": "A selected row gets the raised ground plus a 1px ledger-green rule on its left edge. Nothing else marks selection.", "section": "elevation" }
+      {
+        "name": "The Two-Tone Rule",
+        "body": "Text is record text or metadata text. There is no third grey, and opacity tints of text are not allowed. Job description prose is the one documented exception, mixed at 88% foreground into the ground.",
+        "section": "colors"
+      },
+      {
+        "name": "The Committed Status Rule",
+        "body": "Each status has one colour, used for its pill, dot, column rule and due-list label. A status colour never decorates anything that is not that status.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ink-Apart Rule",
+        "body": "No status colour shares the active ink's hue. When an ink changes, the status that would collide with it (saved) moves to the other side.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Accent Rule",
+        "body": "The ink accent is the only accent. Selection, the primary action, positive points and links share it, which is why it stays scarce.",
+        "section": "colors"
+      },
+      {
+        "name": "The Same-Roles Rule",
+        "body": "Every ink and mode defines every role. New colours are added as a role in all four blocks, never as a literal in a component.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Rule",
+        "body": "Every figure is set tabular (`tnum` on body, plus `tabular-nums` on counts, scores and dates). Columns of numbers have to align like a ledger.",
+        "section": "typography"
+      },
+      {
+        "name": "The Column-Head Rule",
+        "body": "Uppercase labels head a real section or column whose content follows directly below. They are never placed above a headline as decoration.",
+        "section": "typography"
+      },
+      {
+        "name": "The Hairline Rule",
+        "body": "Separation is always a 1px border or a 1px gap, never a shadow, glow or blur.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Selection Rule",
+        "body": "A selected row gets the raised ground plus a 1px accent rule on its left edge. Nothing else marks selection.",
+        "section": "elevation"
+      }
     ],
     "dos": [
       "Do show every score as ScoreMark or Ledger, on the fixed 72px, 100-point scale, wherever a score appears.",
-      "Do keep text to paper-white and metadata grey, with tabular figures.",
-      "Do separate with 1px hairlines (`hairline`, `hairline-soft`) and depth through tone (ink, raised hover, surface, raised).",
-      "Do mark selection with the raised ground plus a 1px ledger-green rule.",
-      "Do use one status colour per status, everywhere that status appears.",
+      "Do keep text to record text and metadata text, with tabular figures.",
+      "Do use colour only through role custom properties, defined in all four ink/mode blocks.",
+      "Do separate with 1px hairlines (`border`, `border-soft`) and depth through tone (ground, raised hover, surface, raised).",
+      "Do mark selection with the raised ground plus a 1px accent rule.",
+      "Do use one status colour per status, everywhere that status appears, on a hue apart from the ink.",
+      "Do give each work area its own scroll from md up, with its header and footer rows fixed.",
       "Do make every write optimistic, undoable with `z`, and rolled back with an error toast on failure.",
       "Do give every new action a key and list it in the `?` sheet.",
       "Do limit motion to 120 or 180ms ease-out on state changes, and respect reduced motion.",
@@ -166,8 +1637,10 @@
       "Don't use box shadows, glows or blur, on floating layers or anywhere else.",
       "Don't show a bare score number or a coloured score pill without its ledger.",
       "Don't wrap list rows or pane sections in cards. The pipeline card is the only bordered tile.",
-      "Don't add a third text grey or use opacity-tinted text.",
-      "Don't use a status hue for decoration, or ledger green for anything other than selection, the primary action and positive points.",
+      "Don't add a third text tone or use opacity-tinted text.",
+      "Don't use a status hue for decoration, or the accent for anything other than selection, the primary action, positive points, links and focus.",
+      "Don't hard-code a hex in a component; the identity swatches in Apparence are the one exception.",
+      "Don't add pagination to the triage list; it loads as you scroll.",
       "Don't animate on load, loop, shimmer, or move layout outside a state change.",
       "Don't add a second typeface or a system display face."
     ]

@@ -572,7 +572,7 @@ export function Inbox({
 /** Pinned on top of the reading pane: the way to the full page stays in reach while reading. */
 function PaneBar({ id }: { id: number }) {
   return (
-    <div className="bg-surface/95 sticky top-0 z-10 flex h-11 items-center gap-3 border-b px-7 backdrop-blur-[2px]">
+    <div className="bg-surface sticky top-0 z-10 flex h-11 items-center gap-3 border-b px-7">
       <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
         <Kbd>j</Kbd>
         <Kbd>k</Kbd> offre suivante / précédente
@@ -615,7 +615,7 @@ function ListFooter({
       <span
         className={cn(
           "bg-primary h-px w-8 transition-opacity",
-          pending ? "animate-pulse opacity-100" : "opacity-0",
+          pending ? "opacity-100" : "opacity-0",
         )}
         aria-hidden
       />
