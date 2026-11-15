@@ -1,17 +1,20 @@
 "use client";
 
 import type { ScoreBreakdown } from "@jobradar/core/score";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Check, Copy } from "lucide-react";
+import { useEffect, useState } from "react";
 import { FollowUpControl } from "@/components/job/follow-up";
 import { NotesField } from "@/components/job/notes-field";
 import { SafeNodes } from "@/components/safe-nodes";
 import { Ledger, NewGradMark, partLabel } from "@/components/score-badge";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { toast } from "@/components/ui/toast";
 import { useFormat, useT } from "@/i18n/client";
 import type { T } from "@/i18n/messages";
 import type { JobStatus } from "@/lib/filters";
+import { jobToMarkdown } from "@/lib/job-copy";
 import type { JobDetail as Job } from "@/lib/job-detail";
 import { cn } from "@/lib/utils";
 
@@ -150,6 +153,43 @@ function Sources({ job }: { job: Job }) {
   );
 }
 
+/** Copies the whole offer as Markdown, to paste into an AI assistant (CV, cover letter). */
+function CopyOfferButton({ job }: { job: Job }) {
+  const t = useT();
+  const format = useFormat();
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), 2_000);
+    return () => clearTimeout(timer);
+  }, [copied]);
+
+  const copy = async () => {
+    try {
+      // Missing outside a secure context (plain http on a LAN address).
+      if (!navigator.clipboard) throw new Error("no clipboard");
+      await navigator.clipboard.writeText(jobToMarkdown(job, t, format));
+      setCopied(true);
+      toast({ message: t("job.offerCopied") });
+    } catch {
+      toast({ message: t("job.offerCopyFailed"), tone: "error" });
+    }
+  };
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      onClick={() => void copy()}
+      title={t("job.copyOfferTitle")}
+    >
+      {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
+      {copied ? t("common.copied") : t("job.copyOffer")}
+    </Button>
+  );
+}
+
 export interface JobDetailControls {
   status: JobStatus;
   nextActionAt: string | null;
@@ -216,6 +256,7 @@ export function JobDetailView({
           open={followOpen}
           onOpenChange={onFollowOpen}
         />
+        <CopyOfferButton key={job.id} job={job} />
         {/* Phase 2: the "Generate CV.tex" action joins this row. */}
       </div>
       <Segmented
